@@ -7,22 +7,16 @@
 # chunk when a non-Sinhala reading language is selected. Remove this entry
 # if that fallback is ever dropped from reader-tools.js.
 #
-# MyAdCash (Adcash) ad network REMOVED and replaced with A-ADS. The
-# previous acscdn.com / adexchangeclear.com / usrpubtrk.com script-src and
-# connect-src entries (required by MyAdCash's aclib.js library and its
-# runBanner() XHR calls) have all been removed - A-ADS's ad unit is a
-# pure <iframe src="//acceptable.a-ads.com/..."> embed with no external
-# JS library and no XHR/fetch calls of its own, so no script-src or
-# connect-src addition is required for it.
+# Adsterra banner scripts are loaded only after the age gate is dismissed.
+# The only external script origin used by the supplied banner unit is
+# allowlisted below; frame-src permits the HTTPS creative iframe.
 #
 # frame-src remains "https:" wildcard (not a fixed domain list), which
-# already covers acceptable.a-ads.com (and any future ad-creative/embed
-# domain) without needing a maintained allowlist - the accepted, standard
-# trade-off for ad-monetized sites. media-src stays "https:" for the same
-# reason.
+# covers the ad-creative iframe without needing a maintained frame
+# allowlist. media-src stays "https:" for the same reason.
 /*
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://comments.wala-katha.workers.dev https://api.web3forms.com https://cloudflareinsights.com https://translate.googleapis.com; media-src 'self' https: blob:; frame-src 'self' https:; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com https://deliberatewatchful.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://comments.wala-katha.workers.dev https://api.web3forms.com https://cloudflareinsights.com https://translate.googleapis.com; media-src 'self' https: blob:; frame-src 'self' https:; frame-ancestors 'self'
 
 # Cache lifetimes for assets served from our own origin. Astro hashes JS/CSS
 # bundle filenames and site images never change in place (optimize-images.yml
