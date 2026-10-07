@@ -9,9 +9,7 @@ import Header from "@/partials/Header.astro";
 // Reader Tools - reading panel (TOC, typography, TTS, focus mode, translate)
 import ReaderToolsHead from "@/components/ReaderToolsHead.astro";
 import ReaderTools from "@/components/ReaderTools.astro";
-// A-ADS network - site-wide sticky footer ad unit. Replaces the
-// previous MyAdCash (Adcash) integration entirely.
-import AadsAds from "@/components/AadsAds.astro";
+import AdsterraBanner from "@/components/AdsterraBanner.astro";
 import "@/styles/main.css";
 import { Font } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
@@ -30,6 +28,7 @@ export interface Props {
   noindex?: boolean;
   canonical?: string;
   isArticle?: boolean;
+  showBottomAd?: boolean;
 }
 
 const {
@@ -42,6 +41,7 @@ const {
   noindex,
   canonical,
   isArticle = false,
+  showBottomAd = true,
 } = Astro.props;
 
 const calculatedTitle = plainify(
@@ -243,18 +243,7 @@ const isAgeGateExcludedPage = AGE_GATE_EXCLUDED_PATHS.includes(normalizedPathnam
         width: 100%;
         touch-action: none;
       }
-      /* 🎯 A-ADS FIX: "#aads-sticky-ad" මෙතනින් exclude කර ඇත. A-ADS
-         crawler bot එකට localStorage cookie/verification state එකක්
-         නොමැති නිසා, "age-gate-pending" class එක සෑම විටම apply වේ
-         (fresh visit). "#aads-sticky-ad" මෙතන exclude නොකළොත්, දැන්වීම
-         age-gate overlay එකෙන් blur + pointer-events:none වී, A-ADS
-         validator එකට "Partly or fully hidden" error එකක් පෙන්වයි.
-         age-gate-overlay එකම ලෙසම, දැන්වීමත් මෙම blur rule එකෙන් ස්ථිරව
-         නිදහස් කර ඇත - site එකේ අනිත් සියලුම content blur/lock වන අතරේත්,
-         දැන්වීම (AadsAds.astro තුළ z-index: 1000000 ලෙස age-gate එකටත්
-         (999999) වඩා ඉහළින් තබා ඇති නිසා) සෑම විට�ම පැහැදිලිව, click කළ
-         හැකි ලෙසම දිස්වේ. */
-      html.age-gate-pending body > *:not(#age-gate-overlay):not(#aads-sticky-ad) {
+      html.age-gate-pending body > *:not(#age-gate-overlay) {
         filter: blur(6px);
         pointer-events: none;
         user-select: none;
@@ -657,6 +646,7 @@ const isAgeGateExcludedPage = AGE_GATE_EXCLUDED_PATHS.includes(normalizedPathnam
     <main id="main-content" class="min-h-[60vh] flex-1 bg-[#050505]">
       <slot />
     </main>
+    {showBottomAd && <AdsterraBanner />}
     <Footer />
 
     {/* Reader Tools - floating reading panel (edge FAB + slide-in
@@ -665,16 +655,5 @@ const isAgeGateExcludedPage = AGE_GATE_EXCLUDED_PATHS.includes(normalizedPathnam
         (z-index 999999) so an unverified visitor cannot reach it. */}
     <ReaderTools />
 
-    {/* A-ADS network - site-wide sticky footer ad unit. Replaces the
-        previous MyAdCash (Adcash) integration (aclib.js + the deferred
-        adcash-ads.js controller + the per-post AdcashAds.astro 300x250
-        slot), all of which have been fully removed. This ad is a pure
-        iframe embed (acceptable.a-ads.com) with a built-in close toggle,
-        rendered once for the whole site rather than per-post. Its root
-        (#aads-sticky-ad) is explicitly excluded from the age-gate blur
-        rule above, and carries a z-index higher than the age-gate
-        overlay itself, so ad-network verification crawlers (which never
-        click "Enter" on the age gate) can always see it. */}
-    <AadsAds />
   </body>
 </html>
