@@ -26,8 +26,8 @@ At **Wal Katha**, accessible from our platform, one of our main priorities is th
 
 Wal Katha follows a standard procedure of using log files and cookies. These files log visitors when they visit websites to analyze trends, administer the site, and track users' movement on the website.
 
-### 3. Google AdSense & Third-Party Ads
-අපගේ වෙබ් අඩවියේ දැන්වීම් ප්‍රදර්ශනය කිරීම සඳහා තෙවැනි පාර්ශවීය ඇඩ් නෙට්වර්ක් (Google AdSense / Third-Party Ad Networks) භාවිතා කිරීමට ඉඩ ඇත. ඔවුන් විසින් පරිශීලකයින්ගේ රුචිකත්වයට ගැළපෙන දැන්වීම් පෙන්වීම සඳහා Cookies (DART Cookies) භාවිතා කරනු ලැබිය හැක.
+### 3. Adsterra දැන්වීම් සහ තෙවන පාර්ශවීය තාක්ෂණ
+මෙම වෙබ් අඩවියේ Adsterra විසින් සපයන banner සහ native දැන්වීම් පෙන්විය හැක. එම දැන්වීම් බාහිර සේවාවක් හරහා load වන බැවින්, Adsterra විසින් තමන්ගේ රහස්‍යතා ප්‍රතිපත්තියට අනුව cookies හෝ වෙනත් තාක්ෂණ භාවිතා කළ හැක. අපගේ වෙබ් අඩවියේ වයස තහවුරු කිරීමේ තිරය වසා දැමීමෙන් පසුව පමණක් දැන්වීම් script එක load කිරීමට සැලසුම් කර ඇත.
 
 Third-party ad servers or ad networks use technologies like cookies, JavaScript, or Web Beacons that are used in their respective advertisements and links that appear on Wal Katha.
 
