@@ -7,6 +7,7 @@ import { withTrailingSlash } from "@/lib/utils/urlHelper";
 import { Image } from "astro:assets";
 import type { CollectionEntry } from "astro:content";
 import { BiCalendarEdit, BiCategoryAlt, BiPurchaseTagAlt, BiTime } from "react-icons/bi";
+import AdsterraNative from "@/components/AdsterraNative.astro";
 
 type Props = {
   posts: CollectionEntry<"posts">[];
@@ -192,6 +193,8 @@ function getPostThumbSrc(imagePath: string): string {
       ))
     }
   </div>
+
+  {posts.length >= 4 && <AdsterraNative />}
 
   {/* Blogger Style Labels Section */}
   {uniqueTags.length > 0 && (
