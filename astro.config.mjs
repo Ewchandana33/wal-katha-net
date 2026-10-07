@@ -276,16 +276,10 @@ function ensureSitemapTrailingSlash(url) {
     return `${url}/`;
   }
 }
-// 🎯 UPDATED: "/ads" added - the standalone A-ADS verification page
-// (src/pages/ads.astro) is a utility page, not real content, so it is
-// excluded from the sitemap the same way /search and /page/1 are.
-// It is NOT blocked in robots.txt, since the A-ADS verification bot
-// still needs to fetch it directly.
 const EXCLUDED_SITEMAP_PATHS = [
   "/elements",
   "/page/1",
   "/search",
-  "/ads",
   "/news-sitemap.xml",
   "/image-sitemap.xml",
 ];
