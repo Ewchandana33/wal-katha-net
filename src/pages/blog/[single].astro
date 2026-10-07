@@ -148,6 +148,7 @@ const articleSchema = {
   image={ogImagePath}
   canonical={canonicalUrl}
   isArticle={true}
+  showBottomAd={false}
 >
   <Fragment slot="head">
     {image && <link rel="preload" as="image" href={image} fetchpriority="high" />}
