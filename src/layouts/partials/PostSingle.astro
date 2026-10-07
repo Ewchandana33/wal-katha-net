@@ -1,5 +1,6 @@
 ---
 import Share from "@/components/Share.astro";
+import AdsterraBanner from "@/components/AdsterraBanner.astro";
 import SimilarPosts from "@/layouts/components/SimilarPosts.astro";
 import config from "@/config/config.json";
 import { getSinglePage } from "@/lib/contentParser.astro";
@@ -523,9 +524,10 @@ const imageObjectSchema = schemaImageUrl
       </div>
 
       <div class="md:col-10">
-        <div class="content mb-16 text-left text-[#F8F8FF] custom-post-content">
+        <div class="content mb-6 text-left text-[#F8F8FF] custom-post-content">
           <Content />
         </div>
+        <AdsterraBanner />
 
         {/* 2026 TAGS + SHARE FOOTER REDESIGN:
             WHY: the previous layout put tags in a plain <ul class="mr-4
