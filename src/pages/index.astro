@@ -4,6 +4,7 @@ import config from "@/config/config.json";
 import Base from "@/layouts/Base.astro";
 import Pagination from "@/layouts/components/Pagination.astro";
 import FeaturedSlider from "@/layouts/components/FeaturedSlider.astro";
+import AdsterraBanner from "@/layouts/components/AdsterraBanner.astro";
 import { getSinglePage } from "@/lib/contentParser.astro";
 import { sortByDate } from "@/lib/utils/sortFunctions";
 import { withTrailingSlash } from "@/lib/utils/urlHelper";
@@ -193,6 +194,7 @@ const homePageSchema = {
   description={homeDescription}
   canonical={canonicalUrl}
   image={ogImage}
+  showBottomAd={false}
 >
   {/* DUPLICATE META REMOVED. Base.astro already emits og:type, og:title,
       og:description, og:url, og:image, twitter:card, twitter:title,
@@ -229,6 +231,7 @@ const homePageSchema = {
       </div>
 
       <FeaturedSlider />
+      <AdsterraBanner />
 
       <Posts posts={currentPosts} className="mb-16" />
       
