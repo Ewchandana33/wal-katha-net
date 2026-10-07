@@ -50,7 +50,7 @@ draft: false
 
 ### 7. තෙවන පාර්ශවීය සබැඳි සහ දැන්වීම් (Third-Party Links & Advertising)
 
-මෙම වෙබ් අඩවියේ තෙවන පාර්ශවීය වෙබ් අඩවි වෙත යොමු වන සබැඳි (Facebook, WhatsApp, Telegram ආදී) සහ Third-Party Ad Networks (Google AdSense) සම්බන්ධ දැන්වීම් තිබිය හැක. එවැනි බාහිර වෙබ් අඩවිවල content, privacy practices, හෝ ආරක්ෂාව සම්බන්ධයෙන් walakatha.net කිසිදු වගකීමක් දරන්නේ නැත.
+මෙම වෙබ් අඩවියේ තෙවන පාර්ශවීය වෙබ් අඩවි වෙත යොමු වන සබැඳි (Facebook, WhatsApp, Telegram ආදී) සහ Adsterra විසින් සපයන banner හා native දැන්වීම් තිබිය හැක. එවැනි බාහිර සේවාවල content, privacy practices, හෝ ආරක්ෂාව සම්බන්ධයෙන් walakatha.net කිසිදු වගකීමක් දරන්නේ නැත.
 
 ### 8. වගකීම් බැහැරලීම (Disclaimer)
 
