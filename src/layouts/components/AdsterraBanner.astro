@@ -1,0 +1,264 @@
+---
+const SLOT_ID = "wk-adsterra-banner";
+---
+
+<section
+  id={SLOT_ID}
+  class="wk-adsterra-slot"
+  aria-label="දැන්වීම / Advertisement"
+  data-ad-status="idle"
+  hidden
+>
+  <p class="wk-adsterra-label" data-ad-label hidden>දැන්වීම / Advertisement</p>
+  <div class="wk-adsterra-viewport" data-ad-viewport>
+    <div class="wk-adsterra-canvas" data-ad-canvas></div>
+  </div>
+</section>
+
+<script is:inline>
+  (function () {
+    var controllerKey = "__wkAdsterraBannerController";
+
+    function createController() {
+      var active = null;
+      var unitKey = "1476cd22ae6f9a0f15813315eb1e129b";
+      var unitWidth = 468;
+      var unitHeight = 60;
+
+      function isAgeVerified() {
+        try {
+          return localStorage.getItem("wk_age_verified") === "true";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function isGateDismissed() {
+        var gate = document.getElementById("age-gate-overlay");
+        return !gate || window.getComputedStyle(gate).display === "none";
+      }
+
+      function detach(state, removeFrame) {
+        if (!state) return;
+        window.clearTimeout(state.timeout);
+        if (state.mutationObserver) state.mutationObserver.disconnect();
+        if (state.resizeObserver) state.resizeObserver.disconnect();
+        if (state.resizeHandler) window.removeEventListener("resize", state.resizeHandler);
+        if (state.frame && removeFrame) state.frame.remove();
+        if (state.script && state.script.parentNode) state.script.remove();
+      }
+
+      function unavailable(state) {
+        if (!state || state.finished) return;
+        state.finished = true;
+        detach(state, true);
+        if (state.slot.isConnected) {
+          state.slot.hidden = true;
+          state.slot.dataset.adStatus = "unavailable";
+        }
+        if (active === state) active = null;
+      }
+
+      function resize(state) {
+        if (!state.slot.isConnected || !state.viewport || !state.canvas) return;
+        var parent = state.slot.parentElement;
+        var parentWidth = parent ? parent.getBoundingClientRect().width : unitWidth;
+        if (!parentWidth) parentWidth = unitWidth;
+
+        // Keep the 468x60 Adsterra unit intact; scale the rendered frame
+        // proportionally only when its surrounding column is narrower.
+        var scale = Math.min(1, Math.max(0.1, (parentWidth - 16) / unitWidth));
+        state.viewport.style.width = Math.round(unitWidth * scale) + "px";
+        state.viewport.style.height = Math.round(unitHeight * scale) + "px";
+        state.canvas.style.width = unitWidth + "px";
+        state.canvas.style.height = unitHeight + "px";
+        state.canvas.style.transform = "scale(" + scale + ")";
+      }
+
+      function showIfLoaded(state) {
+        if (!state || state.finished || state.loaded || !state.frame) return;
+        if (!state.slot.isConnected || !isAgeVerified() || !isGateDismissed()) {
+          unavailable(state);
+          return;
+        }
+
+        var source = state.frame.getAttribute("src") || "";
+        var hasSrcdoc = state.frame.hasAttribute("srcdoc");
+        if (!hasSrcdoc && (!source || /^about:blank(?:[#?]|$)/i.test(source))) return;
+
+        // An accessible, still-empty about:blank frame is not a filled ad.
+        // Cross-origin creative contents cannot be inspected by the page.
+        try {
+          var frameDocument = state.frame.contentDocument;
+          if (frameDocument && frameDocument.location.href === "about:blank" && !hasSrcdoc) {
+            var body = frameDocument.body;
+            if (!body || (!body.childElementCount && !body.textContent.trim())) return;
+          }
+        } catch (error) {
+          // A cross-origin frame is expected for a third-party ad creative.
+        }
+
+        state.loaded = true;
+        window.clearTimeout(state.timeout);
+        if (state.mutationObserver) state.mutationObserver.disconnect();
+        resize(state);
+        state.slot.hidden = false;
+        state.slot.dataset.adStatus = "loaded";
+        state.label.hidden = false;
+
+        if ("ResizeObserver" in window && state.slot.parentElement) {
+          state.resizeObserver = new ResizeObserver(function () {
+            resize(state);
+          });
+          state.resizeObserver.observe(state.slot.parentElement);
+        } else {
+          state.resizeHandler = function () {
+            resize(state);
+          };
+          window.addEventListener("resize", state.resizeHandler, { passive: true });
+        }
+      }
+
+      function findFrame(state) {
+        if (!state.slot.isConnected || state.frame) return;
+        var frame = state.slot.querySelector("iframe");
+        if (!frame) return;
+
+        state.frame = frame;
+        frame.setAttribute("title", frame.getAttribute("title") || "Advertisement");
+        frame.setAttribute("width", String(unitWidth));
+        frame.setAttribute("height", String(unitHeight));
+        frame.setAttribute("loading", "eager");
+        frame.style.setProperty("width", unitWidth + "px", "important");
+        frame.style.setProperty("height", unitHeight + "px", "important");
+        frame.style.setProperty("display", "block", "important");
+        frame.style.setProperty("border", "0", "important");
+        frame.style.setProperty("background", "transparent", "important");
+
+        // The supplied invoke.js inserts its iframe beside its script.
+        // Put only that frame into our responsive viewport; the script
+        // remains untouched for Adsterra's own initialization.
+        frame.addEventListener("load", function () {
+          showIfLoaded(state);
+        });
+        state.canvas.appendChild(frame);
+      }
+
+      function init() {
+        var slot = document.getElementById("wk-adsterra-banner");
+        if (!slot || !isAgeVerified() || !isGateDismissed()) return;
+        if (slot.dataset.adStatus !== "idle") return;
+
+        var viewport = slot.querySelector("[data-ad-viewport]");
+        var canvas = slot.querySelector("[data-ad-canvas]");
+        var label = slot.querySelector("[data-ad-label]");
+        if (!viewport || !canvas || !label) return;
+
+        slot.dataset.adStatus = "loading";
+        var state = {
+          slot: slot,
+          viewport: viewport,
+          canvas: canvas,
+          label: label,
+          frame: null,
+          script: null,
+          mutationObserver: null,
+          resizeObserver: null,
+          resizeHandler: null,
+          timeout: 0,
+          loaded: false,
+          finished: false,
+        };
+        active = state;
+
+        state.mutationObserver = new MutationObserver(function () {
+          findFrame(state);
+        });
+        state.mutationObserver.observe(slot, { childList: true, subtree: true });
+        state.timeout = window.setTimeout(function () {
+          unavailable(state);
+        }, 12000);
+
+        // Match the publisher snippet exactly: one banner unit, 468x60.
+        window.atOptions = {
+          key: unitKey,
+          format: "iframe",
+          height: unitHeight,
+          width: unitWidth,
+          params: {},
+        };
+
+        var script = document.createElement("script");
+        script.setAttribute("data-cfasync", "false");
+        script.type = "text/javascript";
+        script.async = true;
+        script.src = "https://deliberatewatchful.com/" + unitKey + "/invoke.js";
+        script.onerror = function () {
+          unavailable(state);
+        };
+        state.script = script;
+        slot.appendChild(script);
+      }
+
+      function beforeSwap() {
+        if (!active) return;
+        detach(active, true);
+        active = null;
+      }
+
+      return { init: init, beforeSwap: beforeSwap };
+    }
+
+    var controller = window[controllerKey];
+    if (!controller) {
+      controller = createController();
+      window[controllerKey] = controller;
+      document.addEventListener("astro:page-load", controller.init);
+      document.addEventListener("wk:age-gate-dismissed", controller.init);
+      document.addEventListener("astro:before-swap", controller.beforeSwap);
+    }
+
+    controller.init();
+  })();
+</script>
+
+<style>
+  .wk-adsterra-slot {
+    width: fit-content;
+    max-width: 100%;
+    margin: 1.5rem auto;
+    color: #94a3b8;
+    text-align: center;
+  }
+
+  .wk-adsterra-slot[hidden],
+  .wk-adsterra-label[hidden] {
+    display: none !important;
+  }
+
+  .wk-adsterra-label {
+    margin: 0 0 0.25rem;
+    font-size: 0.625rem;
+    line-height: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .wk-adsterra-viewport {
+    position: relative;
+    overflow: hidden;
+    margin-inline: auto;
+  }
+
+  .wk-adsterra-canvas {
+    position: absolute;
+    inset: 0 auto auto 0;
+    transform-origin: top left;
+  }
+
+  .wk-adsterra-canvas :global(iframe) {
+    display: block;
+    border: 0;
+    background: transparent;
+  }
+</style>
