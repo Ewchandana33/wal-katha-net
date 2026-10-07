@@ -1,0 +1,276 @@
+---
+const SLOT_ID = "wk-adsterra-native";
+const CONTAINER_ID = "container-80fb79bb864698f9c4deb67894169b1e";
+---
+
+<section
+  id={SLOT_ID}
+  class="wk-adsterra-native-slot"
+  aria-label="Sponsored content / දැන්වීම"
+  data-ad-status="idle"
+>
+  <p class="wk-adsterra-native-label">Sponsored / දැන්වීම</p>
+  <div id={CONTAINER_ID} class="wk-adsterra-native-container"></div>
+</section>
+
+<script is:inline>
+  (function () {
+    var controllerKey = "__wkAdsterraNativeController";
+    var containerId = "container-80fb79bb864698f9c4deb67894169b1e";
+    var unitKey = "80fb79bb864698f9c4deb67894169b1e";
+
+    function createController() {
+      var active = null;
+
+      function isAgeVerified() {
+        try {
+          return localStorage.getItem("wk_age_verified") === "true";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function isGateDismissed() {
+        var gate = document.getElementById("age-gate-overlay");
+        return !gate || window.getComputedStyle(gate).display === "none";
+      }
+
+      function detach(state, clearContent) {
+        if (!state) return;
+        window.clearTimeout(state.timeout);
+        if (state.observer) state.observer.disconnect();
+        if (state.script && state.script.parentNode) state.script.remove();
+        if (clearContent && state.container) {
+          while (state.container.firstChild) {
+            state.container.removeChild(state.container.firstChild);
+          }
+        }
+      }
+
+      function unavailable(state) {
+        if (!state || state.finished) return;
+        state.finished = true;
+        detach(state, true);
+        if (state.slot.isConnected) {
+          state.slot.dataset.adStatus = "unavailable";
+        }
+        if (active === state) active = null;
+      }
+
+      function hasLoadedCreativeFrame(frame) {
+        if (!frame.__wkAdsterraNativeLoaded) return false;
+        var source = frame.getAttribute("src") || "";
+        var hasSrcdoc = frame.hasAttribute("srcdoc");
+        if (!hasSrcdoc && (!source || /^about:blank(?:[#?]|$)/i.test(source))) {
+          try {
+            var frameDocument = frame.contentDocument;
+            var body = frameDocument && frameDocument.body;
+            return !!(body && (body.childElementCount || body.textContent.trim()));
+          } catch (error) {
+            return false;
+          }
+        }
+
+        var rect = frame.getBoundingClientRect();
+        var width = Number(frame.getAttribute("width")) || rect.width;
+        var height = Number(frame.getAttribute("height")) || rect.height;
+        return width > 1 && height > 1;
+      }
+
+      function hasCreative(state) {
+        var container = state.container;
+        if (!container) return false;
+
+        if ((container.textContent || "").replace(/\s+/g, " ").trim().length > 1) {
+          return true;
+        }
+
+        var images = container.querySelectorAll("img");
+        for (var i = 0; i < images.length; i++) {
+          var image = images[i];
+          if (image.complete && image.naturalWidth > 1 && image.naturalHeight > 1) {
+            return true;
+          }
+        }
+
+        var frames = container.querySelectorAll("iframe");
+        for (var j = 0; j < frames.length; j++) {
+          if (hasLoadedCreativeFrame(frames[j])) return true;
+        }
+
+        var graphics = container.querySelectorAll("svg, canvas, video");
+        for (var k = 0; k < graphics.length; k++) {
+          var graphic = graphics[k];
+          if (graphic.tagName.toLowerCase() === "svg" && graphic.childElementCount) {
+            return true;
+          }
+          if (graphic.tagName.toLowerCase() === "canvas" && graphic.width > 1 && graphic.height > 1) {
+            return true;
+          }
+          if (graphic.tagName.toLowerCase() === "video" && graphic.videoWidth > 1 && graphic.videoHeight > 1) {
+            return true;
+          }
+        }
+
+        var styled = container.querySelectorAll("[style]");
+        for (var m = 0; m < styled.length; m++) {
+          var background = window.getComputedStyle(styled[m]).backgroundImage;
+          if (background && background !== "none") return true;
+        }
+
+        return false;
+      }
+
+      function reveal(state) {
+        if (!state || state.finished || state.loaded) return;
+        if (!state.slot.isConnected || !isAgeVerified() || !isGateDismissed()) {
+          unavailable(state);
+          return;
+        }
+
+        state.loaded = true;
+        state.slot.dataset.adStatus = "loaded";
+        window.clearTimeout(state.timeout);
+        if (state.observer) state.observer.disconnect();
+      }
+
+      function watchCreative(state) {
+        if (state.finished || state.loaded) return;
+
+        var frames = state.container.querySelectorAll("iframe");
+        for (var i = 0; i < frames.length; i++) {
+          var frame = frames[i];
+          if (!state.seenFrames.has(frame)) {
+            state.seenFrames.add(frame);
+            frame.addEventListener("load", function () {
+              this.__wkAdsterraNativeLoaded = true;
+              watchCreative(state);
+            });
+          }
+        }
+
+        var images = state.container.querySelectorAll("img");
+        for (var j = 0; j < images.length; j++) {
+          var image = images[j];
+          if (!state.seenImages.has(image)) {
+            state.seenImages.add(image);
+            image.addEventListener("load", function () {
+              watchCreative(state);
+            });
+          }
+        }
+
+        if (hasCreative(state)) reveal(state);
+      }
+
+      function init() {
+        var slot = document.getElementById("wk-adsterra-native");
+        var container = document.getElementById(containerId);
+        if (!slot || !container || !isAgeVerified() || !isGateDismissed()) return;
+        if (slot.dataset.adStatus !== "idle" || typeof MutationObserver === "undefined") return;
+
+        slot.dataset.adStatus = "loading";
+        var state = {
+          slot: slot,
+          container: container,
+          script: null,
+          observer: null,
+          timeout: 0,
+          seenFrames: new WeakSet(),
+          seenImages: new WeakSet(),
+          loaded: false,
+          finished: false,
+        };
+        active = state;
+
+        state.observer = new MutationObserver(function () {
+          watchCreative(state);
+        });
+        state.observer.observe(container, {
+          attributes: true,
+          characterData: true,
+          childList: true,
+          subtree: true,
+        });
+        state.timeout = window.setTimeout(function () {
+          unavailable(state);
+        }, 15000);
+
+        var script = document.createElement("script");
+        script.setAttribute("async", "async");
+        script.setAttribute("data-cfasync", "false");
+        script.src = "https://deliberatewatchful.com/" + unitKey + "/invoke.js";
+        script.onerror = function () {
+          unavailable(state);
+        };
+        state.script = script;
+
+        // Keep Adsterra's supplied script-then-container order. The request
+        // happens only now, after age verification and the gate's fade-out.
+        container.parentNode.insertBefore(script, container);
+      }
+
+      function beforeSwap() {
+        if (!active) return;
+        detach(active, false);
+        active = null;
+      }
+
+      return { init: init, beforeSwap: beforeSwap };
+    }
+
+    var controller = window[controllerKey];
+    if (!controller) {
+      controller = createController();
+      window[controllerKey] = controller;
+      document.addEventListener("astro:page-load", controller.init);
+      document.addEventListener("wk:age-gate-dismissed", controller.init);
+      document.addEventListener("astro:before-swap", controller.beforeSwap);
+    }
+
+    controller.init();
+  })();
+</script>
+
+<style>
+  .wk-adsterra-native-slot {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 728px;
+    height: 0;
+    margin: 0 auto;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .wk-adsterra-native-slot[data-ad-status="loaded"] {
+    height: auto;
+    margin: 1.5rem auto;
+    overflow: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .wk-adsterra-native-label {
+    margin: 0 0 0.5rem;
+    color: #94a3b8;
+    font-size: 0.625rem;
+    line-height: 1rem;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .wk-adsterra-native-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .wk-adsterra-native-container :global(img),
+  .wk-adsterra-native-container :global(iframe),
+  .wk-adsterra-native-container :global(video) {
+    max-width: 100%;
+  }
+</style>
