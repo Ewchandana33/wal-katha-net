@@ -218,17 +218,12 @@ const homePageSchema = {
   <div class="section pt-4 pb-12 min-h-screen bg-[#050505] text-slate-200 antialiased">
     <div class="container">
 
-      <!--
-        Auto-collapsing homepage H1 (SEO-safe): the H1 text node and its
-        id="speakable-home-heading" stay in the DOM at all times -
-        display:none is never used. Only max-height/opacity/margin animate,
-        so crawlers see exactly what a real visitor sees first.
-      -->
-      <div id="home-heading-shell" class="home-heading-collapsible">
-        <h1 id="speakable-home-heading" class="text-center text-sm sm:text-base font-bold text-emerald-400/90 tracking-wide uppercase">
-          {homeH1}
-        </h1>
-      </div>
+      <h1
+        id="speakable-home-heading"
+        class="mb-4 text-center text-sm font-bold uppercase tracking-wide text-emerald-400/90 sm:text-base"
+      >
+        {homeH1}
+      </h1>
 
       <FeaturedSlider />
       <AdsterraBanner />
@@ -240,50 +235,4 @@ const homePageSchema = {
     </div>
   </div>
 
-  <style>
-    .home-heading-collapsible {
-      max-height: 200px;
-      opacity: 1;
-      margin-bottom: 1rem;
-      overflow: hidden;
-      transition:
-        max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.5s ease,
-        margin-bottom 0.6s ease;
-    }
-    #home-heading-shell.is-collapsed {
-      max-height: 0;
-      opacity: 0;
-      margin-bottom: 0;
-      pointer-events: none;
-    }
-  </style>
-
-  <script>
-    let homeHeadingCollapseTimer: ReturnType<typeof setTimeout> | null = null;
-
-    function initHomeHeadingAutoCollapse() {
-      const shell = document.getElementById("home-heading-shell");
-      if (!shell) return;
-
-      shell.classList.remove("is-collapsed");
-
-      if (homeHeadingCollapseTimer) {
-        clearTimeout(homeHeadingCollapseTimer);
-      }
-
-      homeHeadingCollapseTimer = setTimeout(() => {
-        shell.classList.add("is-collapsed");
-      }, 5000);
-    }
-
-    document.addEventListener("astro:page-load", initHomeHeadingAutoCollapse);
-
-    document.addEventListener("astro:before-swap", () => {
-      if (homeHeadingCollapseTimer) {
-        clearTimeout(homeHeadingCollapseTimer);
-        homeHeadingCollapseTimer = null;
-      }
-    });
-  </script>
 </Base>
