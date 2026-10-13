@@ -276,6 +276,54 @@ function ensureSitemapTrailingSlash(url) {
     return `${url}/`;
   }
 }
+function isFrontmatterTrue(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/^['"]|['"]$/g, "")
+    .toLowerCase() === "true";
+}
+function getThinTaxonomySitemapPaths(fieldName, routeSegment) {
+  const postCounts = new Map();
+  for (const filePath of getAllPostFiles()) {
+    const frontmatter = readFrontmatter(filePath) || "";
+    if (isFrontmatterTrue(extractScalarField(frontmatter, "draft"))) continue;
+    const slugs = new Set(
+      extractArrayField(frontmatter, fieldName)
+        .map((value) => githubSlug(value))
+        .filter(Boolean)
+    );
+    for (const slug of slugs) {
+      postCounts.set(slug, (postCounts.get(slug) || 0) + 1);
+    }
+  }
+  // Keep this threshold aligned with the category and tag page templates.
+  return Array.from(postCounts.entries())
+    .filter(([, postCount]) => postCount < 2)
+    .map(([slug]) => "/" + routeSegment + "/" + slug);
+}
+function getNoindexPageSitemapPaths() {
+  const pagesDir = path.join(CONTENT_DIR, "pages");
+  let files = [];
+  try {
+    files = readdirSync(pagesDir).filter((file) => /^.+\.(md|mdx)$/i.test(file) && !file.startsWith("-"));
+  } catch {
+    return [];
+  }
+  return files
+    .filter((file) => {
+      const frontmatter = readFrontmatter(path.join(pagesDir, file));
+      return (
+        isFrontmatterTrue(extractScalarField(frontmatter, "noindex")) &&
+        !isFrontmatterTrue(extractScalarField(frontmatter, "draft"))
+      );
+    })
+    .map((file) => "/" + file.replace(/\.(md|mdx)$/i, ""));
+}
+const AUTOMATICALLY_EXCLUDED_SITEMAP_PATHS = [
+  ...getThinTaxonomySitemapPaths("categories", "categories"),
+  ...getThinTaxonomySitemapPaths("tags", "tags"),
+  ...getNoindexPageSitemapPaths(),
+];
 const EXCLUDED_SITEMAP_PATHS = [
   "/elements",
   "/blog/akkai-nangi-wal-katha",
@@ -284,7 +332,97 @@ const EXCLUDED_SITEMAP_PATHS = [
   "/search",
   "/news-sitemap.xml",
   "/image-sitemap.xml",
+  ...AUTOMATICALLY_EXCLUDED_SITEMAP_PATHS,
 ];
+
+function findSitemapFiles(directory, found = []) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const filePath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      findSitemapFiles(filePath, found);
+    } else if (entry.isFile() && /sitemap.*\.xml$/i.test(entry.name)) {
+      found.push(filePath);
+    }
+  }
+  return found;
+}
+function verifySitemapIndexability({ dir }) {
+  const distDir = fileURLToPath(dir);
+  const sitemapFiles = findSitemapFiles(distDir);
+  if (sitemapFiles.length === 0) {
+    throw new Error("[sitemap-indexability] No XML sitemap files found in build output.");
+  }
+  const expectedOrigin = new URL(config.site.base_url || "https://www.walakatha.net").origin;
+  const issues = [];
+  let checked = 0;
+  for (const sitemapFile of sitemapFiles) {
+    const xml = readFileSync(sitemapFile, "utf-8");
+    for (const match of xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)) {
+      let pageUrl;
+      try {
+        pageUrl = new URL(match[1].trim());
+      } catch {
+        issues.push("Invalid sitemap URL: " + match[1].trim());
+        continue;
+      }
+      if (/\.xml$/i.test(pageUrl.pathname)) continue;
+      if (pageUrl.origin !== expectedOrigin) {
+        issues.push("Unexpected sitemap host for " + pageUrl.href);
+        continue;
+      }
+      let relativePath;
+      try {
+        relativePath = decodeURIComponent(pageUrl.pathname).replace(/^\/+/, "");
+      } catch {
+        issues.push("Invalid encoded sitemap path: " + pageUrl.href);
+        continue;
+      }
+      if (relativePath.split("/").includes("..")) {
+        issues.push("Unsafe sitemap path: " + pageUrl.href);
+        continue;
+      }
+      const normalizedPath = relativePath.replace(/\/+$/, "");
+      const candidates = [
+        path.join(distDir, normalizedPath, "index.html"),
+        path.join(distDir, normalizedPath + ".html"),
+      ];
+      const htmlPath = candidates.find((candidate) => existsSync(candidate));
+      if (!htmlPath) {
+        issues.push("No built HTML found for " + pageUrl.href);
+        continue;
+      }
+      const html = readFileSync(htmlPath, "utf-8");
+      const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
+      const robotsTag = metaTags.find((tag) => /\bname\s*=\s*["']robots["']/i.test(tag));
+      const robotsContent = robotsTag && robotsTag.match(/\bcontent\s*=\s*["']([^"']*)["']/i);
+      if (robotsContent && /(^|[\s,])noindex([\s,]|$)/i.test(robotsContent[1])) {
+        issues.push("noindex URL included in sitemap: " + pageUrl.href);
+      }
+      const canonicalTag = html.match(/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*>/i);
+      const canonicalHref = canonicalTag && canonicalTag[0].match(/\bhref\s*=\s*["']([^"']+)["']/i);
+      if (!canonicalHref) {
+        issues.push("Missing canonical on sitemap URL: " + pageUrl.href);
+      } else if (new URL(canonicalHref[1], pageUrl).href !== pageUrl.href) {
+        issues.push("Canonical does not match sitemap URL: " + pageUrl.href);
+      }
+      checked += 1;
+    }
+  }
+  if (issues.length > 0) {
+    throw new Error(
+      "[sitemap-indexability] Found " + issues.length + " issue(s):\n" + issues.join("\n")
+    );
+  }
+  console.log("[sitemap-indexability] Checked " + checked + " page URL(s); all are indexable with matching canonicals.");
+}
+function sitemapIndexabilityGuard() {
+  return {
+    name: "sitemap-indexability-guard",
+    hooks: {
+      "astro:build:done": verifySitemapIndexability,
+    },
+  };
+}
 function isExcludedFromSitemap(url) {
   const pathname = url.replace(/^https?:\/\/[^/]+/, "").replace(/\/$/, "");
   return EXCLUDED_SITEMAP_PATHS.some(
@@ -344,6 +482,7 @@ export default defineConfig({
         return item;
       },
     }),
+    sitemapIndexabilityGuard(),
     AutoImport({
       imports: [
         "@/shortcodes/Button",
