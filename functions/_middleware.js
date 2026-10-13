@@ -44,6 +44,11 @@ export async function onRequest(context) {
   if (!isOwnDomain(url.hostname)) {
     return next();
   }
+  // ACME and other HTTP-based domain-verification probes require the original
+  // scheme, host, and literal path. Never canonicalize or add a slash here.
+  if (url.pathname === "/.well-known" || url.pathname.startsWith("/.well-known/")) {
+    return next();
+  }
   let needsRedirect = false;
   const target = new URL(url.toString());
   // Force https
