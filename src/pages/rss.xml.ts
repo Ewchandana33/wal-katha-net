@@ -44,7 +44,9 @@ export async function GET(context: APIContext) {
       content: "http://purl.org/rss/1.0/modules/content/",
       media: "http://search.yahoo.com/mrss/",
     },
-    items: sortedPosts.map((post) => {
+    items: sortedPosts
+      .filter((post) => !["akkai-nangi-wal-katha", "bus-jack-wal-katha"].includes(post.id))
+      .map((post) => {
       const postUrl = withTrailingSlash(`${siteUrl}/blog/${post.id}`);
       const imageUrl = post.data.image
         ? post.data.image.startsWith("http")

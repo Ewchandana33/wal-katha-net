@@ -50,6 +50,9 @@ const safeUpdatedISO = hasGenuineUpdate ? parsedUpdated!.toISOString() : safeDat
 
 const base_url = (config?.site?.base_url || "").replace(/\/$/, "");
 
+// These pages are deliberately excluded from search and discovery feeds.
+const NOINDEX_POST_IDS = new Set(["akkai-nangi-wal-katha", "bus-jack-wal-katha"]);
+
 // Cloudflare Pages trailing-slash consistency: canonical tag and schema URL must match exactly.
 const canonicalUrl = `${base_url}/blog/${post.id}/`;
 
@@ -147,6 +150,7 @@ const articleSchema = {
   description={descriptionClean}
   image={ogImagePath}
   canonical={canonicalUrl}
+  noindex={NOINDEX_POST_IDS.has(post.id)}
   isArticle={true}
   showBottomAd={false}
 >
