@@ -79,6 +79,12 @@ const nextUrl = currentPage < totalPages ? `${base_url}/page/${currentPage + 1}/
 
   <section class="section pt-4 pb-12">
     <div class="container">
+      {currentPage > 1 && (
+        <h1 class="mb-6 text-center text-xl font-bold text-slate-100">
+          සිංහල වල් කතා එකතුව - පිටුව {currentPage}
+        </h1>
+      )}
+
       {currentPosts && currentPosts.length > 0 ? (
         <Posts className="mb-16" posts={currentPosts} />
       ) : (

@@ -41,3 +41,6 @@ jobs:
 
       - name: Build static site
         run: yarn build
+
+      - name: Verify pagination SEO output
+        run: node scripts/verify-pagination-seo.mjs
