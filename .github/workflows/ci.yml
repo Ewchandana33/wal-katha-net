@@ -36,5 +36,8 @@ jobs:
       - name: Type-check Astro files
         run: yarn run check
 
+      - name: Test Cloudflare Pages middleware
+        run: yarn test
+
       - name: Build static site
         run: yarn build
