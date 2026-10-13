@@ -74,3 +74,6 @@
 /authors/walakatha/                      /authors/wala-katha/                301
 /authors/walakatha                       /authors/wala-katha/                301
 /authors/walakatha/*                     /authors/wala-katha/                301
+
+# Redirect the conventional sitemap URL to the canonical Astro sitemap index.
+/sitemap.xml  /sitemap-index.xml  301
