@@ -77,7 +77,7 @@ const demoSlides = [
 //    bytes are unchanged between builds, the hash (and therefore the
 //    URL) stays identical, so the 1-year immutable caching benefit
 //    for genuinely unchanged assets is fully preserved.
-function getAssetVersion(publicRelativePath) {
+function getAssetVersion(publicRelativePath: string) {
   try {
     const cleanRelPath = publicRelativePath.replace(/^\/+/, "");
     const absPath = path.join(process.cwd(), "public", cleanRelPath);
@@ -88,7 +88,7 @@ function getAssetVersion(publicRelativePath) {
     return "";
   }
 }
-function withVersion(publicRelativePath) {
+function withVersion(publicRelativePath: string) {
   const version = getAssetVersion(publicRelativePath);
   return version ? `${publicRelativePath}?v=${version}` : publicRelativePath;
 }
@@ -246,7 +246,9 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
 
     function updateSlider(index: number) {
       currentIndex = index;
-      wrapper.style.transform = `translateX(-${index * 25}%)`;
+      const activeWrapper = wrapper;
+      if (!activeWrapper) return;
+      activeWrapper.style.transform = `translateX(-${index * 25}%)`;
 
       // Visual dot state now lives on the inner span, not the button
       // itself (button is the 24x24 hit area, span is the 8x8 dot).

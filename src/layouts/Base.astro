@@ -27,6 +27,7 @@ export interface Props {
   imageHeight?: number;
   noindex?: boolean;
   canonical?: string;
+  next?: string | null;
   isArticle?: boolean;
   showBottomAd?: boolean;
 }
@@ -40,6 +41,7 @@ const {
   imageHeight,
   noindex,
   canonical,
+  next,
   isArticle = false,
   showBottomAd = true,
 } = Astro.props;
@@ -580,6 +582,7 @@ const isAgeGateExcludedPage = AGE_GATE_EXCLUDED_PATHS.includes(normalizedPathnam
 
     <title>{calculatedTitle}</title>
     <link rel="canonical" href={currentCanonical} />
+    {next && <link rel="next" href={ensureTrailingSlash(next)} />}
     <meta name="description" content={calculatedDescription} />
 
     {noindex

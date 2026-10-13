@@ -19,6 +19,7 @@ const aboutCollection = defineCollection({
   schema: z.object({
     title: z.string().trim(),
     meta_title: z.string().optional(),
+    description: z.string().optional(),
     image: z.string().optional(),
     draft: z.boolean().optional(),
     what_i_do: z.object({

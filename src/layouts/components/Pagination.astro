@@ -16,6 +16,7 @@ for (let i = 1; i <= totalPages; i++) {
     <nav class="mb-4 flex justify-center space-x-2 text-center select-none" aria-label="Pagination">
       {/* ⬅️ PREVIOUS PAGE BUTTON */}
       {hasPrevPage ? (
+        /* Previous-page button styling */
         <a
           href={
             indexPageLink
@@ -23,7 +24,6 @@ for (let i = 1; i <= totalPages; i++) {
               : `${section ? "/" + section : ""}/page/${currentPage - 1}/`
           }
           rel="prev"
-          /* 🎯 UI FIX: බෝඩර්ස් white/20 කරලා, අකුරු/අයිකන පිරිසිදු සුදු (text-white) කළා. හොවර් එකේදී තීම් කලර් එක වන #01AD9F එකට මාරු වේ */
           class="border border-white/20 hover:border-[#01AD9F] hover:bg-[#01AD9F] text-white rounded-md h-10 w-10 leading-[36px] font-black flex items-center justify-center transition duration-200 shadow-sm"
         >
           <span class="sr-only">Previous</span>

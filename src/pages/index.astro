@@ -157,12 +157,12 @@ const homePageSchema = {
       // E-E-A-T: a reachable contact point is one of the trust signals
       // Google documents for publisher entities. Values come from
       // config.json so there is a single source of truth.
-      ...(config?.params?.contact_email
+      ...(config?.contactinfo?.email
         ? {
             "contactPoint": {
               "@type": "ContactPoint",
               "contactType": "customer support",
-              "email": config.params.contact_email,
+              "email": config.contactinfo.email,
               "availableLanguage": ["Sinhala", "English"]
             }
           }

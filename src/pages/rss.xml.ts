@@ -55,11 +55,11 @@ export async function GET(context: APIContext) {
       // Raw markdown body එක plain-text ලෙසට සරල HTML paragraph
       // tags වලට convert කිරීම (full RSS reader compatibility සඳහා
       // markdown syntax raw ලෙස පෙන්වන්නේ නැතුව).
-      const rawBody = post.body ?? "";
+      const rawBody: string = typeof post.body === "string" ? post.body : "";
       const htmlBody = rawBody
         .split(/\n\s*\n/)
-        .filter((para) => para.trim().length > 0)
-        .map((para) => `<p>${para.trim().replace(/\n/g, "<br/>")}</p>`)
+        .filter((para: string) => para.trim().length > 0)
+        .map((para: string) => `<p>${para.trim().replace(/\n/g, "<br/>")}</p>`)
         .join("\n");
 
       return {
@@ -71,8 +71,8 @@ export async function GET(context: APIContext) {
           ? post.data.authors[0]
           : config?.metadata?.meta_author || "Wala Katha",
         categories: [
-          ...(post.data.categories || []).map((c) => humanize(c)),
-          ...(post.data.tags || []).map((t) => humanize(t)),
+          ...(post.data.categories || []).map((category: string) => humanize(category)),
+          ...(post.data.tags || []).map((tag: string) => humanize(tag)),
         ],
         customData: [
           imageUrl ? `<enclosure url="${imageUrl}" type="image/webp" />` : "",

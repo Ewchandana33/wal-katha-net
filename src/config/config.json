@@ -12,6 +12,7 @@
   },
 
   "settings": {
+    "default_language": "si",
     "pagination": 6
   },
 
