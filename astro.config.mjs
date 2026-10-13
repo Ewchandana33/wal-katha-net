@@ -278,6 +278,8 @@ function ensureSitemapTrailingSlash(url) {
 }
 const EXCLUDED_SITEMAP_PATHS = [
   "/elements",
+  "/blog/akkai-nangi-wal-katha",
+  "/blog/bus-jack-wal-katha",
   "/page/1",
   "/search",
   "/news-sitemap.xml",
