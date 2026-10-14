@@ -27,10 +27,17 @@ on:
     inputs:
       lookback_days:
         description: "Days of Search Console data to pull"
+        type: string
         default: "90"
       min_impressions:
         description: "Minimum impressions to keep a query"
+        type: string
         default: "2"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/gsc-keyword-sync.yml"
+      - "scripts/gsc-keyword-sync.mjs"
 permissions:
   contents: write
   pull-requests: write

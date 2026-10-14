@@ -148,3 +148,22 @@ regression-testable and adds a scheduled live technical SEO audit.
 - Do not treat the daily audit schedule as having run until its GitHub Actions
   run appears; do not claim Google ranking improvement without Search Console
   data.
+
+## 2026-10-14 — Restore GitHub Actions registration for Search Console keyword sync
+
+### Why
+
+The GSC sync workflow is tracked on `main`, but GitHub Actions does not list or resolve it: workflow lookup and dispatch both returned 404. The repository Actions setting reports workflows enabled and allows all actions. The repository now contains a secret named `GOOGLE_INDEXING_KEY` (its value was not read). This follow-up adds an explicit, narrow trigger so a workflow/script update on `main` will prompt GitHub to reload and run the automation instead of waiting for an unobservable schedule.
+
+### Changes
+
+- Declared `lookback_days` and `min_impressions` as explicit `string` inputs for `workflow_dispatch`.
+- Added a `main` push trigger scoped only to `.github/workflows/gsc-keyword-sync.yml` and `scripts/gsc-keyword-sync.mjs`; generated keyword-data commits will not recursively trigger another sync.
+- Confirmed the workflow file was present on `main` and passed `actionlint` 1.7.7 with zero errors before this change.
+- Kept ranking claims out of scope until a real Search Console sync completes successfully and returns data. The exact reason GitHub did not previously register the valid YAML is not exposed by its workflow API; verify registration and the first run after merge.
+
+### Verification
+
+- Re-run `actionlint` on the changed workflow.
+- Required GitHub CI and Cloudflare Pages preview checks must pass before merge.
+- After merge, confirm GitHub registers and runs the GSC workflow, inspect the run result, and check Cloudflare production logs for the resulting main commit.
