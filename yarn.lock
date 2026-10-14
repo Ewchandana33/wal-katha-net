@@ -1829,10 +1829,10 @@ astro-auto-import@^0.5.1:
   dependencies:
     acorn "^8.15.0"
 
-astro-gtm-lite@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/astro-gtm-lite/-/astro-gtm-lite-1.0.1.tgz#a3d34ddbf339f560ca0f067d42c65d2d2ab65cda"
-  integrity sha512-jEZrZJ50dj7hhJdcVO423jmY1u8OvbwyfITlO8GoUeD+RBB/AB2a3w36PL+4LdJ5xyR291twwjqLf/iQECh/gg==
+astro-gtm-lite@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/astro-gtm-lite/-/astro-gtm-lite-1.0.2.tgz#54a34223bad5af5e14c82457b06ba845278b2fbd"
+  integrity sha512-/N1Ia1qYJ7SONxT1n4zyMUINpgXV8YhQ68L5pCF/eYvnkKDed57eSFMlxVSyQK95/76QahuZ5MSi8I3rpmb0sA==
 
 astro@^7.1.0:
   version "7.1.0"
