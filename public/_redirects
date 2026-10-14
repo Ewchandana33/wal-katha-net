@@ -18,6 +18,9 @@
 # මේක "redirect error" ලෙස treat කරයි, එනම් 404 එකට වඩා නරකයි.
 # දැන් target දෙකම ඇත්ත, 200 දෙන URLs වෙත යොමු කර ඇත.
 # ---------------------------------------------------------------
+# Redirect the conventional sitemap URL to the canonical Astro sitemap index.
+/sitemap.xml  /sitemap-index.xml  301
+
 /categories/amma-katha/                  /categories/amma-wal-katha/         301
 /categories/amma-katha                   /categories/amma-wal-katha/         301
 /categories/lesbian-and-guy-wala-katha/  /categories/lesbian-guy-wal-katha/  301
@@ -69,11 +72,9 @@
 # ---------------------------------------------------------------
 /authors/walkatha/                       /authors/wal-katha/                 301
 /authors/walkatha                        /authors/wal-katha/                 301
-/authors/walkatha/*                      /authors/wal-katha/                 301
-
 /authors/walakatha/                      /authors/wala-katha/                301
 /authors/walakatha                       /authors/wala-katha/                301
+/authors/walkatha/*                      /authors/wal-katha/                 301
 /authors/walakatha/*                     /authors/wala-katha/                301
 
-# Redirect the conventional sitemap URL to the canonical Astro sitemap index.
-/sitemap.xml  /sitemap-index.xml  301
+
