@@ -37,3 +37,47 @@ variants; production was still on the preceding `main` commit.
   `a2312ecb3f522cb9530572a465c76c4890979065`.
 - Final release status must be verified against the latest PR checks and
   Cloudflare production deployment logs after this change.
+
+## 2026-10-14 — Remove Astro Markdown and Vite build warnings
+
+### Why
+
+The current production build for `main` (`054fa3cce6010760e5f1ae39b2d3fbf7b0aad614`,
+Cloudflare deployment `b0d4332d-35c6-41f7-89f3-e6ae150f6925`) completed
+successfully, but its Cloudflare build log still reported an unmet Vite peer
+dependency for `@tailwindcss/vite` and Astro's deprecation warning for
+`markdown.remarkPlugins`. A dependency-tree check also found that the installed
+MDX integration declared an older Sätteri peer range than Astro 7.3.8 provides.
+These are version/configuration mismatches, so the fix is to align the
+dependencies and processor API rather than hide their warnings.
+
+### Changes
+
+- Updated `@astrojs/mdx` to the Astro 7-compatible 8.x line and explicitly
+  declared the matching Sätteri and unified Markdown processor packages.
+- Declared Vite directly so the Tailwind Vite plugin can resolve its peer.
+- Moved `remarkAutoInternalLinks` into `unified()` via Astro's
+  `markdown.processor`, preserving the internal-link plugin while removing use
+  of the deprecated Markdown configuration field.
+- Regenerated `yarn.lock` incrementally from the existing lockfile and replaced
+  Replit-local proxy URLs with the public Yarn registry while preserving each
+  package's resolved tarball hash, so CI can fetch the new dependencies.
+- Left SEO/geo metadata unchanged: the live pages already emit Sinhala
+  `hreflang`, `si_LK` locale, canonical URLs, and indexable page metadata; no
+  unsupported geographic meta tags were added.
+
+### Verification trail
+
+- `yarn install --non-interactive`: completed and saved the updated lockfile.
+- `yarn check`: completed successfully with no dependency errors. It still
+  reports 20 existing resolution/deduplication warnings, including the
+  repository's pinned `undici` and `js-yaml` resolutions.
+- `yarn test`: 5 passed, 0 failed.
+- `yarn build`: completed; 50 static pages built, sitemap indexability passed
+  for all 30 checked page URLs, featured links passed (3), social metadata
+  passed (8 pages), and critical CSS was inlined for 51/51 pages.
+- Local `yarn run check` generated Astro types but timed out while waiting for
+  diagnostics; this is not counted as a pass. The required GitHub type-check and
+  Cloudflare preview checks must pass before this change is merged.
+- The production deployment recorded above is the pre-change baseline; this PR
+  has not changed production at the time of this entry.

@@ -2,6 +2,7 @@ import mdx from "@astrojs/mdx";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
+import { unified } from "@astrojs/markdown-remark";
 import AutoImport from "astro-auto-import";
 import gtm from "astro-gtm-lite";
 import { defineConfig, fontProviders, sharpImageService } from "astro/config";
@@ -502,7 +503,7 @@ export default defineConfig({
     }),
   ],
   markdown: {
-    remarkPlugins: [remarkAutoInternalLinks],
+    processor: unified({ remarkPlugins: [remarkAutoInternalLinks] }),
     shikiConfig: { theme: "one-dark-pro", wrap: true },
   },
 });
