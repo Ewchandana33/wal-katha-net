@@ -191,3 +191,11 @@ The first post-registration sync (GitHub Actions run 38560956796, attempt 1) suc
 - Cloudflare production deployment 9a89d66d-298c-4e4a-b07f-86fa3ddeb190 for that main SHA completed queued, initialize, clone, build, and deploy stages successfully. All 153 available production log entries were checked, with no warning, error, deprecation, or fatal diagnostics.
 - The post-merge sync generated data-only PR #27 and queued squash auto-merge. At the time of this record its required CI run was held at action_required under repository policy first_time_contributors; keep main protected and require its checks to pass before considering that subsequent snapshot published.
 - A Google ranking position is not guaranteed by this work.
+
+## 2026-10-14 — PR #27 and production deployment follow-up
+
+This follow-up supersedes the pending-state note above. It records release verification only; it does not claim a new Search Console sync or ranking change.
+
+- PR #27 was later merged at 2026-10-14T13:07:03Z as main commit fb2067d0cdba265515ef711c27515922ae23c423. On the final PR head 006f37c5cad4f3849a576ccf4edf1aec588a273b, GitHub’s required Type-check and production build and Cloudflare Pages checks completed successfully. Main branch protection and both required checks remained enabled.
+- Cloudflare production deployment 8c5e4451-802e-4d9d-80a7-1c1ffcc5e852 matches that main commit and completed queued, initialize, clone, build, and deploy stages successfully. All 153 available production log entries were checked; none matched warning, deprecation, error, failure, or fatal diagnostics.
+- The latest successful Sync GSC Keywords run visible in the queried Actions history was run 38568052535 on main commit 05004713c13dc6b6cfad7720fd1aed4588501658, which generated PR #27. The later successful CI dispatch 38570049383 ran on bot/gsc-keywords / 006f37c; it was a CI run, not a Search Console sync.
