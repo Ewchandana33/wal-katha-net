@@ -3,6 +3,8 @@ import Base from "@/layouts/Base.astro";
 import { getSinglePage } from "@/lib/contentParser.astro";
 import PostSingle from "@/partials/PostSingle.astro";
 import config from "@/config/config.json";
+import noindexPostIds from "@/config/noindex-post-ids.json";
+import seoImageVariants from "@/config/seo-image-variants.json";
 import { isValid } from "date-fns";
 import { humanize, slugify as globalSlugify } from "@/lib/utils/textConverter";
 import { buildMetaKeywords } from "@/lib/utils/keywordExtractor";
@@ -51,7 +53,7 @@ const safeUpdatedISO = hasGenuineUpdate ? parsedUpdated!.toISOString() : safeDat
 const base_url = (config?.site?.base_url || "").replace(/\/$/, "");
 
 // These pages are deliberately excluded from search and discovery feeds.
-const NOINDEX_POST_IDS = new Set(["akkai-nangi-wal-katha", "bus-jack-wal-katha"]);
+const NOINDEX_POST_IDS = new Set<string>(noindexPostIds);
 
 // Cloudflare Pages trailing-slash consistency: canonical tag and schema URL must match exactly.
 const canonicalUrl = `${base_url}/blog/${post.id}/`;
@@ -85,13 +87,25 @@ const authorImageUrl = matchedAuthorEntry?.data.image
 const wordCount = post.body ? post.body.trim().split(/\s+/).filter(Boolean).length : undefined;
 
 // ImageObject (recommended over a plain string URL per Google's
-// Article/NewsArticle structured-data docs).
+// Article/BlogPosting structured-data docs).
 const imageObject = {
   "@type": "ImageObject",
   "url": `${base_url}${ogImagePath}`,
   "width": 1200,
   "height": 630
 };
+
+// Emit generated cover-image crops only on pages eligible for search.
+// Restricted pages keep the existing single social image and noindex directive.
+const articleImages = NOINDEX_POST_IDS.has(post.id)
+  ? imageObject
+  : seoImageVariants.variants.map(({ ratio, width, height }) => ({
+      "@type": "ImageObject",
+      "url": base_url + "/og/" + post.id + "/" + ratio + ".webp",
+      width,
+      height,
+      caption: titleClean || ""
+    }));
 
 // keywords: frontmatter tags merged with auto-extracted body keywords
 // via keywordExtractor.ts's buildMetaKeywords().
@@ -114,10 +128,10 @@ const speakableSpecification = {
 // defined once on index.astro via @id.
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "NewsArticle",
+  "@type": "BlogPosting",
   "headline": titleClean || "",
   "description": descriptionClean || "",
-  "image": imageObject,
+  "image": articleImages,
   "datePublished": safeDateISO,
   "dateModified": safeUpdatedISO,
   "inLanguage": "si",

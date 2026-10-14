@@ -12,6 +12,7 @@
     "incremental": true,
     "allowSyntheticDefaultImports": true,
     "paths": {
+      "sharp": ["./node_modules/sharp/lib/index.d.ts"],
       "@/components/*": ["./src/layouts/components/*"],
       "@/shortcodes/*": ["./src/layouts/shortcodes/*"],
       "@/helpers/*": ["./src/layouts/helpers/*"],
