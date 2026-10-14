@@ -167,3 +167,24 @@ The GSC sync workflow is tracked on `main`, but GitHub Actions does not list or 
 - Re-run `actionlint` on the changed workflow.
 - Required GitHub CI and Cloudflare Pages preview checks must pass before merge.
 - After merge, confirm GitHub registers and runs the GSC workflow, inspect the run result, and check Cloudflare production logs for the resulting main commit.
+
+## 2026-10-14 — Recover Search Console keyword sync and close the PR automation gap
+
+### Why
+
+The first post-registration sync (GitHub Actions run 38560956796, attempt 1) successfully queried Search Console but failed at the repository handoff. Branch protection correctly rejected a direct write to main (two required checks); the fallback branch push succeeded, but the repository setting initially prevented GITHUB_TOKEN from creating pull requests. This was a repository Actions permission issue, not a Search Console API failure.
+
+### Changes
+
+- After owner approval, enabled the repository's GitHub Actions PR create/approve setting while retaining default_workflow_permissions=read; branch protection and required checks were not changed.
+- Updated this GSC sync to use actions/checkout@v7 and actions/setup-node@v7 (latest releases verified on 2026-10-14) and pinned the runner to ubuntu-24.04, addressing the Node 20 action deprecation notices and imminent ubuntu-latest migration notice from the failed run.
+- Made the sync workflow itself queue its generated PR for squash auto-merge. This avoids relying on the separate trusted-owner PR workflow, which does not treat github-actions[bot] as a trusted author. GitHub's protected-branch required checks remain the merge gate.
+- Added this record so the next maintainer can distinguish the expected protected-main rejection from the actual PR-permission failure.
+
+### Verification trail
+
+- The successful retry of run 38560956796 (attempt 2) queried sc-domain:walakatha.net for 2026-07-14 through 2026-10-11: 1,896 web rows, 868 image rows, 2,729 web page/query rows, and 2,254 image page/query rows. It wrote a snapshot of 500 global queries (395 usable non-brand queries) and 47 pages.
+- That retry created PR #26 from bot/gsc-keywords. Cloudflare Pages preview deployment 8f370d47-ac0a-4133-b5c6-a73b8a01e99a built and deployed successfully; all 153 available preview log entries were checked, with no warning, error, deprecation, or fatal diagnostics.
+- The initial PR check was held at action_required; the generated diff was inspected and contained only src/data/gsc-keywords.json, then the owner-approved workflow was allowed to run. CI and the Cloudflare preview must be rechecked on the final PR head after this workflow/documentation update.
+- Live homepage, robots.txt, and sitemap-index endpoints returned HTTP 200 during the audit; homepage retained Sinhala HTML language, canonical URL, and its sitemap declarations.
+- Do not report this snapshot merged or production-deployed until PR #26 is merged after required checks and the corresponding Cloudflare production deployment/logs are verified. A Google ranking position is not guaranteed by this work.
