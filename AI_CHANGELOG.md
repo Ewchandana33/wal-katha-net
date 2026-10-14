@@ -240,3 +240,12 @@ This entry closes the release verification opened above. It records observed rel
 ### Rationale and limits
 - The user identified the age as an accidental typo and requested the intended adult age; no other post ages, publication dates, story copy, metadata, or locale targets were changed.
 - This makes the corrected article eligible for recrawling, not guaranteed ranking or immediate removal of cached search results. Search engines control recrawl and ranking.
+
+
+### Production release and live audit verification
+
+- PR #31 was squash-merged to `main` as `0639c3c3250b2ffa576369828ad28c719a0755eb`. Its final PR head `7877ebce77215ba685217745080d94104989e374` passed the required GitHub type-check/production-build check (run `38594683689`) and Cloudflare Pages preview deployment (`c50b22a0-54ab-4e67-bca0-2b1a0a6bba0a`). All five preview stages succeeded; all 158 returned deployment-log entries were checked with no warning, error, failure, fatal, or deprecation matches.
+- Cloudflare production deployment `cbcea0f6-c726-43e1-ab8c-dd8497eb0219` is tied to the exact `main` merge SHA. Queue, initialize, clone, build, and deploy stages all succeeded; all 156 returned production-log entries were checked with no warning, error, failure, fatal, or deprecation matches.
+- The repository's `Live SEO and Sri Lanka locale audit` workflow run `38597439101` passed on that exact production SHA. It verified the live homepage, robots rules, sitemap index and child sitemaps, all configured indexable pages, corrected-article XML/image/RSS discovery, and the configured Bus-Jack `noindex,follow` page's canonical and exclusion from those feeds, along with Sinhala/Sri Lanka locale signals.
+- Independent HTTP smoke checks also returned 200 for the homepage, robots.txt, sitemap endpoints, image sitemap, RSS, corrected article, and flagged Bus-Jack article. The corrected article returned `index,follow` with its matching canonical; Bus-Jack returned `noindex,follow` with its matching canonical.
+- This verifies crawl eligibility and technical signals only. It does not guarantee Google recrawling, indexing, or a ranking position.
