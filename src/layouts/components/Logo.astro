@@ -1,77 +1,15 @@
 ---
-import { Image } from "astro:assets";
 import config from "@/config/config.json";
-const { src } = Astro.props;
-const {
-  logo,
-  logo_text,
-  title,
-}: {
-  logo: string;
-  logo_text: string;
-  title: string;
-} = config.site;
 
-const currentLogoText = logo_text ? logo_text : title;
-const textWords = currentLogoText.split(" ");
-const firstWord = textWords[0];
-const remainingText = textWords.slice(1).join(" ");
-
-// 🎯 FIXED (PageSpeed Insights — "Image display dimensions should match
-// natural aspect ratio" + "Serves images with low resolution"):
-//
-// ROOT CAUSE: මීට කලින් මෙතන <Image> component එකට inline
-// style={{ height: correctedHeight+"px", width: configuredWidth+"px" }}
-// එකක් දාල තිබුණි. src/styles/navigation.css හි .navbar-brand img
-// rule එකේ දැනටමත් "h-auto max-w-[170px] sm:max-w-full" (height:auto)
-// නිවැරදිව define කර තිබුණත්, INLINE style එකට CSS class එකකට වඩා
-// වැඩි specificity/priority එකක් තියෙන නිසා, height:auto CSS rule එක
-// සම්පූර්ණයෙන්ම override වී, height එක සදහටම 50px ට fix වුනා.
-// ප්‍රතිඵලයක් විදිහට, mobile screen එකේදී max-width:170px නිසා width
-// එක හැකිලෙනකොට height එක 50px ම නොවෙනස්ව ඉතිරි වුනා — 170x50
-// (ratio 3.40) කියන distorted box එකක්, real file එකේ ratio එකට
-// (300x50 = 6.0) නොගැලපෙන විදිහට. මේ vertical-stretch එකම "low
-// resolution" flag එකටත් හේතුව විය.
-//
-// ✅ PERMANENT FIX: inline style එක සම්පූර්ණයෙන්ම ඉවත් කර ඇත. දැන්
-// <img> tag එකට width/height HTML ATTRIBUTES විතරක් (logo.webp හි
-// සැබෑ intrinsic dimensions) දෙනවා — මේවා CSS visual size එක override
-// කරන්නේ නැත, browser එකට intrinsic aspect-ratio (6:1) infer කරගන්න
-// පමණක් උපකාරී වේ. .navbar-brand img CSS rule එකේම height:auto සමග
-// මෙය ඒකාබද්ධ වී, mobile (max-width:170px) සහ desktop (sm:max-w-full)
-// දෙකේදීම, ඕනෑම width එකකදී browser එකෙන්ම proportional height එකක්
-// ස්වයංක්‍රීයව ගණනය කරයි — distortion කිසිවක් නැතුව, CLS ආරක්ෂාවත්
-// (attributes තිබෙන නිසා) සම්පූර්ණයෙන් රැදී පවතී.
-//
-// public/images/logo.webp file එක අනාගතයේ replace කරන විට, මෙම
-// constants දෙක අලුත් file එකේ ඇත්තම (actual) width/height අගයන්ට
-// යාවත්කාලීන කළ යුතුය.
-const LOGO_INTRINSIC_WIDTH = 300;
-const LOGO_INTRINSIC_HEIGHT = 50;
+const brandName = config.site.logo_text || "Wal Katha";
 ---
 
 <div itemscope itemtype="https://schema.org/Organization" class="inline-block">
-  <a href="/" class="navbar-brand block transition-all duration-300 hover:opacity-90" itemprop="url">
-    {
-      src || logo ? (
-        <Image
-          width={LOGO_INTRINSIC_WIDTH}
-          height={LOGO_INTRINSIC_HEIGHT}
-          src={src ? src : logo}
-          alt={title}
-          itemprop="logo"
-          loading="eager"
-          fetchpriority="high"
-        />
-      ) : (
-        <span
-          itemprop="name"
-          class="text-xl sm:text-2xl font-black tracking-tight drop-shadow-md select-none text-[#F8F8FF]"
-        >
-          <span class="text-[#01AD9F]">{firstWord}</span>
-          {remainingText ? ` ${remainingText}` : ''}
-        </span>
-      )
-    }
+  <a
+    href="/"
+    class="navbar-brand block transition-all duration-300 hover:opacity-90"
+    itemprop="url"
+  >
+    <span class="navbar-brand-text" itemprop="name">{brandName}</span>
   </a>
 </div>

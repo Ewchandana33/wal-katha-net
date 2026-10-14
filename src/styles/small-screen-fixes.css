@@ -51,13 +51,6 @@
     gap: 4px;
   }
 
-  /* Header logo tightened slightly further so the logo, search
-     icon, and hamburger button never crowd each other on very
-     narrow screens */
-  .navbar-brand img {
-    max-width: 140px;
-  }
-
   /* Container side padding trimmed slightly so cards get a
      touch more usable width on very narrow devices */
   .container {

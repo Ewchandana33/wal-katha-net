@@ -35,17 +35,7 @@ const base_url = (config?.site?.base_url || "").replace(/\/$/, "");
 // og:url and sitemap byte-for-byte identical.
 const canonicalUrl = `${base_url}/`;
 
-// Organization logo stays the real logo file (300x50) - correct for the
-// logo ImageObject in schema.
-const siteLogo = base_url + config.site.logo;
-
-// OG IMAGE DIMENSION FIX. Base.astro hardcodes og:image:width=1200 and
-// og:image:height=630. The homepage previously passed logo.webp, which is
-// 300x50 (see config.site.logo_width/logo_height), so every share card
-// declared dimensions 24x larger than the real file. Facebook, X and
-// WhatsApp validate declared dimensions and silently drop the large-image
-// card on mismatch. config.metadata.meta_image is the purpose-built
-// 1200x630 asset, so the homepage now uses that instead.
+// Use the purpose-built 1200x630 social image rather than the header brand.
 const ogImage = config.metadata.meta_image;
 
 import menu from "@/config/menu.json";
@@ -145,15 +135,6 @@ const homePageSchema = {
       "alternateName": brandAlternateNames,
       "url": canonicalUrl,
       "description": homeDescription,
-      "logo": {
-        "@type": "ImageObject",
-        "@id": `${base_url}/#logo`,
-        "url": siteLogo,
-        "width": config.site.logo_width,
-        "height": config.site.logo_height,
-        "caption": brandName
-      },
-      "image": { "@id": `${base_url}/#logo` },
       // E-E-A-T: a reachable contact point is one of the trust signals
       // Google documents for publisher entities. Values come from
       // config.json so there is a single source of truth.

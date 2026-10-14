@@ -106,14 +106,8 @@ const finalImageUrl = image
     : `${cleanBaseUrl}${image.startsWith("/") ? image : "/" + image}`
   : `${cleanBaseUrl}${config.metadata.meta_image.startsWith("/") ? config.metadata.meta_image : "/" + config.metadata.meta_image}`;
 
-// OG IMAGE DIMENSIONS - declared, not assumed.
-// These used to be hardcoded 1200x630 for every page. Any page passing a
-// differently-sized image (the homepage passed logo.webp at 300x50) then
-// declared dimensions up to 24x larger than the real file, and Facebook,
-// X and WhatsApp all validate declared dimensions before rendering a
-// large summary card - on mismatch they silently fall back to no card.
-// Callers can now override; the defaults still match the purpose-built
-// 1200x630 og-image.webp referenced by config.metadata.meta_image.
+// OG image dimensions are declared, not assumed. Callers can override the
+// 1200x630 defaults when they provide a differently-sized social image.
 const finalImageWidth = imageWidth && imageWidth > 0 ? imageWidth : 1200;
 const finalImageHeight = imageHeight && imageHeight > 0 ? imageHeight : 630;
 

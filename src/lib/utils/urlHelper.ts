@@ -16,7 +16,7 @@
  * Rules:
  * - Already ends in "/" -> returned unchanged
  * - File-like paths (last segment has a dot, e.g. "/sitemap.xml",
- *   "/robots.txt", "/logo.png") -> returned unchanged (never slashed)
+ *   "/robots.txt", "/documents/report.pdf") -> returned unchanged (never slashed)
  * - mailto:, tel:, "#" anchors -> returned unchanged (never touch
  *   non-navigational/in-page links)
  * - Absolute URLs on OUR OWN domain (config.site.base_url, e.g.
