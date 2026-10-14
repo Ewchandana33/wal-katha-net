@@ -6,6 +6,8 @@ const homePagePath = path.join(distDirectory, "index.html");
 const blogDirectory = path.join(distDirectory, "blog");
 const siteConfig = JSON.parse(readFileSync("src/config/config.json", "utf8"));
 const siteOrigin = new URL(siteConfig.site.base_url).origin;
+const noindexPostIds = new Set(JSON.parse(readFileSync("src/config/noindex-post-ids.json", "utf8")));
+const imageVariants = JSON.parse(readFileSync("src/config/seo-image-variants.json", "utf8")).variants;
 const failures = [];
 
 function collectHtmlFiles(directory) {
@@ -98,6 +100,78 @@ function getImageDimensions(filePath) {
   return getPngDimensions(image) ?? getWebpDimensions(image);
 }
 
+function postIdFromHtmlPath(filePath) {
+  const relativePath = path.relative(blogDirectory, filePath).split(path.sep).join("/");
+  return relativePath.replace(/\/index\.html$/i, "").replace(/\.html$/i, "");
+}
+
+function getBlogPostingSchema(html) {
+  const scripts = [...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  for (const script of scripts) {
+    try {
+      const data = JSON.parse(script[1]);
+      if (data?.["@type"] === "BlogPosting") return data;
+    } catch {
+      // Ignore malformed blocks and report a missing article schema below.
+    }
+  }
+  return null;
+}
+
+function verifyStructuredImageVariants(html, filePath, label) {
+  const postId = postIdFromHtmlPath(filePath);
+  const articleSchema = getBlogPostingSchema(html);
+  if (!articleSchema) {
+    failures.push(label + ": BlogPosting JSON-LD is missing or invalid.");
+    return;
+  }
+
+  const head = html.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] || "";
+  const robotsTag = metaTagsFor(head, "name", "robots")[0];
+  const robots = robotsTag ? getAttribute(robotsTag, "content")?.toLowerCase() || "" : "";
+  const isRestricted = noindexPostIds.has(postId);
+  if (isRestricted && !robots.includes("noindex")) {
+    failures.push(label + ": restricted post must keep its noindex directive.");
+  }
+  if (isRestricted) {
+    const images = Array.isArray(articleSchema.image) ? articleSchema.image : [articleSchema.image];
+    if (images.some((image) => image?.url?.includes("/og/" + postId + "/"))) {
+      failures.push(label + ": restricted post must not receive enhanced cover-image variants.");
+    }
+    return;
+  }
+
+  if (articleSchema["@type"] !== "BlogPosting") {
+    failures.push(label + ": article schema must use the accurate BlogPosting type.");
+  }
+  if (!Array.isArray(articleSchema.image) || articleSchema.image.length !== imageVariants.length) {
+    failures.push(label + ": BlogPosting.image must contain exactly " + imageVariants.length + " ImageObject variants.");
+    return;
+  }
+
+  for (const variant of imageVariants) {
+    const expectedUrl = siteOrigin + "/og/" + postId + "/" + variant.ratio + ".webp";
+    const imageObject = articleSchema.image.find((image) => image?.url === expectedUrl);
+    if (!imageObject || imageObject["@type"] !== "ImageObject") {
+      failures.push(label + ": missing ImageObject for " + variant.ratio + ".");
+      continue;
+    }
+    if (Number(imageObject.width) !== variant.width || Number(imageObject.height) !== variant.height) {
+      failures.push(label + ": " + variant.ratio + " ImageObject dimensions are incorrect.");
+    }
+
+    const imageFilePath = path.resolve(distDirectory, "og", postId, variant.ratio + ".webp");
+    if (!imageFilePath.startsWith(distDirectory + path.sep) || !existsSync(imageFilePath)) {
+      failures.push(label + ": generated " + variant.ratio + " cover image is missing.");
+      continue;
+    }
+    const dimensions = getImageDimensions(imageFilePath);
+    if (!dimensions || dimensions.width !== variant.width || dimensions.height !== variant.height) {
+      failures.push(label + ": generated " + variant.ratio + " cover image has incorrect dimensions.");
+    }
+  }
+}
+
 function addPage(filePath, label, isArticle) {
   if (!existsSync(filePath)) {
     failures.push(`${label}: generated HTML file is missing.`);
@@ -105,6 +179,7 @@ function addPage(filePath, label, isArticle) {
   }
 
   const html = readFileSync(filePath, "utf8");
+  if (isArticle) verifyStructuredImageVariants(html, filePath, label);
   const head = html.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1];
   if (!head) {
     failures.push(`${label}: <head> was not generated.`);
