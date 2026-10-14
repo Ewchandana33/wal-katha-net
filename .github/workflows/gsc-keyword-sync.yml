@@ -46,12 +46,12 @@ concurrency:
   cancel-in-progress: false
 jobs:
   sync:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -98,9 +98,16 @@ jobs:
           EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' || true)
           if [ -n "$EXISTING" ]; then
             gh pr edit "$EXISTING" --body-file /tmp/gsc-summary.md
-            echo "Updated existing PR #$EXISTING"
+            PR_NUMBER="$EXISTING"
+            echo "Updated existing PR #$PR_NUMBER"
           else
-            gh pr create --head "$BRANCH" --base main \
+            PR_URL=$(gh pr create --head "$BRANCH" --base main \
               --title "chore(seo): Search Console keyword sync" \
-              --body-file /tmp/gsc-summary.md
+              --body-file /tmp/gsc-summary.md)
+            PR_NUMBER=$(basename "$PR_URL")
           fi
+          # GITHUB_TOKEN-created PRs do not reliably trigger the separate
+          # trusted-PR auto-merge workflow. Queue the bot PR here instead;
+          # GitHub still waits for all required checks on protected main.
+          gh pr merge "$PR_NUMBER" --auto --squash
+          echo "Queued PR #$PR_NUMBER for auto-merge after required checks."
