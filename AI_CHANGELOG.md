@@ -91,3 +91,60 @@ dependencies and processor API rather than hide their warnings.
   Cloudflare preview checks must be rerun on the final head before merge.
 - The production deployment recorded above is the pre-change baseline; this PR
   has not changed production at the time of this entry.
+
+
+## 2026-10-14 — Verify PR #23 production release; automate SEO/locale checks
+
+### Why
+
+PR #23 removed the production build's Vite peer warning and Astro Markdown
+configuration deprecation. After merge, the source of truth is the final
+Cloudflare production deployment and the live canonical site—not the earlier
+preview. This follow-up also makes the site's Sri Lankan Sinhala targeting
+regression-testable and adds a scheduled live technical SEO audit.
+
+### Changes
+
+- Confirmed PR #23 was squash-merged to main as commit
+  37aedf037a22d456c51cec5ce0cfe3d041aca9b6.
+- Changed the single Sinhala alternate from hreflang si to the more specific
+  hreflang si-LK. Kept HTML lang=si and Open Graph locale=si_LK; these are
+  language/locale signals, not invented geographic coordinates or ranking
+  guarantees.
+- Extended the homepage SEO build check to assert the document language,
+  canonical host, si-LK and x-default alternates, and si_LK Open Graph locale.
+- Added a daily live audit of the homepage, robots.txt, the declared XML
+  sitemaps, and each indexable page URL found in the sitemap. It checks HTTP
+  status, canonical consistency, robots indexability, and Sinhala locale
+  signals. The daily schedule is 02:15 UTC (07:45 Asia/Colombo).
+- Expanded auto-merge to same-repository owner/member/collaborator PRs and
+  Dependabot patch, minor, and major updates, but only after GitHub's required
+  type-check/build and Cloudflare Pages checks pass. Fork PRs remain manual to
+  avoid auto-merging untrusted external code.
+- The repository contains a GSC keyword-sync workflow file, but the GitHub
+  Actions workflow registry did not list or resolve it during this audit. This
+  technical audit therefore does not claim to measure search positions or
+  replace Search Console performance data.
+
+### PR #23 release verification
+
+- GitHub PR #23 checks passed: Astro type-check and production build; Cloudflare
+  Pages preview build/deploy. The post-merge CI was also dispatched on the
+  exact merge SHA and passed type-check, middleware tests, production build,
+  pagination SEO, and homepage SEO.
+- Cloudflare production deployment a3018091-2297-4a70-8c17-6ebdaf7ad73b for
+  the merge SHA completed queued, initialize, clone, build, and deploy stages
+  successfully. All 153 available deployment log entries were checked; none
+  contained warning, deprecation, error, or fatal diagnostics.
+- The live homepage and sitemap.xml responded with HTTP 200; sitemap.xml
+  redirected to sitemap-index.xml. Live HTML had lang=si, canonical
+  https://www.walakatha.net/, hreflang si and x-default before this follow-up,
+  og:locale=si_LK, and index/follow robots directives. The new si-LK signal is
+  covered by the required preview checks before it reaches production.
+
+### Verification for this follow-up
+
+- The new locale assertions and automated live audit must pass on this PR head.
+- Do not treat the daily audit schedule as having run until its GitHub Actions
+  run appears; do not claim Google ranking improvement without Search Console
+  data.
