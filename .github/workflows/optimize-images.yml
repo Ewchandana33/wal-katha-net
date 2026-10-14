@@ -85,7 +85,7 @@ jobs:
           // ==========================================================
           // 🎯 UNIVERSAL CONTENT-HASH GUARD (applies to EVERY single
           //    image processed by this workflow: post images, slider
-          //    images, author images, root images, logo, favicon,
+          //    images, author images, root images, favicon,
           //    og-image, AND app-icon — no exceptions).
           //
           //    ROOT CAUSE THIS SOLVES: previously, "up to date" was
@@ -99,7 +99,7 @@ jobs:
           //    live even after a deliberate compression fix.
           //
           //    THE FIX: every source image gets a tiny sidecar hash
-          //    file (e.g. "logo.png.hash") containing a SHA-256 digest
+          //    file (e.g. "favicon.png.hash") containing a SHA-256 digest
           //    of the source file's bytes **plus a fixed
           //    ENCODER_CONFIG_VERSION string** (see below). Any change
           //    to either the source bytes OR the encoder version
@@ -147,7 +147,7 @@ jobs:
           //    further below) follows this exact same rule too.
           //
           //    This single mechanism now uniformly covers EVERY image
-          //    in every folder + every root/logo/favicon/og-image/
+          //    in every folder + every root/favicon/og-image/
           //    app-icon path — no per-image special-casing required,
           //    and it is fully self-healing for any image added in the
           //    future (new post images, new author avatars, a
@@ -541,11 +541,9 @@ jobs:
             console.log(`[ROOT IMAGE] ${file} (${metadata.width}x${metadata.height}) -> ${outFile}`);
           }
           // ==========================================================
-          // 🔗 LOGO / FAVICON / OG-IMAGE / APP-ICON — universal
-          //    content-hash guard now applies identically to ALL FOUR
-          //    of these (previously only app-icon had special
-          //    "force-verify" treatment; logo/favicon/og-image had
-          //    none). convertSingle() reconverts whenever
+          // 🔗 FAVICON / OG-IMAGE / APP-ICON — universal
+          //    content-hash guard applies consistently to these assets.
+          //    convertSingle() reconverts whenever
           //    shouldReconvert() says so (hash-changed OR stale), and
           //    always reports back whether it actually re-ran so the
           //    universal downstream sync knows to double-check every
@@ -569,14 +567,6 @@ jobs:
             console.log(`Done: ${mapKey} -> ${convertedMap[mapKey]}`);
             return true;
           }
-          await convertSingle(
-            'public/images/logo.png',
-            'public/images/logo.webp',
-            300, false,
-            { width: 300, withoutEnlargement: true, kernel: sharp.kernel.lanczos3 },
-            { quality: 95, effort: 6 },
-            'logo.png'
-          );
           await convertSingle(
             'public/images/favicon.png',
             'public/images/favicon.webp',
@@ -658,7 +648,7 @@ jobs:
           updateFrontmatterInDir('src/content/about');
           updateFrontmatterInDir('src/content/contact');
           updateFrontmatterInDir('src/content/pages');
-          // config.json ඇතුළේ logo/favicon/app-icon paths update කිරීම
+          // config.json ඇතුළේ favicon/app-icon paths update කිරීම
           const configPath = 'src/config/config.json';
           if (existsSync(configPath)) {
             let configContent = readFileSync(configPath, 'utf-8');
@@ -671,7 +661,7 @@ jobs:
               }
             }
             // 🎯 Universal force-verify confirmation for config.json too
-            // (logo.webp / favicon.webp / og-image.webp referenced here)
+            // (favicon.webp and og-image.webp are referenced here)
             for (const forcedPath of forceVerifySet) {
               const forcedBaseName = basename(forcedPath);
               if (configContent.includes(forcedBaseName)) {
@@ -751,7 +741,6 @@ jobs:
           git add public/images/authors/*.webp || true
           git add public/images/slider/*.webp || true
           git add public/images/posts/*.webp || true
-          git add public/images/logo.webp || true
           git add public/images/favicon.webp || true
           git add public/images/og-image.webp || true
           git add public/images/app-icon.webp || true

@@ -3,8 +3,26 @@
   @apply relative flex max-w-[1260px] flex-wrap items-center justify-between;
 }
 
-.navbar-brand img {
-  @apply h-auto max-w-[170px] sm:h-auto sm:max-w-full;
+.navbar-brand-text {
+  display: inline-block;
+  max-width: 100%;
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  color: #e8bc51;
+  background: linear-gradient(110deg, #fff0b8 0%, #e8bc51 42%, #b8791c 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@supports not (-webkit-background-clip: text) {
+  .navbar-brand-text {
+    color: #e8bc51;
+    background: none;
+  }
 }
 
 .navbar-nav {

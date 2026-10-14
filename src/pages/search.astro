@@ -23,15 +23,8 @@ const base_url = (config?.site?.base_url || "").replace(/\/$/, "");
 // zero redirects.
 const canonicalUrl = `${base_url}/search/`;
 
-// OG IMAGE FIX. This page previously used /images/logo.png for og:image.
-// That file is 198 KB and, despite the .png extension, its bytes are JPEG
-// (SOI marker 0xFFD8), so Base.astro's extension-based MIME detection
-// declared image/png for JPEG data. On top of that, Base hardcodes
-// og:image:width=1200/height=630 while the logo is 300x50. Using the
-// purpose-built 1200x630 og-image.webp from config fixes the wrong MIME
-// type, the false dimensions and the oversized payload in one change.
+// Use the purpose-built 1200x630 social image for this page.
 const ogImage = config.metadata.meta_image;
-const siteLogo = `${base_url}${config.site.logo}`;
 const siteTitle = config?.site?.title || "WalaKatha";
 
 // Meta description held to the 120-155 character sweet spot while keeping

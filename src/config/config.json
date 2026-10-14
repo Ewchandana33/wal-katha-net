@@ -5,9 +5,6 @@
     "base_path": "/",
     "trailing_slash": true,
     "favicon": "/images/favicon.webp",
-    "logo": "/images/logo.webp",
-    "logo_width": "300",
-    "logo_height": "50",
     "logo_text": "Wal Katha"
   },
 
