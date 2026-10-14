@@ -166,7 +166,12 @@ export default function redirectFixer() {
             return;
           }
           if (!runGit("git rev-parse HEAD~1", root)) {
-            logger.warn("redirect-fixer: no parent commit (first commit or shallow clone), skipping.");
+            // Cloudflare Pages and shallow CI checkouts can omit the parent. Fetch one
+            // more commit so rename/delete detection still works in those builds.
+            runGit("git fetch --deepen=1 origin", root);
+          }
+          if (!runGit("git rev-parse HEAD~1", root)) {
+            logger.info("redirect-fixer: parent commit unavailable after shallow-history fetch; skipping.");
             return;
           }
 
