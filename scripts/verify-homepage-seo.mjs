@@ -30,4 +30,25 @@ const description = descriptions[0].match(/\bcontent=["']([^"']*)["']/i)?.[1];
 assert.ok(description, "Homepage description should have content");
 assert.match(decodeHtml(description), /සිංහල වැල් කතා/, "Description should include the evidenced Sinhala වැල් query wording");
 
+
+
+function attribute(tag, name) {
+  for (const match of tag.matchAll(/(?:^|\s)([^\s=]+)\s*=\s*("[^"]*"|'[^']*')/g)) {
+    if (match[1].toLowerCase() === name.toLowerCase()) return match[2].slice(1, -1);
+  }
+  return "";
+}
+
+const htmlTag = html.match(/<html\b[^>]*>/i)?.[0] ?? "";
+assert.equal(attribute(htmlTag, "lang"), "si", "Homepage should declare Sinhala as its document language");
+const linkTags = html.match(/<link\b[^>]*>/gi) || [];
+const canonicalTag = linkTags.find((tag) => attribute(tag, "rel").toLowerCase() === "canonical");
+assert.equal(attribute(canonicalTag || "", "href"), "https://www.walakatha.net/", "Homepage canonical should use the HTTPS www host");
+const alternateTags = linkTags.filter((tag) => attribute(tag, "rel").toLowerCase() === "alternate");
+for (const locale of ["si-LK", "x-default"]) {
+  assert.ok(alternateTags.some((tag) => attribute(tag, "hreflang").toLowerCase() === locale.toLowerCase() && attribute(tag, "href") === "https://www.walakatha.net/"), "Homepage should expose " + locale + " hreflang to its canonical URL");
+}
+const localeMeta = (html.match(/<meta\b[^>]*>/gi) || []).find((tag) => attribute(tag, "property").toLowerCase() === "og:locale");
+assert.equal(attribute(localeMeta || "", "content"), "si_LK", "Homepage Open Graph locale should target Sinhala in Sri Lanka");
+
 console.log("[homepage-seo] Sinhala-first title and H1, one H1, and the Search Console-aligned description verified.");
