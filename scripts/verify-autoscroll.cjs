@@ -19,6 +19,10 @@ let _y = 0;
 const DOC_H = 200000;
 const VIEW_H = 800;
 const MAXY = DOC_H - VIEW_H;
+const FRAME_COUNT = 600;
+const FRAME_MS = 16;
+const DEFAULT_SPEED_PPS = 42; // setting 4 maps to AUTO_PPS[3] in reader-tools.js
+const EXPECTED_PX = DEFAULT_SPEED_PPS * FRAME_COUNT * FRAME_MS / 1000;
 
 /* ---------------- fake timers ---------------- */
 let tid = 0, sid = 0;
@@ -174,15 +178,15 @@ RT.startAutoScroll();
 const running0 = RT.scrolling;
 const readsAtStart = scrollYReads, writesAtStart = writes;
 let t = 0;
-for (let i = 0; i < 600; i++) { t += 16; runFrame(t); fireTimers(NOW + 16); NOW += 16; }
+for (let i = 0; i < FRAME_COUNT; i++) { t += FRAME_MS; runFrame(t); fireTimers(NOW + FRAME_MS); NOW += FRAME_MS; }
 const writesLoop = writes - writesAtStart;
 const readsLoop = scrollYReads - readsAtStart;
-const readsPerFrame = readsLoop / 600;
-console.log('--- 600 frames (9.6 s) at speed 4 (45 px/s) = 432 px ---');
-console.log('scroll writes / 600 frames    : ' + writesLoop + '   (old v7 = 431 = one per frame; 432px / 3px throttle = ~144)  ' + ok(writesLoop <= 180));
+const readsPerFrame = readsLoop / FRAME_COUNT;
+console.log('--- ' + FRAME_COUNT + ' frames (' + (FRAME_COUNT * FRAME_MS / 1000).toFixed(1) + ' s) at speed 4 (' + DEFAULT_SPEED_PPS + ' px/s) = ' + EXPECTED_PX.toFixed(1) + ' px ---');
+console.log('scroll writes / ' + FRAME_COUNT + ' frames    : ' + writesLoop + '   (old v7 = 431 = one per frame; throttled writes stay below 180)  ' + ok(writesLoop <= 180));
 console.log('window.scrollY reads / frame  : ' + readsPerFrame.toFixed(3) + '   (1.000 = ideal; old v7 = 1.718 = a second read after every write)  ' + ok(readsPerFrame < 1.3));
 console.log('localStorage writes in loop   : ' + storeWrites + '   (must be 0 while running; sync I/O per frame was a stall source)  ' + ok(storeWrites === 0));
-console.log('px advanced / 432 expected    : ' + pxTotal.toFixed(1) + '   ' + ok(Math.abs(pxTotal - 432) < 15));
+console.log('px advanced / ' + EXPECTED_PX.toFixed(1) + ' expected  : ' + pxTotal.toFixed(1) + '   ' + ok(Math.abs(pxTotal - EXPECTED_PX) < 15));
 console.log('still running after 9.6 s     : ' + running0 + ' -> ' + RT.scrolling + '   ' + ok(RT.scrolling === true));
 console.log('scrollY reads during boot     : ' + readsAfterBoot);
 
