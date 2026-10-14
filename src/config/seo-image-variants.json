@@ -1,0 +1,19 @@
+{
+  "variants": [
+    {
+      "ratio": "16x9",
+      "width": 1200,
+      "height": 675
+    },
+    {
+      "ratio": "4x3",
+      "width": 1200,
+      "height": 900
+    },
+    {
+      "ratio": "1x1",
+      "width": 1200,
+      "height": 1200
+    }
+  ]
+}
