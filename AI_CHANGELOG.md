@@ -206,3 +206,25 @@ This follow-up supersedes the pending-state note above. It records release verif
 - The final PR head passed the required GitHub Type-check and production build and Cloudflare Pages preview checks. Cloudflare preview deployment f9b94638-c936-405a-b75d-58e458bc051f completed queued, initialize, clone_repo, build, and deploy stages successfully; all 155 available build/deployment log entries were checked, with no warning, error, failure, fatal, or deprecation matches.
 - PR #19 merged at 2026-10-14T14:18:17Z as main commit 9ec8c14cb1d0c36b2d67b8a543fd5f638f22de5c. Its Cloudflare production deployment e29a16a4-1ad9-4a0f-a16b-bbbf690c6832 matches that SHA and completed every stage successfully; all 155 available logs were checked with no warning/error/failure/fatal/deprecation matches.
 - Live homepage, robots.txt, and sitemap-index.xml each returned HTTP 200 after release. This dependency update does not guarantee or claim a Google ranking change.
+
+
+## 2026-10-14 — PR #29 production verification and live SEO checks
+
+This entry closes the release verification opened above. It records observed release and crawl status only; it does not claim ranking gains.
+
+### GitHub and Cloudflare
+
+- PR #29, “docs: record PR #19 production verification,” merged into main as 47bf3fe2ccf3bcf4667027ec8ec90b2dc7f43b70. Its final PR head, 41c4fc5cbd0c98f55a5fe306722775f659d4c3ba, passed the required Type-check and production build (Actions run 38579905343) and Cloudflare Pages preview check (deployment 8232de62-64c5-4597-b918-b6fc81c310f7). The trusted same-repository auto-merge workflow completed run 38579905510 successfully.
+- Production deployment 348b5550-68c9-4b24-b6eb-9592445e6f25 was triggered from that exact main SHA. Queued, initialize, clone_repo, build, and deploy stages all completed successfully. Cloudflare returned all 153 available deployment-log entries; none matched warning, deprecation, error, or fatal diagnostics. The build did emit an informational early-hints message that no eligible posts were found; it was a skip, not a warning or error.
+- Build-time checks reported 30 page URLs indexable with matching canonicals, 3 featured links resolving, matching social/image metadata on 8 pages, and critical CSS inlined on all 51 pages. Cloudflare parsed 17 redirect rules and 6 header rules.
+
+### Live crawl and localization smoke checks
+
+- At verification time, the homepage, robots.txt, sitemap-index.xml, news-sitemap.xml, image-sitemap.xml, llms.txt, and ai.txt each returned HTTP 200 with the expected HTML, plain-text, or XML content type.
+- The homepage exposed lang=si, its canonical URL https://www.walakatha.net/, index/follow directives, and og:locale=si_LK. robots.txt disallows /api/* and lists the three sitemap endpoints. The sitemap index referenced sitemap-0.xml; the image sitemap contained 5 page locations. The news sitemap returned 200 but had no page locations at the time of the check; retain it only while the site has news-eligible content to publish.
+- No application code, article copy, metadata, or Cloudflare settings were changed in this verification. Any content-level SEO expansion should wait for editorial review of age and consent labeling on mature-content previews.
+
+### Search Console scope and limits
+
+- The checked-in src/data/gsc-keywords.json snapshot was generated 2026-10-14 and covers 2026-07-14 through 2026-10-11; it contains 500 global query rows, 395 usable queries, and 47 pages. This release check did not run a fresh Search Console query, so the snapshot is not a live ranking report.
+- Search positions and Google rankings are not guaranteed by these checks or by the deployment.
