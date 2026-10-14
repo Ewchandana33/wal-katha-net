@@ -25,13 +25,6 @@ import path from "node:path";
 // existing desktop/tablet delivery.
 const demoSlides = [
   {
-    id: "akkai-nangi-wal-katha",
-    title: "අක්කයි නංගියි - Akkai Nangi Wal Katha",
-    image: "/images/posts/Akkai-Nangi-Wal-Katha.webp",
-    mobileImage: "/images/posts/Akkai-Nangi-Wal-Katha-thumb.webp",
-    category: "Wal Katha"
-  },
-  {
     id: "methsala-akka-wal-katha",
     title: "methsala akka wal katha - මෙත්සලා අක්කා වල් කතා",
     image: "/images/slider/slide-2.webp",
@@ -110,9 +103,9 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
       image data arrives. contain: layout additionally isolates the slider's
       internal layout from the rest of the page so nothing inside can shift
       content outside it. */}
-  <div class="flex transition-transform duration-500 ease-in-out" id="slider-wrapper" style="width: 400%; min-height: clamp(220px, 35vw, 360px);">
+  <div class="flex transition-transform duration-500 ease-in-out" id="slider-wrapper" style={`width: ${demoSlidesWithVersion.length * 100}%; min-height: clamp(220px, 35vw, 360px);`}>
     {demoSlidesWithVersion.map((slide, index) => (
-      <div class="w-full flex-shrink-0 relative" style="width: 25%;">
+      <div class="w-full flex-shrink-0 relative" style={`width: ${100 / demoSlidesWithVersion.length}%;`}>
         {/*
           2026-08 TOUCH-TARGET / OVERLAP FIX (PageSpeed "Touch targets
           do not have sufficient size or spacing"): only the currently
@@ -248,7 +241,7 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
       currentIndex = index;
       const activeWrapper = wrapper;
       if (!activeWrapper) return;
-      activeWrapper.style.transform = `translateX(-${index * 25}%)`;
+       activeWrapper.style.transform = `translateX(-${index * (100 / totalSlides)}%)`;
 
       // Visual dot state now lives on the inner span, not the button
       // itself (button is the 24x24 hit area, span is the 8x8 dot).

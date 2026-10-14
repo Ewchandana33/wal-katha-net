@@ -16,9 +16,50 @@ const featuredLinks = anchors.filter((anchor) => {
   return classAttribute.split(/\s+/).includes("slide-link");
 });
 const failures = [];
+const hasClass = (tag, className) => {
+  const classAttribute = tag.match(/\bclass="([^"]*)"/i)?.[1] ?? "";
+  return classAttribute.split(/\s+/).includes(className);
+};
 
 if (featuredLinks.length === 0) {
   failures.push("No featured slider links were found on the generated homepage.");
+}
+
+const wrapper = homePage.match(/<div\b[^>]*\bid="slider-wrapper"[^>]*>/i)?.[0];
+const wrapperWidth = wrapper?.match(/\bstyle="[^"]*\bwidth:\s*([\d.]+)%/i)?.[1];
+if (!wrapper || !wrapperWidth) {
+  failures.push("The slider wrapper or its generated width is missing.");
+} else if (Math.abs(Number(wrapperWidth) - featuredLinks.length * 100) > 0.01) {
+  failures.push(
+    `Slider wrapper width is ${wrapperWidth}%; expected ${featuredLinks.length * 100}% for ${featuredLinks.length} slides.`
+  );
+}
+
+const slidePanels = [...homePage.matchAll(/<div\b[^>]*>/gi)]
+  .map((match) => match[0])
+  .filter((tag) => hasClass(tag, "flex-shrink-0"));
+const expectedPanelWidth = featuredLinks.length > 0 ? 100 / featuredLinks.length : 0;
+if (slidePanels.length !== featuredLinks.length) {
+  failures.push(
+    `Found ${slidePanels.length} slide panels but ${featuredLinks.length} slider links.`
+  );
+}
+for (const [index, panel] of slidePanels.entries()) {
+  const panelWidth = panel.match(/\bstyle="[^"]*\bwidth:\s*([\d.]+)%/i)?.[1];
+  if (!panelWidth || Math.abs(Number(panelWidth) - expectedPanelWidth) > 0.01) {
+    failures.push(
+      `Slide panel ${index + 1} width is ${panelWidth ?? "missing"}%; expected ${expectedPanelWidth}%.`
+    );
+  }
+}
+
+const sliderDots = [...homePage.matchAll(/<button\b[^>]*>/gi)]
+  .map((match) => match[0])
+  .filter((tag) => hasClass(tag, "slider-dot"));
+if (sliderDots.length !== featuredLinks.length) {
+  failures.push(
+    `Found ${sliderDots.length} slider navigation dots but ${featuredLinks.length} slider links.`
+  );
 }
 
 for (const [index, anchor] of featuredLinks.entries()) {
@@ -60,5 +101,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `[featured-links] PASS: ${featuredLinks.length} homepage slider links resolve to generated pages.`
+  `[featured-links] PASS: ${featuredLinks.length} slider links resolve to generated pages; panels, dots, and widths align.`
 );
