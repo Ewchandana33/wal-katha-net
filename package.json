@@ -33,7 +33,7 @@
     "astro": "^7.1.0",
     "astro-auto-import": "^0.6.0",
     "astro-gtm-lite": "^1.0.2",
-    "date-fns": "^4.1.0",
+    "date-fns": "^4.4.0",
     "fuse.js": "^7.3.0",
     "gray-matter": "^4.0.3",
     "marked": "^18.0.2",
