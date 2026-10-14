@@ -77,15 +77,12 @@ const organizationSameAs = (social?.main || [])
     }
   });
 
-// 2026-08 SEO ALIGNMENT PASS - homepage title/H1/description sync.
-//
-// USER-MANDATED CONSTRAINT: "Wal Katha" is the primary keyword this site
-// must rank for, and the exact site title string below must never change.
-// homeTitle is therefore fixed verbatim to that exact string.
-const homeTitle = "Wal Katha - Sinhala Wal Katha & Wela Katha";
+// Lead with the Sinhala query wording that Search Console shows on the
+// homepage, and keep the brand at the end of the search title.
+const homeTitle = "සිංහල වල් කතා සහ වැල් කතා | Wal Katha";
 const homeDescription =
   "සිංහල වැල් කතා සහ වල් කතා නොමිලේ කියවන්න. Wal Katha වෙතින් දිනපතා අලුත් Sinhala Wal Katha, Wala Katha සහ Wela Katha කියවන්න.";
-const homeH1 = "Wal Katha - සිංහල වල් කතා සහ වැල කතා";
+const homeH1 = "සිංහල වල් කතා සහ වැල් කතා";
 
 // BRAND ENTITY FIX. Organization "name" previously reused homeTitle, i.e.
 // a page title ("Wal Katha - Sinhala Wal Katha & Wela Katha") rather than

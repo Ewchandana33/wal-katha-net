@@ -44,3 +44,6 @@ jobs:
 
       - name: Verify pagination SEO output
         run: node scripts/verify-pagination-seo.mjs
+
+      - name: Verify homepage SEO output
+        run: node scripts/verify-homepage-seo.mjs
