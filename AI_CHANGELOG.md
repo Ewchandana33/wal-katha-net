@@ -77,7 +77,17 @@ dependencies and processor API rather than hide their warnings.
   for all 30 checked page URLs, featured links passed (3), social metadata
   passed (8 pages), and critical CSS was inlined for 51/51 pages.
 - Local `yarn run check` generated Astro types but timed out while waiting for
-  diagnostics; this is not counted as a pass. The required GitHub type-check and
-  Cloudflare preview checks must pass before this change is merged.
+  diagnostics; this is not counted as a pass.
+- GitHub PR #23's `Type-check and production build` and `Cloudflare Pages`
+  checks passed for initial commit `6fbc4ede818283820132eef2ef39ebb010f00f8e`.
+- Cloudflare preview deployment
+  `3c0abfba-80f8-4caf-a273-4f7984306259` completed build and deploy
+  successfully. Its logs contain neither the prior Vite peer warning nor the
+  Astro Markdown deprecation warning; sitemap, featured-link, social metadata,
+  and critical-CSS build gates passed.
+- The preview URL returned HTTP 200 and retained `lang="si"`, the canonical
+  `https://www.walakatha.net/`, two `hreflang` links, and `og:locale=si_LK`.
+- This changelog-only follow-up changes the PR head, so the required GitHub and
+  Cloudflare preview checks must be rerun on the final head before merge.
 - The production deployment recorded above is the pre-change baseline; this PR
   has not changed production at the time of this entry.
