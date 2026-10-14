@@ -35,7 +35,7 @@ const base_url = (config?.site?.base_url || "").replace(/\/$/, "");
 // og:url and sitemap byte-for-byte identical.
 const canonicalUrl = `${base_url}/`;
 
-// Use the purpose-built 1200x630 social image rather than the header brand.
+// Use the purpose-built homepage social image and declare its real dimensions.
 const ogImage = config.metadata.meta_image;
 
 import menu from "@/config/menu.json";
@@ -172,6 +172,8 @@ const homePageSchema = {
   description={homeDescription}
   canonical={canonicalUrl}
   image={ogImage}
+  imageWidth={1024}
+  imageHeight={541}
   showBottomAd={false}
 >
   {/* DUPLICATE META REMOVED. Base.astro already emits og:type, og:title,
