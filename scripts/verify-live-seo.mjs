@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const origin = "https://www.walakatha.net";
+const noindexPostIds = JSON.parse(readFileSync(resolve(process.cwd(), "src/config/noindex-post-ids.json"), "utf8"));
+expect(Array.isArray(noindexPostIds), "noindex post configuration must be an array");
 const agent = "Mozilla/5.0 (compatible; WalKathaTechnicalAudit/1.0; +https://www.walakatha.net/)";
 
 function expect(condition, message) {
@@ -105,6 +109,38 @@ while (queue.length) {
 expect(pageUrls.size > 0, "Sitemaps must include at least one page URL");
 
 const pages = [...pageUrls];
+const correctedPostUrl = new URL("/blog/akkai-nangi-wal-katha/", origin).href;
+expect(pageUrls.has(correctedPostUrl), "Corrected article is missing from the XML sitemap");
+
+const imageSitemap = await fetchText(origin + "/image-sitemap.xml", "image sitemap", true);
+const imageUrls = new Set(locations(imageSitemap.text));
+expect(imageUrls.has(correctedPostUrl), "Corrected article is missing from the image sitemap");
+
+const rss = await fetchText(origin + "/rss.xml", "RSS feed");
+expect(/xml/i.test(rss.response.headers.get("content-type") || ""), "RSS feed did not return an XML content type");
+const rssUrls = new Set(
+  [...rss.text.matchAll(/<link>\s*([^<]+?)\s*<\/link>/gi)].map((match) => decodeXml(match[1].trim()))
+);
+expect(rssUrls.has(correctedPostUrl), "Corrected article is missing from the RSS feed");
+
+for (const postId of noindexPostIds) {
+  const noindexUrl = new URL("/blog/" + postId + "/", origin).href;
+  expect(!pageUrls.has(noindexUrl), "noindex article is present in the XML sitemap: " + noindexUrl);
+  expect(!imageUrls.has(noindexUrl), "noindex article is present in the image sitemap: " + noindexUrl);
+  expect(!rssUrls.has(noindexUrl), "noindex article is present in the RSS feed: " + noindexUrl);
+
+  const response = await fetchText(noindexUrl, "noindex article " + noindexUrl);
+  expect(response.response.url === noindexUrl, "noindex article redirected away from its canonical URL: " + noindexUrl);
+  const metas = response.text.match(/<meta\b[^>]*>/gi) || [];
+  const robotsTag = metas.find((tag) => attribute(tag, "name").toLowerCase() === "robots");
+  const robotsContent = robotsTag ? attribute(robotsTag, "content").toLowerCase() : "";
+  expect(/(^|[\s,])noindex([\s,]|$)/.test(robotsContent), "Configured noindex article is missing noindex: " + noindexUrl);
+  expect(/(^|[\s,])follow([\s,]|$)/.test(robotsContent), "Configured noindex article should remain followable: " + noindexUrl);
+  const links = response.text.match(/<link\b[^>]*>/gi) || [];
+  const canonicalTag = links.find((tag) => attribute(tag, "rel").toLowerCase() === "canonical");
+  expect(canonicalTag && new URL(attribute(canonicalTag, "href"), noindexUrl).href === noindexUrl, "Configured noindex article has a mismatched canonical: " + noindexUrl);
+}
+
 const failures = [];
 let cursor = 0;
 const workers = Array.from({ length: Math.min(5, pages.length) }, async () => {
@@ -122,4 +158,4 @@ const workers = Array.from({ length: Math.min(5, pages.length) }, async () => {
 });
 await Promise.all(workers);
 assert.equal(failures.length, 0, "Live sitemap pages failed SEO/locale checks:\n" + failures.slice(0, 25).join("\n"));
-console.log("[live-seo-geo] PASS: homepage, robots.txt, " + seenSitemaps.size + " sitemap(s), and " + pages.length + " indexable pages; canonical, si-LK hreflang, Sinhala language, and si_LK locale verified.");
+console.log("[live-seo-geo] PASS: homepage, " + seenSitemaps.size + " sitemap(s), " + pages.length + " indexable pages, corrected article discovery in XML/image/RSS, and " + noindexPostIds.length + " configured noindex article(s) excluded and tagged noindex,follow; canonical, si-LK hreflang, Sinhala language, and si_LK locale verified.");

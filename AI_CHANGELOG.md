@@ -228,3 +228,15 @@ This entry closes the release verification opened above. It records observed rel
 
 - The checked-in src/data/gsc-keywords.json snapshot was generated 2026-10-14 and covers 2026-07-14 through 2026-10-11; it contains 500 global query rows, 395 usable queries, and 47 pages. This release check did not run a fresh Search Console query, so the snapshot is not a live ranking report.
 - Search positions and Google rankings are not guaranteed by these checks or by the deployment.
+
+
+## 2026-10-14 — Correct the reported age and restore discovery
+
+### Change
+- The publisher confirmed the single age reference of 17 in `src/content/posts/Akkai-Nangi-wal-katha.md` was a mistake and the character is 18; updated that age only. A separate “17” found during the all-post scan was part of a publication date and was left unchanged.
+- Removed the corrected article from the temporary noindex and discovery exclusions so its page can be indexed again and it can return to the XML sitemap, image sitemap, and RSS feed. The separately flagged `bus-jack-wal-katha` article remains noindex.
+- Extended `scripts/verify-live-seo.mjs` to require the corrected URL in the XML/image/RSS discovery feeds and to fetch every configured noindex article, require `noindex,follow` and matching canonical, and reject its inclusion in those feeds.
+
+### Rationale and limits
+- The user identified the age as an accidental typo and requested the intended adult age; no other post ages, publication dates, story copy, metadata, or locale targets were changed.
+- This makes the corrected article eligible for recrawling, not guaranteed ranking or immediate removal of cached search results. Search engines control recrawl and ranking.

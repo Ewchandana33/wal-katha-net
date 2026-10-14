@@ -45,7 +45,7 @@ export async function GET(context: APIContext) {
       media: "http://search.yahoo.com/mrss/",
     },
     items: sortedPosts
-      .filter((post) => !["akkai-nangi-wal-katha", "bus-jack-wal-katha"].includes(post.id))
+      .filter((post) => !["bus-jack-wal-katha"].includes(post.id))
       .map((post) => {
       const postUrl = withTrailingSlash(`${siteUrl}/blog/${post.id}`);
       const imageUrl = post.data.image
