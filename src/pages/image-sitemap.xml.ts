@@ -66,7 +66,7 @@ export async function GET(context: APIContext) {
   const base_url = (config?.site?.base_url || "").replace(/\/$/, "");
   const siteUrl = context.site?.toString().replace(/\/$/, "") ?? base_url;
 
-  const noindexPostIds = new Set(["akkai-nangi-wal-katha", "bus-jack-wal-katha"]);
+  const noindexPostIds = new Set(["bus-jack-wal-katha"]);
   const postsWithImages = sortedPosts.filter(
     (post) => !!post.data.image && !noindexPostIds.has(post.id)
   );

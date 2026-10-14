@@ -327,7 +327,6 @@ const AUTOMATICALLY_EXCLUDED_SITEMAP_PATHS = [
 ];
 const EXCLUDED_SITEMAP_PATHS = [
   "/elements",
-  "/blog/akkai-nangi-wal-katha",
   "/blog/bus-jack-wal-katha",
   "/page/1",
   "/search",
