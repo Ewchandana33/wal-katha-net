@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/inline-critical-css.mjs",
+    "build": "astro build && node scripts/verify-featured-links.mjs && node scripts/inline-critical-css.mjs",
     "preview": "astro preview",
     "format": "prettier -w .",
     "check": "astro check",
