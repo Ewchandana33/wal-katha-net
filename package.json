@@ -31,7 +31,7 @@
     "@justinribeiro/lite-youtube": "^1.9.0",
     "@resvg/resvg-js": "^2.6.2",
     "astro": "^7.1.0",
-    "astro-auto-import": "^0.5.1",
+    "astro-auto-import": "^0.6.0",
     "astro-gtm-lite": "^1.0.2",
     "date-fns": "^4.1.0",
     "fuse.js": "^7.3.0",
