@@ -64,7 +64,11 @@ jobs:
           mkdir -p /tmp/gsc-tool
           cd /tmp/gsc-tool
           npm init -y >/dev/null 2>&1
-          npm install googleapis@186.0.0 --no-audit --no-fund
+          # googleapis@144 is the last known-good GSC client/auth baseline.
+          # Replace deprecated uuid@9 with its CommonJS-compatible maintained line.
+          npm pkg set 'overrides.uuid=11.1.0'
+          npm install googleapis@144.0.0 --no-audit --no-fund
+          npm ls googleapis google-auth-library uuid --all
 
       - name: Pull Search Analytics data
         env:
@@ -80,6 +84,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Non-main validation run: generated keyword data was not committed."
+            exit 0
+          fi
           if [ -z "$(git status --porcelain -- src/data/gsc-keywords.json)" ]; then
             echo "No keyword changes - nothing to commit."
             exit 0
