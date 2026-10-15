@@ -44,6 +44,12 @@ jobs:
       - name: Test post-recrawl CTR measurement logic
         run: node --test scripts/gsc-ctr-followup.test.mjs
 
+      - name: Test deterministic cover alt policy
+        run: node --test scripts/alt-text-policy.test.mjs
+
+      - name: Verify all post cover alt text
+        run: node scripts/verify-alt-text.mjs
+
       - name: Build static site
         run: yarn build
 
