@@ -1,97 +1,72 @@
-name: AI Image Alt Text (SEO)
-# Gemini Vision එකෙන් post images වලට Sinhala, keyword-driven alt text
-# generate කරයි. Logic එක scripts/generate-alt-text.mjs එකේ - YAML
-# heredoc එකක් ඇතුළේ JS තියෙන විට හැදෙන parse අවුල් වළක්වයි.
-#
-# Secrets: GEMINI_API_KEY, GEMINI_API_KEY_1 .. GEMINI_API_KEY_14
-#          (script එක _30 දක්වා ස්වයංක්‍රීයව හොයයි; එකක් quota ගැහුවොත්
-#           ඊළඟ එකට මාරු වෙයි)
-# Data:    src/data/gsc-keywords.json (gsc-keyword-sync.yml එකෙන් එයි)
+name: Deterministic Image Alt Text (SEO)
+
+# Safe, repeatable cover labels require no Gemini credentials or GSC keyword data.
 on:
   push:
     branches: [main]
     paths:
       - "src/content/posts/**"
-      - "src/data/gsc-keywords.json"
-      - "public/images/**"
+      - "scripts/alt-text-policy.mjs"
+      - "scripts/generate-alt-text.mjs"
+      - "scripts/verify-alt-text.mjs"
+      - ".github/workflows/generate-alt-text.yml"
   schedule:
     - cron: "30 4 * * *"
   workflow_dispatch:
-    inputs:
-      limit:
-        description: "Max images to process in this run"
-        default: "8"
-      overwrite:
-        description: "Rewrite alt text that already exists (true/false)"
-        default: "false"
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 concurrency:
-  group: image-alt-text
+  group: deterministic-image-alt-text
   cancel-in-progress: false
 jobs:
   alt-text:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Generate alt text
-        id: alt
+      - name: Check out repository
+        uses: actions/checkout@v7
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
-          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
-          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
-          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
-          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
-          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
-          GEMINI_API_KEY_7: ${{ secrets.GEMINI_API_KEY_7 }}
-          GEMINI_API_KEY_8: ${{ secrets.GEMINI_API_KEY_8 }}
-          GEMINI_API_KEY_9: ${{ secrets.GEMINI_API_KEY_9 }}
-          GEMINI_API_KEY_10: ${{ secrets.GEMINI_API_KEY_10 }}
-          GEMINI_API_KEY_11: ${{ secrets.GEMINI_API_KEY_11 }}
-          GEMINI_API_KEY_12: ${{ secrets.GEMINI_API_KEY_12 }}
-          GEMINI_API_KEY_13: ${{ secrets.GEMINI_API_KEY_13 }}
-          GEMINI_API_KEY_14: ${{ secrets.GEMINI_API_KEY_14 }}
-          ALT_LIMIT: ${{ inputs.limit || '8' }}
-          ALT_OVERWRITE: ${{ inputs.overwrite || 'false' }}
-          ALT_FIX_BRANDED: "true"
-          ALT_INCLUDE_BODY: "true"
+          GIT_CONFIG_COUNT: 1
+          GIT_CONFIG_KEY_0: init.defaultBranch
+          GIT_CONFIG_VALUE_0: main
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Generate safe deterministic cover alt text
+        id: alt
         run: node scripts/generate-alt-text.mjs
-
-      - name: Validate content collection schema
-        if: steps.alt.outputs.changed == 'true'
-        run: |
-          yarn install --frozen-lockfile
-          npx astro sync
-
-      - name: Open or update pull request
+      - name: Validate every post cover label
+        run: node scripts/verify-alt-text.mjs
+      - name: Open or update protected automation PR
         if: steps.alt.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if git diff --quiet -- src/content/posts; then
-            echo "No file changes on disk - nothing to push."
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Non-main validation only; no automation PR will be opened."
             exit 0
           fi
-          BRANCH="bot/image-alt-text"
+          if git diff --quiet -- src/content/posts AI_CHANGELOG.md; then
+            echo "No content or changelog changes; nothing to commit."
+            exit 0
+          fi
+          BRANCH="bot/deterministic-alt-text"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/content/posts
-          git commit -m "feat(seo): AI-generated image alt text"
+          git add src/content/posts AI_CHANGELOG.md
+          git commit -m "seo: repair deterministic cover alt text"
           git push --force origin "HEAD:refs/heads/$BRANCH"
-          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' || true)
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json url --jq ".[0].url // empty" || true)
           if [ -n "$EXISTING" ]; then
             gh pr edit "$EXISTING" --body-file /tmp/alt-text-report.md
-            echo "Updated existing PR #$EXISTING"
+            PR_URL="$EXISTING"
+            echo "Updated existing PR $PR_URL"
           else
-            gh pr create --head "$BRANCH" --base main \
-              --title "feat(seo): AI image alt text" \
-              --body-file /tmp/alt-text-report.md
+            PR_URL=$(gh pr create --draft --head "$BRANCH" --base main --title "seo: safe deterministic image alt text" --body-file /tmp/alt-text-report.md)
           fi
+          # GitHub-token-created PRs need explicit required-check dispatch.
+          gh workflow run ci.yml --ref "$BRANCH"
+          echo "Draft PR $PR_URL created. Production merge requires explicit review and approval."
