@@ -61,7 +61,7 @@ jobs:
 
           This is observational reporting, not an automatic metadata rewrite or ranking guarantee. The PR remains subject to required CI and Cloudflare Pages preview checks.
           EOF
-          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq ' .[0].number' | sed "s/^ //" || true)
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty' || true)
           if [ -n "$EXISTING" ]; then
             gh pr edit "$EXISTING" --body-file /tmp/gsc-ctr-followup-pr.md
             PR_NUMBER="$EXISTING"
