@@ -38,8 +38,9 @@ test("aggregates clicks, impressions, CTR and impression-weighted average positi
 });
 
 test("CTR change is reported in percentage points and relative percent", () => {
-  assert.deepEqual(compareMetrics({ ctr: 0.02 }, { ctr: 0.03 }), { deltaPp: 1, relativeChangePct: 49.99999999999999 });
+  assert.deepEqual(compareMetrics({ ctr: 0.02 }, { ctr: 0.03 }), { deltaPp: 1, relativeChangePct: 50 });
   assert.deepEqual(compareMetrics({ ctr: null }, { ctr: 0.03 }), { deltaPp: null, relativeChangePct: null });
+  assert.deepEqual(compareMetrics({ ctr: 0.02 }, { ctr: 0.019 }), { deltaPp: -0.1, relativeChangePct: -5 });
 });
 
 test("the result waits for the minimum global impressions in both windows", () => {

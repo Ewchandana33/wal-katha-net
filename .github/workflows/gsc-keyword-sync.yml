@@ -42,6 +42,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 concurrency:
   group: gsc-keyword-sync
   cancel-in-progress: false
@@ -110,8 +111,10 @@ jobs:
               --body-file /tmp/gsc-summary.md)
             PR_NUMBER=$(basename "$PR_URL")
           fi
-          # GITHUB_TOKEN-created PRs do not reliably trigger the separate
-          # trusted-PR auto-merge workflow. Queue the bot PR here instead;
-          # GitHub still waits for all required checks on protected main.
+          # GITHUB_TOKEN events do not start pull_request workflows. Dispatch CI
+          # on this exact PR head so the required check is produced without bypassing
+          # protected-main rules; Cloudflare Pages independently publishes its preview.
+          gh workflow run ci.yml --ref "$BRANCH"
+          echo "Dispatched required CI for $BRANCH."
           gh pr merge "$PR_NUMBER" --auto --squash
           echo "Queued PR #$PR_NUMBER for auto-merge after required checks."

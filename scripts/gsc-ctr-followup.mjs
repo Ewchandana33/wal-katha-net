@@ -52,10 +52,12 @@ export function aggregateRows(rows) {
 }
 
 export function compareMetrics(baseline, post) {
-  const deltaPp = baseline.ctr === null || post.ctr === null ? null : (post.ctr - baseline.ctr) * 100;
+  const deltaPp = baseline.ctr === null || post.ctr === null
+    ? null
+    : Number(((post.ctr - baseline.ctr) * 100).toFixed(2));
   const relativeChangePct = baseline.ctr === null || baseline.ctr === 0 || post.ctr === null
     ? null
-    : ((post.ctr - baseline.ctr) / baseline.ctr) * 100;
+    : Number((((post.ctr - baseline.ctr) / baseline.ctr) * 100).toFixed(1));
   return { deltaPp, relativeChangePct };
 }
 
