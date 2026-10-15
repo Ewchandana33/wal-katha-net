@@ -372,3 +372,9 @@ This entry closes the release verification opened above. It records observed rel
 - Replace the homepage description with a concise, accurate Sinhala invitation that explains category/search navigation and free reading, and removes the unsupported daily-update claim. Structured data and social metadata inherit the same homepage title/description.
 - Update `scripts/verify-homepage-seo.mjs` to assert the exact title and description in the built homepage while retaining the existing H1, canonical, hreflang, locale, and language checks.
 - This is a targeted snippet experiment, not a ranking guarantee; compare GSC CTR after Google recrawls the page and gathers a comparable impression sample.
+### Production release verification — PR #42
+
+- PR #42 merged into `main` as `664c5ed32e462701a237c0f129a97e2dd2555f13` at 2026-10-15 09:24:30 UTC. The required GitHub `Type-check and production build` and `Cloudflare Pages` checks passed.
+- Cloudflare Pages production deployment `40272b93-e1ba-40e2-92db-e7507fcac7e6` was triggered by that exact main SHA. All five stages (queued, initialize, clone_repo, build, deploy) succeeded. All 158 returned deployment-log entries, including container logs, were scanned; none matched warning, deprecation, error, fatal, or failure terms.
+- Live checks on 2026-10-15 returned HTTP 200 for the homepage, `/robots.txt`, `/sitemap-index.xml`, and `/sitemap-0.xml`. The live homepage serves the title and description above, canonical `https://www.walakatha.net/`, `lang=si`, and `hreflang=si-LK` plus `x-default`.
+- This verifies release completion and technical crawl metadata only. It does not establish a CTR or ranking improvement; compare Search Console after Google recrawls and enough comparable impressions accrue.
