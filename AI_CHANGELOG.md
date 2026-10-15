@@ -276,5 +276,18 @@ This entry closes the release verification opened above. It records observed rel
 - Live HTTP smoke checks on `https://www.walakatha.net` returned 200 for the homepage, `/robots.txt`, `/sitemap-index.xml`, `/sitemap-0.xml`, `/news-sitemap.xml`, `/image-sitemap.xml`, `/rss.xml`, and `/blog/akkai-nangi-wal-katha/`. The homepage and article exposed matching canonical URLs and `index,follow` directives. The news sitemap returned 200 but had no `<loc>` entries during this check; retain/monitor it only while there is eligible news content.
 
 ### Remaining verification boundary
-- The Cloudflare production build log does not verify the separate GSC workflow runner's npm install warning. The `googleapis@186.0.0` pin should be confirmed by the next Search Console sync run; do not describe the earlier `uuid@9.0.1` deprecation as resolved until that runner log is checked.
+- Subsequent GSC runner and live SEO audit results are recorded in the 2026-10-15 post-release workflow verification section below; the package warning and GSC authentication outcome are now observed, not assumed.
 - This verifies deployment and technical crawl signals only. It cannot guarantee Google recrawl, indexing, or a ranking position.
+
+
+## 2026-10-15 — Post-release GSC and live SEO workflow verification
+
+### Search Console sync follow-up
+- Manually dispatched GSC run `38684260810` on main SHA `fdb95f7c7c6d1e3fc4b26836bd1075dcebc7cb6e` after PR #33. Installing `googleapis@186.0.0` succeeded; the earlier `uuid@9.0.1` deprecation no longer appeared, but npm emitted a `node-domexception@1.0.0` deprecation warning.
+- The `Pull Search Analytics data` step failed with Google Search Console 401 `UNAUTHENTICATED` / `CREDENTIALS_MISSING` at `SitesService.List`. The result-commit step was skipped; this run wrote no keyword snapshot and created no data PR.
+- Runner logs showed `GSC_SERVICE_ACCOUNT_JSON` and the `GSC_SITE_URL` repository variable empty, while `GOOGLE_INDEXING_KEY` was present but masked. The previous successful run `38665761815` had the same environment-variable shape while using `googleapis@144`; because secret values are hidden, a credential change/shape problem and an auth-compatibility regression after the package update remain competing explanations. Do not infer or publish secret values.
+- Before claiming the sync is fixed, verify the configured credential is service-account JSON containing `client_email` and `private_key`, and that this service account has Search Console access to `sc-domain:walakatha.net`. The optional GitHub Actions variable `GSC_SITE_URL` may be set to `sc-domain:walakatha.net` to pin the property. Never paste credential material into chat.
+
+### Live SEO and locale audit
+- Audit run `38684362854` passed on main SHA `fdb95f7c7c6d1e3fc4b26836bd1075dcebc7cb6e`: homepage, 26 indexable pages, canonical URLs, `si-LK` hreflang, Sinhala language/locale, sitemap and corrected-article feed discovery, and exclusion of the configured noindex article all passed.
+- The audit runner also emitted Node/Yarn setup deprecation warnings (`punycode` and `url.parse()`). They did not fail the audit and were emitted by the Node 24 / inferred Yarn cache setup, not by the site build. Cloudflare production build logs remain a separate check and were clean for the recorded production deployment.
