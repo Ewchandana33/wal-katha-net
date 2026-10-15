@@ -339,3 +339,23 @@ This entry closes the release verification opened above. It records observed rel
 - Cloudflare preview deployment `cf25934a-e453-4c79-9825-c0b18fa84c53` for branch commit `233ba121` completed all five stages. All 158 returned log entries (including container logs) were scanned; none matched warning, deprecation, error, fatal, or failure terms.
 - Current production is still main commit `848c1034`, deployment `2dd393f2-f784-427d-97d8-bf48a1e63541`; all five stages succeeded and all 156 returned log entries were scanned with no warning/deprecation/error/fatal/failure matches. The live SEO/locale audit `38698866861` passed on that main SHA: 26 indexable pages, canonical URLs, Sinhala and `si-LK` locale signals, corrected-article discovery, and noindex exclusions.
 - The GSC compatibility change is not in `main` yet. Do not call production GSC sync restored until the fix passes protected-branch checks, is merged, and a main-branch run completes; do not claim ranking improvements from technical checks.
+
+## 2026-10-15 — PR #39/#40 GSC release and production verification
+
+### PR #39 Search Console compatibility release
+- PR #39, `fix(gsc): restore Search Console sync auth compatibility`, merged through protected-main auto-merge as `e85f5e7ac68a94f093c055294ad002f3a5010d0f` after the required Type-check/production-build and Cloudflare Pages checks passed. The merged workflow uses `googleapis@144.0.0` (`google-auth-library@9.15.1`) with `uuid@11.1.0` override and the non-main data-commit guard.
+- Cloudflare production deployment `8c4d797a-8871-4a77-aa3c-6b0dd719977b` for that SHA completed all five stages successfully; all 156 returned log entries, including container logs, were scanned with no warning, deprecation, error, fatal, or failure matches.
+
+### Main-branch Search Console sync and data PR
+- Manual GSC workflow run `38700591415` on main SHA `e85f5e7ac68a94f093c055294ad002f3a5010d0f` completed successfully using the existing masked `GOOGLE_INDEXING_KEY` fallback; `GSC_SERVICE_ACCOUNT_JSON` and `GSC_SITE_URL` were empty. No secret value was read or changed.
+- The run queried `sc-domain:walakatha.net` for 2026-07-15 through 2026-10-12 and received web=1911 / image=881 rows, including 2,771 web and 2,287 image page+query rows. It generated a 500-global-query / 46-page snapshot and created data PR #40. The PR changed only `generatedAt`; the keyword rows themselves were unchanged.
+- PR #40 was auto-merged as `fa4c1fc5544ac1809b6d8bc5acfebf7eeefc8169` after approval allowed its CI to run; no required check was bypassed. The type-check/Astro build, middleware tests, homepage/pagination SEO assertions, and Cloudflare Pages preview all passed. Preview deployment `7767824c-375c-4f9a-a841-ce45c7323baf` completed all five stages; its 158 returned log entries (including container logs) had no warning, deprecation, error, fatal, or failure matches.
+
+### Production and live SEO verification on PR #40 SHA
+- Cloudflare production deployment `0bfc2fbb-0dc6-4c6a-922a-78e04e30b8d9` for exact main SHA `fa4c1fc5544ac1809b6d8bc5acfebf7eeefc8169` completed all five stages successfully. All 156 production log entries, including container logs, were scanned with no warning, deprecation, error, fatal, or failure matches.
+- Live audit run `38701606860` passed on that exact main SHA. It verified the live homepage, robots/sitemap and feed discovery, 26 indexable pages, canonical URLs, corrected-article discovery, the configured noindex exclusion, Sinhala language, `si-LK` hreflang, and `si_LK` locale.
+- GitHub runner logs still include the standard Git default-branch initialization advisory; the GSC install emitted no npm deprecation warning, and Cloudflare build/deployment logs were clean.
+
+### Status clarification
+- This entry supersedes the earlier pre-merge note stating that the GSC fix was not yet in `main`. The post-merge main-branch sync and production verification above are now complete.
+- The GSC run confirms data retrieval and the protected PR flow; this specific snapshot had no keyword-row changes, only a refreshed timestamp. Technical crawl checks do not guarantee Google indexing or ranking position.
