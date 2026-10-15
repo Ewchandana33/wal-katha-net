@@ -359,3 +359,16 @@ This entry closes the release verification opened above. It records observed rel
 ### Status clarification
 - This entry supersedes the earlier pre-merge note stating that the GSC fix was not yet in `main`. The post-merge main-branch sync and production verification above are now complete.
 - The GSC run confirms data retrieval and the protected PR flow; this specific snapshot had no keyword-row changes, only a refreshed timestamp. Technical crawl checks do not guarantee Google indexing or ranking position.
+
+## 2026-10-15 — GSC-led homepage low-CTR snippet update
+
+### Evidence and scope
+- Reviewed the committed 90-day Search Console snapshot (`2026-07-15` to `2026-10-12`, three-day data lag). The homepage query `වැල්` is web-only and reported 4,075 impressions, 90 clicks, 2.21% CTR, and average position 5.2. This is the strongest high-visibility / low-CTR snippet opportunity in the page-query data.
+- The existing homepage title already covered both Sinhala spellings, but led with the other variant; its description repeated keyword variants and claimed daily new stories without a verified publishing cadence. The page template provides category navigation and search.
+- Other apparent low-CTR article rows either have average positions mostly beyond page one or mix Web and Image metrics in the capped top-query snapshot; the evidence does not isolate a snippet problem there, so no article metadata was changed.
+
+### Change in this PR
+- Reorder the homepage title to lead with the exact high-impression query wording: `සිංහල වැල් කතා කියවන්න | Wal Katha`. Keep the visible H1 unchanged.
+- Replace the homepage description with a concise, accurate Sinhala invitation that explains category/search navigation and free reading, and removes the unsupported daily-update claim. Structured data and social metadata inherit the same homepage title/description.
+- Update `scripts/verify-homepage-seo.mjs` to assert the exact title and description in the built homepage while retaining the existing H1, canonical, hreflang, locale, and language checks.
+- This is a targeted snippet experiment, not a ranking guarantee; compare GSC CTR after Google recrawls the page and gathers a comparable impression sample.
