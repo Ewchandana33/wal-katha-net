@@ -64,11 +64,11 @@ jobs:
           mkdir -p /tmp/gsc-tool
           cd /tmp/gsc-tool
           npm init -y >/dev/null 2>&1
-          # googleapis-common 9.0.0 expects google-auth-library 10.5.0;
-          # pin the shared JWT implementation while keeping the current API client.
-          npm pkg set 'overrides.google-auth-library=10.5.0'
-          npm install googleapis@186.0.0 --no-audit --no-fund
-          npm ls google-auth-library --all
+          # googleapis@144 is the last known-good GSC client/auth baseline.
+          # Replace deprecated uuid@9 with its CommonJS-compatible maintained line.
+          npm pkg set 'overrides.uuid=11.1.0'
+          npm install googleapis@144.0.0 --no-audit --no-fund
+          npm ls googleapis google-auth-library uuid --all
 
       - name: Pull Search Analytics data
         env:
