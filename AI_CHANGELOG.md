@@ -378,3 +378,11 @@ This entry closes the release verification opened above. It records observed rel
 - Cloudflare Pages production deployment `40272b93-e1ba-40e2-92db-e7507fcac7e6` was triggered by that exact main SHA. All five stages (queued, initialize, clone_repo, build, deploy) succeeded. All 158 returned deployment-log entries, including container logs, were scanned; none matched warning, deprecation, error, fatal, or failure terms.
 - Live checks on 2026-10-15 returned HTTP 200 for the homepage, `/robots.txt`, `/sitemap-index.xml`, and `/sitemap-0.xml`. The live homepage serves the title and description above, canonical `https://www.walakatha.net/`, `lang=si`, and `hreflang=si-LK` plus `x-default`.
 - This verifies release completion and technical crawl metadata only. It does not establish a CTR or ranking improvement; compare Search Console after Google recrawls and enough comparable impressions accrue.
+
+
+## 2026-10-15 — Full live SEO and Sri Lanka locale re-audit
+
+- Manually dispatched the existing `Live SEO and Sri Lanka locale audit` workflow after PR #43. Run [38717622478](https://github.com/Ewchandana33/wal-katha-net/actions/runs/38717622478) on exact main SHA `54786e62bce6ab2dff609a4fdca5d54663a8f6fc` completed successfully.
+- The live audit covered the homepage, robots and sitemap/feed discovery, all 26 indexable sitemap pages, corrected-article discovery in XML/image/RSS, and configured noindex-page exclusions. Its page assertions include canonical URLs, Sinhala language, `si-LK` hreflang, and `si_LK` Open Graph locale. No audit failure was reported.
+- The Search Console snapshot currently in `src/data/gsc-keywords.json` was generated at `2026-10-15T07:42:57Z` for `2026-07-15` through `2026-10-12` (three-day data lag). It predates the homepage snippet release on `2026-10-15`; therefore there is not yet a valid post-release CTR comparison or evidence of a ranking change.
+- `Sync GSC Keywords` already runs on a weekly schedule (Mondays at 04:00 UTC). Allow later snapshots and Google recrawl data to mature before evaluating the `වැල්` homepage query; technical-audit success is not a ranking or CTR guarantee. This audit found no verified issue requiring another source-code or metadata change.
