@@ -16,31 +16,35 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ## Status snapshot — 2026-10-15
 
-- At this snapshot, main is commit 00138773ecf824d50878dee04d11adada8af9424; PR #46 contains the deterministic cover-alt SEO repair, and PR #47 records its post-merge verification. The matching Cloudflare production deployment succeeded.
-- The GSC post-recrawl homepage CTR workflow is active. Its latest completed run checked here was 38726508677 on pre-release commit 5c56696583bbdea46978eb0988190395724bacfb; its report-PR step was skipped, so there is no post-release Search Console result in this snapshot.
-- Do not claim a post-release CTR/ranking change until Google reports an indexed verdict and a crawl at or after the snippet release, at least seven days have elapsed after deployment, a complete 28-day post-crawl window is available with the three-day data lag, and each global comparison window has at least 500 impressions. Report Sri Lanka separately and label it directional if either window has fewer than 100 impressions. The scheduled workflow creates a report PR only after these gates pass.
-
+- Pre-change production baseline checked immediately before this changelog-only update: main was 2b3278653ef307e0bd8d3282094efddde3e9f8b8 after PR #48. Cloudflare Pages production deployment 8a08ed45-d61f-4595-af42-2bcce4d83c2b was triggered by that exact SHA; all five stages succeeded, and all 158 returned log entries (including container logs) had no warning, deprecation, error, fatal, or failure matches. PR #48 changed documentation, not site behavior.
+- The latest checked Sync GSC Keywords main run was 38700591415 (success). Its committed export was generated at 2026-10-15T07:42:57.643Z for 2026-07-15 through 2026-10-12: 500 global queries, 394 usable queries, 46 pages. This is workflow-export evidence, not a fresh post-release Search Console comparison.
+- On homepage route /, query වැල් had 4,075 impressions, 90 clicks, calculated CTR 2.21%, and average position 5.2 in that export. The homepage snippet already targets the query. GSC post-recrawl follow-up run 38726508677 completed successfully, but its report-PR step was skipped because recrawl/data gates were not met; no post-release CTR or ranking effect is established.
+- Keep the active comparison gates: Google indexed verdict and a crawl at or after the 2026-10-15 snippet release; at least seven days after deployment; a complete 28-day post-crawl window with the three-day data lag; at least 500 impressions in each global comparison window. Report Sri Lanka separately and label it directional below 100 impressions in either window.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 18 earlier dated entries from 2026-10-14 through 2026-10-15, moved verbatim during the cleanup below.
+- archive/AI_CHANGELOG-2026-Q4.md — 19 earlier dated entries from 2026-10-14 through 2026-10-15; dated sections are retained verbatim.
 
 ## Recent entries
-## 2026-10-15 — Automated post-recrawl homepage CTR measurement
 
-### Scope and safeguards
-- The existing weekly `Sync GSC Keywords` workflow remains scheduled for Mondays at 04:00 UTC. This adds a separate homepage experiment follow-up at 05:00 UTC, avoiding duplicate keyword-sync work.
-- The monitor is scoped to the homepage query `වැල්` and the snippet release on 2026-10-15. Its pre-release baseline is 2026-09-15 through 2026-10-12. It uses Google URL Inspection to require an indexed verdict and a crawl at or after release, waits at least seven days after deployment, then measures a 28-day post-crawl window with a three-day Search Console data lag.
-- A report is written only when the comparison is complete and each global window has at least 500 impressions. A Sri Lanka (`LKA`) segment is reported separately and labeled directional below 100 impressions in either window. Until then, the action writes only a pending status to its job summary and leaves the changelog untouched.
-- The action uses the existing `GOOGLE_INDEXING_KEY` / `GSC_SERVICE_ACCOUNT_JSON` secret and optional `GSC_SITE_URL` repository variable; no credential values are read, printed, or changed.
+## 2026-10-15 — GSC query triage and production-state refresh
 
-### Automation and validation design
-- A ready report is committed on `bot/gsc-ctr-followup`, submitted as a PR, and queued for squash auto-merge. Protected `main` is never directly pushed. The existing keyword-sync workflow now explicitly dispatches the CI workflow on its bot PR head because a `GITHUB_TOKEN`-created PR does not itself trigger `pull_request` workflows; Cloudflare Pages continues to build the preview independently.
-- The focused date-window and metric tests are added to the required CI workflow. CTR percentage-point values are rounded to two decimals and relative changes to one decimal to keep reports stable across Node versions; this also fixes an exact floating-point assertion that failed under Node 24.
-- The monitor records Search Console observations only; it does not auto-edit titles/content and does not claim that an observed CTR or position change was caused by the snippet change. Rankings cannot be guaranteed.
+### Search Console query evidence
 
-### Current status
-- The latest verified Search Console snapshot still ends 2026-10-12, before the 2026-10-15 release. No post-release recrawl or comparable post-window result is claimed. The weekly action will keep checking and create a report PR only when Google crawl and data-volume conditions are satisfied.
+- Read the repository's generated Search Analytics export for sc-domain:walakatha.net (generated 2026-10-15T07:42:57.643Z; 2026-07-15–2026-10-12; 500 global queries, 394 usable, 46 pages). Global rows may combine web and image search; do not treat blended average positions as web-only rankings.
+- Highest-volume Sinhala query rows in the global export: වල් කතා — 21,880 impressions, 5,172 clicks, 23.64% CTR, average position 3.3; වැල කතා — 7,926 impressions, 2,476 clicks, 31.24% CTR, average position 1.9; සිංහල වැල් — 5,074 impressions, 303 clicks, 5.97% CTR, average position 4.1. These are observed query metrics, not ranking guarantees.
+- Page-level evidence for homepage query වැල් is 4,075 impressions, 90 clicks, 2.21% calculated CTR, average position 5.2 (web source). For සිංහල වැල්, the export assigns 4,468 impressions / 267 clicks / position 28.9 to / and 658 impressions / 35 clicks / position 4.8 to /page/2/; both include web and image sources. This mixed page mapping is not sufficient evidence to retarget the homepage or rewrite pagination metadata.
 
+### Decision and scope
+
+- src/pages/index.astro already contains the GSC-informed homepage title and description for the වැල් query. The existing post-recrawl monitor checks whether Google re-crawls the released snippet and waits for comparable data; another title edit now would reset the measurement start and weaken the comparison.
+- No application source, metadata, or keyword seed was changed in this audit. Keep the existing monitor and use the next query export to choose any route-specific action after separating web from image search and checking page-level intent. No Search Console credentials were read or changed.
+
+### Verified state before this changelog update
+
+- PR #48 merged as main commit 2b3278653ef307e0bd8d3282094efddde3e9f8b8. Its CI run 38749000165 and trusted auto-merge run 38749000658 both completed successfully.
+- Cloudflare Pages production deployment 8a08ed45-d61f-4595-af42-2bcce4d83c2b corresponds to that exact commit. All five stages succeeded; all 158 returned deployment-log entries were checked and none matched warning, deprecation, error, fatal, or failure terms.
+- Sync GSC Keywords run 38700591415 succeeded on main and committed the export described above. The post-recrawl monitor run 38726508677 succeeded, but the report-PR step was skipped while its recrawl and sample-size gates were unmet. The latest Live SEO and Sri Lanka locale audit run checked was 38725657543 and completed successfully.
+- Earlier same-day GSC sync attempts did include failures; they are not represented as successes. The later successful main-branch sync and committed export establish the current data state, not that every historical run passed.
 
 ## 2026-10-15 — Automated deterministic cover-alt repair
 
