@@ -309,3 +309,20 @@ This entry closes the release verification opened above. It records observed rel
 - After PR #36 merged as `bc5dc47747bf6e809c8511602c72b2c691ceaacf`, no push-triggered run for that commit appeared in Actions. A manual `workflow_dispatch` run `38686128893` on the same main SHA completed successfully.
 - The run confirmed 26 indexable pages, canonical URLs, `si-LK` hreflang, Sinhala language/locale, sitemap/feed discovery, and noindex exclusion. Its logs no longer contained the Node `punycode` or Yarn `url.parse()` deprecations; only Git's standard default-branch initialization hint remained. The scheduled daily audit is still configured.
 - This verifies the runner cleanup; it does not repair the independent GSC authentication failure or the `node-domexception@1.0.0` install deprecation recorded above.
+
+## 2026-10-15 — PR #37 production release and live verification
+
+### GitHub and Cloudflare release checks
+- PR #37, “docs: record post-merge SEO audit verification,” merged into `main` as `e74280cf8263c84e93da988a72fc79e50092cc66`. Its final head `dd999190cd80f47da9448bf6931c5dab2bdee369` passed the required “Type-check and production build” check (run `38686370394`) and Cloudflare Pages preview check. The preview deployment `b34181cb-557f-4051-b0a7-c1d7fefa73ae` completed all five stages successfully; all 158 returned log entries, including container logs, were scanned with no warning, deprecation, error, failure, or fatal matches.
+- Cloudflare Pages production deployment `e2b959fd-767a-488b-943b-4119f95962d6` was triggered by the exact main SHA above. Queue, initialize, clone, build, and deploy all succeeded. All 156 available production log entries, including container logs, were checked with no warning, deprecation, error, failure, or fatal matches.
+
+### Live site checks after production deployment
+- Direct HTTP checks returned 200 for the homepage, `/robots.txt`, `/sitemap-index.xml`, `/sitemap-0.xml`, `/news-sitemap.xml`, `/image-sitemap.xml`, `/rss.xml`, `/llms.txt`, and a representative Sinhala article. `/sitemap.xml` also resolved to the sitemap index with HTTP 200.
+- The homepage returned `lang=si`, canonical `https://www.walakatha.net/`, `index,follow` robots metadata, `hreflang=si-LK`, and `og:locale=si_LK`. The current child XML sitemap contained 26 URL entries. The news sitemap returned HTTP 200 but had no URL entries at verification time.
+- Live audit run `38686128893` passed for main SHA `bc5dc47747bf6e809c8511602c72b2c691ceaacf` before the later documentation-only PR #37. It verified 26 indexable pages, canonical/locale signals, sitemap/feed discovery, and noindex exclusions. This workflow run did not execute on the newer documentation-only SHA; the exact production deployment and live HTTP checks above were checked separately.
+
+### Search Console remains blocked
+- GSC run `38684260810` failed in “Pull Search Analytics data” with HTTP 401 `UNAUTHENTICATED / CREDENTIALS_MISSING` at `SitesService.List`; its data commit step was skipped, so this run created no keyword snapshot.
+- GitHub's repository Actions metadata lists the secret name `GOOGLE_INDEXING_KEY`, but not `GSC_SERVICE_ACCOUNT_JSON`, and lists no repository Actions variables (including `GSC_SITE_URL`). Secret values are not readable through this audit and were not inspected. The workflow can fall back from `GSC_SERVICE_ACCOUNT_JSON` to `GOOGLE_INDEXING_KEY`, so the missing dedicated secret name alone does not establish the cause. The effective value's service-account JSON shape and its Search Console property permission still need a safe operator-side check; do not paste credentials into chat.
+- No GSC credential, Search Console permission, or repository setting was changed. Do not mark keyword sync healthy until it completes successfully and writes fresh data. The technical SEO audit verifies crawl signals only; it does not guarantee Google indexing or rankings.
+
