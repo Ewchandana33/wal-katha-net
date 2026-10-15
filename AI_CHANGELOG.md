@@ -263,5 +263,18 @@ This entry closes the release verification opened above. It records observed rel
 - Before this commit, PR #33 head 64941f009fa55140aefe1fb5353244d3f7aedbcc had a successful manual Type-check/production-build run (38666393518) and Cloudflare Pages preview deployment e2f9da74-58ce-4aeb-9b27-ff861c254e54. The PR-triggered CI run 38665795012 was action_required with zero jobs, and the PR remained blocked.
 - Production was still on main SHA d4d9b96c96bec22da2bf6e1c5c780678e0e27e9b, deployment 4b5120b1-568d-4662-be82-b5fef7859941. No production change is claimed here.
 
-### Release gate
-- This follow-up is committed only to the PR branch. Re-run CI and Cloudflare preview checks on the new head; keep the PR and production release pending until GitHub's required checks and workflow-approval gate are satisfied. Do not bypass branch protection.
+### Release gate at the time of this follow-up (pre-merge; superseded by the final verification below)
+- At the time this note was first written, this follow-up was committed only to the PR branch; the release was still pending required checks and the workflow-approval gate. Branch protection was not bypassed.
+
+
+## 2026-10-15 — PR #33 production release verification
+
+### Release completion
+- PR #33 (Search Console keyword sync) was squash-merged by GitHub Actions at 2026-10-15 04:10:51 UTC. The production merge commit is `be47bddcd5dc93c6e1680b2131d7c89b85f6b97a`; this supersedes the pre-merge release-gate status above.
+- The final PR head `3a0152bddb15a79d6dbd7f1dbece6a592833667b` passed "Type-check and production build" (GitHub Actions run 38679927910) and its Cloudflare Pages preview deployment `a5d3a985-fcbb-466f-ace2-60d7870d791c` succeeded.
+- Cloudflare Pages production deployment `2d2ed1c0-aea4-41ea-9848-9ab4cefdc7c9` was triggered by the exact merge SHA above. Queue, initialize, clone, build, and deploy stages all succeeded. All 156 returned deployment-log entries (including container logs) were checked; none matched warning, deprecation, error, fatal, or failure terms.
+- Live HTTP smoke checks on `https://www.walakatha.net` returned 200 for the homepage, `/robots.txt`, `/sitemap-index.xml`, `/sitemap-0.xml`, `/news-sitemap.xml`, `/image-sitemap.xml`, `/rss.xml`, and `/blog/akkai-nangi-wal-katha/`. The homepage and article exposed matching canonical URLs and `index,follow` directives. The news sitemap returned 200 but had no `<loc>` entries during this check; retain/monitor it only while there is eligible news content.
+
+### Remaining verification boundary
+- The Cloudflare production build log does not verify the separate GSC workflow runner's npm install warning. The `googleapis@186.0.0` pin should be confirmed by the next Search Console sync run; do not describe the earlier `uuid@9.0.1` deprecation as resolved until that runner log is checked.
+- This verifies deployment and technical crawl signals only. It cannot guarantee Google recrawl, indexing, or a ranking position.
