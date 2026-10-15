@@ -330,6 +330,7 @@ const EXCLUDED_SITEMAP_PATHS = [
   "/blog/bus-jack-wal-katha",
   "/page/1",
   "/search",
+  "/downloads",
   "/news-sitemap.xml",
   "/image-sitemap.xml",
   ...AUTOMATICALLY_EXCLUDED_SITEMAP_PATHS,
