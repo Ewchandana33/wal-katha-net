@@ -291,3 +291,15 @@ This entry closes the release verification opened above. It records observed rel
 ### Live SEO and locale audit
 - Audit run `38684362854` passed on main SHA `fdb95f7c7c6d1e3fc4b26836bd1075dcebc7cb6e`: homepage, 26 indexable pages, canonical URLs, `si-LK` hreflang, Sinhala language/locale, sitemap and corrected-article feed discovery, and exclusion of the configured noindex article all passed.
 - The audit runner also emitted Node/Yarn setup deprecation warnings (`punycode` and `url.parse()`). They did not fail the audit and were emitted by the Node 24 / inferred Yarn cache setup, not by the site build. Cloudflare production build logs remain a separate check and were clean for the recorded production deployment.
+
+
+## 2026-10-15 — PR #35 production deployment and audit-runner cleanup
+
+### Production verification
+- PR #35 merged as `be50c0f7d99b62ef94f8be3e44087b7ab00130b6` after GitHub type-check/production build and Cloudflare Pages preview both passed; GitHub auto-merge respected required checks and no branch-protection bypass was used.
+- Cloudflare production deployment `34875402-fcc2-4a61-bc39-2a2a4d4d9b80` built and deployed that commit successfully. All five stages passed; all 156 logs (including container logs) were scanned with no warning/error/fatal/failure matches.
+- Post-deploy smoke tests returned HTTP 200 for homepage, robots.txt, sitemap index and sitemap, news/image sitemaps, RSS feed, and a representative Sinhala article. Homepage/article canonical URLs match their live URLs, both are `index,follow`, and `si-LK` hreflang is present.
+
+### Audit runner cleanup
+- The live audit uses only built-in Node APIs and has no package install. This PR changes its runner from `actions/setup-node@v5`/Node 24 with inferred Yarn caching to `actions/setup-node@v7`/Node 22 with package-manager caching disabled, to avoid the observed runner-side `punycode` and `url.parse()` deprecations. The push-triggered audit must be checked after merge before marking these warnings resolved.
+- The `node-domexception@1.0.0` deprecation emitted by the separate GSC temporary install remains unresolved; it is upstream/transitive. Do not claim the GSC sync is healthy while run `38684260810` still fails authentication, and do not suppress the warning instead of resolving its source.
