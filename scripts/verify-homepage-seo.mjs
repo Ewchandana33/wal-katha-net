@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const html = readFileSync(resolve(process.cwd(), "dist/index.html"), "utf8");
-const expectedTitle = "සිංහල වල් කතා සහ වැල් කතා | Wal Katha";
+const expectedTitle = "සිංහල වැල් කතා කියවන්න | Wal Katha";
+const expectedDescription = "සිංහල වැල් කතා කියවීමට Wal Katha එකතුව බලන්න. කාණ්ඩ අනුව පිරික්සා හෝ සෙවුමෙන් ඔබ කැමති කතාව තෝරාගෙන නොමිලේ කියවන්න. ඔබට ගැළපෙන කතාව මෙතැනින් සොයාගන්න.";
 const expectedH1 = "සිංහල වල් කතා සහ වැල් කතා";
 
 const decodeHtml = (value) =>
@@ -28,7 +29,7 @@ const descriptions = metaTags.filter((tag) => /\bname=["']description["']/i.test
 assert.equal(descriptions.length, 1, `Expected one homepage description; found ${descriptions.length}`);
 const description = descriptions[0].match(/\bcontent=["']([^"']*)["']/i)?.[1];
 assert.ok(description, "Homepage description should have content");
-assert.match(decodeHtml(description), /සිංහල වැල් කතා/, "Description should include the evidenced Sinhala වැල් query wording");
+assert.equal(decodeHtml(description), expectedDescription, "Homepage description should match the Search Console-led, human-first snippet");
 
 
 
