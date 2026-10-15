@@ -249,3 +249,19 @@ This entry closes the release verification opened above. It records observed rel
 - The repository's `Live SEO and Sri Lanka locale audit` workflow run `38597439101` passed on that exact production SHA. It verified the live homepage, robots rules, sitemap index and child sitemaps, all configured indexable pages, corrected-article XML/image/RSS discovery, and the configured Bus-Jack `noindex,follow` page's canonical and exclusion from those feeds, along with Sinhala/Sri Lanka locale signals.
 - Independent HTTP smoke checks also returned 200 for the homepage, robots.txt, sitemap endpoints, image sitemap, RSS, corrected article, and flagged Bus-Jack article. The corrected article returned `index,follow` with its matching canonical; Bus-Jack returned `noindex,follow` with its matching canonical.
 - This verifies crawl eligibility and technical signals only. It does not guarantee Google recrawling, indexing, or a ranking position.
+
+## 2026-10-15 — Complete Search Console sync follow-up
+
+### Changes on the PR branch
+- Updated the isolated GSC utility from googleapis@144 to the exact googleapis@186.0.0 release after run 38665761815 reported the transitive uuid@9.0.1 deprecation. The install warning must be rechecked in the next CI/workflow logs before calling it resolved.
+- Changed the sync workflow to always commit generated data to bot/gsc-keywords, create/update its PR, and queue squash auto-merge. It no longer attempts a direct push to protected main, avoiding the expected GH006 rejection while preserving required checks.
+- Added this entry so future maintainers can distinguish a successful data sync from a production release.
+
+### Verified baseline before this follow-up commit
+- GSC workflow run 38665761815 completed successfully for sc-domain:walakatha.net, covering 2026-07-15 through 2026-10-12: 500 global query rows, 394 usable non-brand queries, and 46 pages. This is a Search Console snapshot, not a guaranteed ranking improvement.
+- Its runner log contained the uuid@9.0.1 npm deprecation warning and a rejected direct push (GH006); the workflow then used its PR fallback.
+- Before this commit, PR #33 head 64941f009fa55140aefe1fb5353244d3f7aedbcc had a successful manual Type-check/production-build run (38666393518) and Cloudflare Pages preview deployment e2f9da74-58ce-4aeb-9b27-ff861c254e54. The PR-triggered CI run 38665795012 was action_required with zero jobs, and the PR remained blocked.
+- Production was still on main SHA d4d9b96c96bec22da2bf6e1c5c780678e0e27e9b, deployment 4b5120b1-568d-4662-be82-b5fef7859941. No production change is claimed here.
+
+### Release gate
+- This follow-up is committed only to the PR branch. Re-run CI and Cloudflare preview checks on the new head; keep the PR and production release pending until GitHub's required checks and workflow-approval gate are satisfied. Do not bypass branch protection.

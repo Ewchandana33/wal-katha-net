@@ -13,8 +13,9 @@ name: Sync GSC Keywords
 # "no changes" කියලා exit වෙලා දත්ත නැති වුණා. දැන් git status
 # --porcelain පාවිච්චි කරනවා, ඒක untracked සහ modified දෙකම අල්ලනවා.
 #
-# main එකට කෙලින්ම push කරන්න බලයි; branch protection නිසා fail වුණොත්
-# ස්වයංක්‍රීයව PR එකකට වැටෙයි.
+# main ආරක්ෂිත branch එකක් බැවින් direct push නොකරයි. Updates
+# automation branch එකකට commit කර PR එකක් ලෙස ඉදිරිපත් කරයි.
+# Required CI/Cloudflare checks pass වූ පසුව පමණක් GitHub auto-merge කරයි.
 #
 # සටහන: GITHUB_TOKEN එකෙන් කරන push එකක් වෙනත් workflow එකක්
 # trigger කරන්නේ නෑ (GitHub Actions නීතියක්). ඒ නිසා මේක දිවුවාට
@@ -56,15 +57,14 @@ jobs:
           node-version: 22
 
       # googleapis එක root package.json එකට touch නොකර isolated
-      # /tmp folder එකක install කරයි - google-indexing.yml එකේම
-      # pattern එකම. Version එක pin කරලා තියෙන්නේ අනපේක්ෂිත
-      # breaking change එකකින් workflow එක කැඩෙන එක වළක්වන්න.
+      # /tmp folder එකක install කරයි. Exact pin එක dependency drift
+      # වළක්වයි; googleapis-common 9 සඳහා setup-node හි Node 22 භාවිතා වේ.
       - name: Install googleapis in isolated temp folder
         run: |
           mkdir -p /tmp/gsc-tool
           cd /tmp/gsc-tool
           npm init -y >/dev/null 2>&1
-          npm install googleapis@144 --no-audit --no-fund
+          npm install googleapis@186.0.0 --no-audit --no-fund
 
       - name: Pull Search Analytics data
         env:
@@ -76,7 +76,7 @@ jobs:
           MIN_IMPRESSIONS: ${{ inputs.min_impressions || '2' }}
         run: node scripts/gsc-keyword-sync.mjs
 
-      - name: Commit result (direct to main, PR fallback)
+      - name: Commit result (PR + protected auto-merge)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -88,11 +88,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/data/gsc-keywords.json
           git commit -m "chore(seo): sync Search Console keyword data"
-          if git push origin HEAD:main; then
-            echo "Pushed keyword data straight to main."
-            exit 0
-          fi
-          echo "Direct push rejected - opening a pull request instead."
+          # Keep protected main untouched; GitHub applies required checks to this PR.
           BRANCH="bot/gsc-keywords"
           git push --force origin "HEAD:refs/heads/$BRANCH"
           EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' || true)
