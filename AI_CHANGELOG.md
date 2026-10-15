@@ -16,15 +16,35 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ## Status snapshot — 2026-10-15
 
-- Pre-change production baseline checked immediately before this changelog-only update: main was 2b3278653ef307e0bd8d3282094efddde3e9f8b8 after PR #48. Cloudflare Pages production deployment 8a08ed45-d61f-4595-af42-2bcce4d83c2b was triggered by that exact SHA; all five stages succeeded, and all 158 returned log entries (including container logs) had no warning, deprecation, error, fatal, or failure matches. PR #48 changed documentation, not site behavior.
+- Current production baseline verified before the Markdown-download change: main SHA `ef388186b546ada859542d1965bf8a5cfe709a78` from PR #49 (GSC query triage; documentation-only). Cloudflare Pages production deployment `d2e65e1c-5045-411b-96fe-250f6392b40d` was triggered by that exact SHA; all five stages succeeded. All 156 returned deployment-log entries (including container logs) were checked and none matched warning, deprecation, error, fatal, failure, or failed.
 - The latest checked Sync GSC Keywords main run was 38700591415 (success). Its committed export was generated at 2026-10-15T07:42:57.643Z for 2026-07-15 through 2026-10-12: 500 global queries, 394 usable queries, 46 pages. This is workflow-export evidence, not a fresh post-release Search Console comparison.
 - On homepage route /, query වැල් had 4,075 impressions, 90 clicks, calculated CTR 2.21%, and average position 5.2 in that export. The homepage snippet already targets the query. GSC post-recrawl follow-up run 38726508677 completed successfully, but its report-PR step was skipped because recrawl/data gates were not met; no post-release CTR or ranking effect is established.
 - Keep the active comparison gates: Google indexed verdict and a crawl at or after the 2026-10-15 snippet release; at least seven days after deployment; a complete 28-day post-crawl window with the three-day data lag; at least 500 impressions in each global comparison window. Report Sri Lanka separately and label it directional below 100 impressions in either window.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 19 earlier dated entries from 2026-10-14 through 2026-10-15; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 20 earlier dated entries from 2026-10-14 through 2026-10-15; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-15 — Article-end Markdown downloads with duplicate-index safeguards
+
+### Why
+
+- The site already serves canonical, structured HTML articles. Publishing full duplicate files as indexable search bait would not guarantee rankings and could create duplicate-content ambiguity; downloads are implemented as a reader convenience instead.
+- Keep the original HTML article authoritative and prevent generated copies from appearing in search results or XML sitemaps.
+
+### Changes
+
+- Added a build-time `/downloads/{slug}.md` endpoint for every published post, sourced from the same non-draft collection as article pages. Each UTF-8 file carries its title, original-article link, publication date when valid, and the existing Markdown body.
+- Added an accessible Markdown download link after article content, tags, and sharing controls.
+- Added Cloudflare Pages headers for Markdown MIME type, attachment download, one-day cache, and `X-Robots-Tag: noindex, nofollow`; excluded `/downloads/` from the sitemap.
+- Added a production-build verifier that checks every published article has one non-empty download and visible link, validates header configuration, and fails if reader copies enter the sitemap. No dependency or lockfile change.
+
+### SEO and release boundary
+
+- Canonical HTML remains the sole index target; no ranking or traffic increase is claimed. This avoids treating duplicate exports as a ranking shortcut.
+- Pre-change production baseline: main SHA `ef388186b546ada859542d1965bf8a5cfe709a78`, Pages deployment `d2e65e1c-5045-411b-96fe-250f6392b40d`; all five stages succeeded. All 156 returned deployment-log entries were checked and none matched warning, deprecation, error, fatal, failure, or failed terms.
+- This change's CI, preview, and production verification are pending; exact PR, commit, deployment identifiers, and outcomes will be added after those checks run.
 
 ## 2026-10-15 — GSC query triage and production-state refresh
 
@@ -78,23 +98,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Cloudflare Pages production deployment `2fac97fa-c54e-4e49-ac24-b1004394aeac` was triggered by that exact `main` merge commit. All five stages (queued, initialize, clone_repo, build, deploy) succeeded. All 156 fetched log entries, including container logs, were scanned for warning, deprecation, error, fatal, failure, and failed terms; none matched.
 - Direct live checks returned HTTP 200 for the homepage, `/robots.txt`, `/sitemap-index.xml`, `/sitemap-0.xml`, and `/rss.xml`. A live crawl of all 26 URLs in the current sitemap returned HTTP 200 for every page; each had a canonical URL, `lang=si`, and `hreflang=si-LK`, and no rendered image had an empty/missing alt attribute.
 - This post-merge record supersedes the earlier pre-merge/draft status above; that historical note is retained to preserve the decision timeline. Technical crawl and accessibility checks do not guarantee Google indexing, rankings, or a top position. No post-release Search Console ranking/CTR change is claimed here.
-
-
-## 2026-10-15 — AI changelog archive policy and Q4 history cleanup
-
-### Why
-
-AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter active file makes current instructions and status easier for future AI agents to find without losing release evidence.
-
-### Changes
-
-- Added explicit AI-maintainer instructions for reading current state, recording verified changes, handling superseded notes, protecting credentials, and avoiding ranking guarantees.
-- Defined a retention policy: keep the newest five dated entries and target no more than 20 KiB in the active log; move older whole entries to a quarter-based archive, preserving their text and updating the archive index.
-- Moved 18 complete older records dated 2026-10-14 through 2026-10-15 verbatim to archive/AI_CHANGELOG-2026-Q4.md; retained the four newest prior records and this new entry in the active log.
-- Recorded the current GSC follow-up gates and noted that a post-release comparison is not yet available. The latest checked workflow run was pre-release and skipped its report-PR step.
-
-### Verification
-
-- Source log was split at dated section headings; 18 older entries were moved and four prior newest entries retained without editing their text.
-- Pre-write validation counted 22 dated entries, preserved the newest four complete records, and verified the 18 older sections without modifying their text.
-- The documentation PR must pass the repository-required Type-check and production build and Cloudflare Pages preview checks before merge; their final outcomes are verified from GitHub and Cloudflare.
