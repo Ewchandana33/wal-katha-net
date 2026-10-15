@@ -386,3 +386,19 @@ This entry closes the release verification opened above. It records observed rel
 - The live audit covered the homepage, robots and sitemap/feed discovery, all 26 indexable sitemap pages, corrected-article discovery in XML/image/RSS, and configured noindex-page exclusions. Its page assertions include canonical URLs, Sinhala language, `si-LK` hreflang, and `si_LK` Open Graph locale. No audit failure was reported.
 - The Search Console snapshot currently in `src/data/gsc-keywords.json` was generated at `2026-10-15T07:42:57Z` for `2026-07-15` through `2026-10-12` (three-day data lag). It predates the homepage snippet release on `2026-10-15`; therefore there is not yet a valid post-release CTR comparison or evidence of a ranking change.
 - `Sync GSC Keywords` already runs on a weekly schedule (Mondays at 04:00 UTC). Allow later snapshots and Google recrawl data to mature before evaluating the `වැල්` homepage query; technical-audit success is not a ranking or CTR guarantee. This audit found no verified issue requiring another source-code or metadata change.
+
+## 2026-10-15 — Automated post-recrawl homepage CTR measurement
+
+### Scope and safeguards
+- The existing weekly `Sync GSC Keywords` workflow remains scheduled for Mondays at 04:00 UTC. This adds a separate homepage experiment follow-up at 05:00 UTC, avoiding duplicate keyword-sync work.
+- The monitor is scoped to the homepage query `වැල්` and the snippet release on 2026-10-15. Its pre-release baseline is 2026-09-15 through 2026-10-12. It uses Google URL Inspection to require an indexed verdict and a crawl at or after release, waits at least seven days after deployment, then measures a 28-day post-crawl window with a three-day Search Console data lag.
+- A report is written only when the comparison is complete and each global window has at least 500 impressions. A Sri Lanka (`LKA`) segment is reported separately and labeled directional below 100 impressions in either window. Until then, the action writes only a pending status to its job summary and leaves the changelog untouched.
+- The action uses the existing `GOOGLE_INDEXING_KEY` / `GSC_SERVICE_ACCOUNT_JSON` secret and optional `GSC_SITE_URL` repository variable; no credential values are read, printed, or changed.
+
+### Automation and validation design
+- A ready report is committed on `bot/gsc-ctr-followup`, submitted as a PR, and queued for squash auto-merge. Protected `main` is never directly pushed. The existing keyword-sync workflow now explicitly dispatches the CI workflow on its bot PR head because a `GITHUB_TOKEN`-created PR does not itself trigger `pull_request` workflows; Cloudflare Pages continues to build the preview independently.
+- The focused date-window and metric tests are added to the required CI workflow. CTR percentage-point values are rounded to two decimals and relative changes to one decimal to keep reports stable across Node versions; this also fixes an exact floating-point assertion that failed under Node 24.
+- The monitor records Search Console observations only; it does not auto-edit titles/content and does not claim that an observed CTR or position change was caused by the snippet change. Rankings cannot be guaranteed.
+
+### Current status
+- The latest verified Search Console snapshot still ends 2026-10-12, before the 2026-10-15 release. No post-release recrawl or comparable post-window result is claimed. The weekly action will keep checking and create a report PR only when Google crawl and data-volume conditions are satisfied.

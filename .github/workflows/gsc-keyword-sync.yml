@@ -42,6 +42,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 concurrency:
   group: gsc-keyword-sync
   cancel-in-progress: false
@@ -99,7 +100,7 @@ jobs:
           # Keep protected main untouched; GitHub applies required checks to this PR.
           BRANCH="bot/gsc-keywords"
           git push --force origin "HEAD:refs/heads/$BRANCH"
-          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' || true)
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty' || true)
           if [ -n "$EXISTING" ]; then
             gh pr edit "$EXISTING" --body-file /tmp/gsc-summary.md
             PR_NUMBER="$EXISTING"
@@ -110,8 +111,10 @@ jobs:
               --body-file /tmp/gsc-summary.md)
             PR_NUMBER=$(basename "$PR_URL")
           fi
-          # GITHUB_TOKEN-created PRs do not reliably trigger the separate
-          # trusted-PR auto-merge workflow. Queue the bot PR here instead;
-          # GitHub still waits for all required checks on protected main.
+          # GITHUB_TOKEN events do not start pull_request workflows. Dispatch CI
+          # on this exact PR head so the required check is produced without bypassing
+          # protected-main rules; Cloudflare Pages independently publishes its preview.
+          gh workflow run ci.yml --ref "$BRANCH"
+          echo "Dispatched required CI for $BRANCH."
           gh pr merge "$PR_NUMBER" --auto --squash
           echo "Queued PR #$PR_NUMBER for auto-merge after required checks."

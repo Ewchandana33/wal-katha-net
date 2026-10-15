@@ -1,0 +1,77 @@
+name: GSC post-recrawl homepage CTR follow-up
+
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: gsc-ctr-followup
+  cancel-in-progress: false
+
+jobs:
+  compare:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install pinned Google Search Console client
+        run: |
+          mkdir -p /tmp/gsc-tool
+          cd /tmp/gsc-tool
+          npm init -y >/dev/null 2>&1
+          npm pkg set 'overrides.uuid=11.1.0'
+          npm install googleapis@144.0.0 --no-audit --no-fund
+          npm ls googleapis google-auth-library uuid --all
+
+      - name: Verify recrawl and compare completed GSC windows
+        id: followup
+        env:
+          GOOGLE_INDEXING_KEY: ${{ secrets.GOOGLE_INDEXING_KEY }}
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+          GSC_SITE_URL: ${{ vars.GSC_SITE_URL }}
+        run: node scripts/gsc-ctr-followup.mjs
+
+      - name: Open protected changelog PR and queue automatic checks
+        if: steps.followup.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- AI_CHANGELOG.md
+          git commit -m "docs(seo): record post-recrawl homepage CTR"
+          BRANCH="bot/gsc-ctr-followup"
+          git push --force origin "HEAD:refs/heads/$BRANCH"
+          cat > /tmp/gsc-ctr-followup-pr.md <<'EOF'
+          Automated Search Console follow-up for the 2026-10-15 homepage snippet release.
+
+          The report is recorded in AI_CHANGELOG.md only after URL Inspection confirms a post-release indexed crawl, the 7-day recrawl grace period and full 28-day comparison window are satisfied, Search Console data is past its configured lag, and the minimum global sample is met.
+
+          This is observational reporting, not an automatic metadata rewrite or ranking guarantee. The PR remains subject to required CI and Cloudflare Pages preview checks.
+          EOF
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty' || true)
+          if [ -n "$EXISTING" ]; then
+            gh pr edit "$EXISTING" --body-file /tmp/gsc-ctr-followup-pr.md
+            PR_NUMBER="$EXISTING"
+          else
+            PR_URL=$(gh pr create --head "$BRANCH" --base main \
+              --title "docs(seo): post-recrawl homepage CTR report" \
+              --body-file /tmp/gsc-ctr-followup-pr.md)
+            PR_NUMBER=$(basename "$PR_URL")
+          fi
+          # This workflow_dispatch event runs CI on the precise PR branch head.
+          gh workflow run ci.yml --ref "$BRANCH"
+          gh pr merge "$PR_NUMBER" --auto --squash
+          echo "Queued PR #$PR_NUMBER for auto-merge only after required CI and preview checks."

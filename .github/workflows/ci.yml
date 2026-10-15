@@ -41,6 +41,9 @@ jobs:
       - name: Test Cloudflare Pages middleware
         run: yarn test
 
+      - name: Test post-recrawl CTR measurement logic
+        run: node --test scripts/gsc-ctr-followup.test.mjs
+
       - name: Build static site
         run: yarn build
 
