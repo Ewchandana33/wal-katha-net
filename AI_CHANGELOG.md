@@ -303,3 +303,9 @@ This entry closes the release verification opened above. It records observed rel
 ### Audit runner cleanup
 - The live audit uses only built-in Node APIs and has no package install. This PR changes its runner from `actions/setup-node@v5`/Node 24 with inferred Yarn caching to `actions/setup-node@v7`/Node 22 with package-manager caching disabled, to avoid the observed runner-side `punycode` and `url.parse()` deprecations. The push-triggered audit must be checked after merge before marking these warnings resolved.
 - The `node-domexception@1.0.0` deprecation emitted by the separate GSC temporary install remains unresolved; it is upstream/transitive. Do not claim the GSC sync is healthy while run `38684260810` still fails authentication, and do not suppress the warning instead of resolving its source.
+
+
+### Post-merge audit recheck — 2026-10-15
+- After PR #36 merged as `bc5dc47747bf6e809c8511602c72b2c691ceaacf`, no push-triggered run for that commit appeared in Actions. A manual `workflow_dispatch` run `38686128893` on the same main SHA completed successfully.
+- The run confirmed 26 indexable pages, canonical URLs, `si-LK` hreflang, Sinhala language/locale, sitemap/feed discovery, and noindex exclusion. Its logs no longer contained the Node `punycode` or Yarn `url.parse()` deprecations; only Git's standard default-branch initialization hint remained. The scheduled daily audit is still configured.
+- This verifies the runner cleanup; it does not repair the independent GSC authentication failure or the `node-domexception@1.0.0` install deprecation recorded above.
