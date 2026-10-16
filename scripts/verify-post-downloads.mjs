@@ -71,31 +71,40 @@ for (const slug of articleSlugs) {
       .toUpperCase();
     if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
     if (pageNumber === 1) {
-      const requiredAgeNoticeMarkers = [
-        "ලිංගිකතේමා",
-        "18ටඅඩු",
-        "වළකින්න",
-        "දෙමාපියන්ගේවගකීමකි",
-        "සියලුමචරිත",
-        "සැබෑපුද්ගලයින්",
-        "ඔබේරටේනීතියටඅනුව",
-        "තහවුරුකරයි",
+      const requiredAgeNoticeChecks = [
+        { label: "adult audience", markers: ["වැඩිහිටි"] },
+        { label: "sexual themes", markers: ["ලිංගික", "තේමා"] },
+        { label: "under-18 warning", markers: ["18ටඅඩු"] },
+        { label: "avoid-reading warning", markers: ["වළකින්න"] },
+        { label: "parental responsibility", markers: ["දෙමාපිය", "වගකීම"] },
+        { label: "fiction disclaimer", markers: ["චරිත"] },
+        { label: "real-person disclaimer", markers: ["සැබෑ", "පුද්ගල", "සම්බන්ධ"] },
+        { label: "lawful adult confirmation", markers: ["නීතිය", "අවසර", "තහවුරුකරයි"] },
       ];
-      const missingAgeNoticeMarkers = requiredAgeNoticeMarkers.filter(
-        (marker) => !compactPageText.includes(marker.toUpperCase()),
-      );
+      const matchesForCheck = requiredAgeNoticeChecks.map((check) => ({
+        ...check,
+        matches: check.markers.filter((marker) => compactPageText.includes(marker.toUpperCase())),
+      }));
+      const missingAgeNoticeChecks = matchesForCheck.filter((check) => check.matches.length === 0);
       const storyStartMarker = "මෙතැන්සිටකතාවනිලවශයෙන්ආරම්භවේ";
       const lastNoticeMarkerPosition = Math.max(
-        ...requiredAgeNoticeMarkers.map((marker) => compactPageText.indexOf(marker.toUpperCase())),
+        ...matchesForCheck.map((check) =>
+          Math.max(...check.matches.map((marker) => compactPageText.indexOf(marker.toUpperCase()))),
+        ),
       );
       const storyStartPosition = compactPageText.indexOf(storyStartMarker.toUpperCase());
       if (
         !/18\+?සඳහාපමණි/u.test(compactPageText) ||
-        missingAgeNoticeMarkers.length > 0 ||
+        missingAgeNoticeChecks.length > 0 ||
         storyStartPosition <= lastNoticeMarkerPosition
       ) {
+        const titlePosition = compactPageText.search(/18\+?සඳහාපමණි/u);
+        const noticeStart = titlePosition >= 0 ? titlePosition : compactPageText.lastIndexOf("18");
+        const noticeEnd = storyStartPosition > noticeStart ? storyStartPosition : undefined;
+        const extractedNotice = compactPageText.slice(Math.max(0, noticeStart), noticeEnd);
+        const missingLabels = missingAgeNoticeChecks.map((check) => check.label);
         throw new Error(
-          `[post-downloads] ${slug}.pdf is missing the complete first-page 18+ notice or has the story-start marker before it. Missing notice markers: ${missingAgeNoticeMarkers.join(", ") || "none"}.`,
+          `[post-downloads] ${slug}.pdf is missing a first-page 18+ notice anchor or has the story-start marker before it. Missing anchors: ${missingLabels.join(", ") || "none"}. Extracted notice: ${extractedNotice}`,
         );
       }
     }
