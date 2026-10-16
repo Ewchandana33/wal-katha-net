@@ -86,7 +86,8 @@ for (const slug of articleSlugs) {
         matches: check.markers.filter((marker) => compactPageText.includes(marker.toUpperCase())),
       }));
       const missingAgeNoticeChecks = matchesForCheck.filter((check) => check.matches.length === 0);
-      const storyStartMarker = "මෙතැන්සිටකතාවනිලවශයෙන්ආරම්භවේ";
+      // PDF.js can reorder Sinhala vowel signs in extracted glyph text; this anchor stays stable.
+      const storyStartMarker = "සිටකතාවනිල";
       const lastNoticeMarkerPosition = Math.max(
         ...matchesForCheck.map((check) =>
           Math.max(...check.matches.map((marker) => compactPageText.indexOf(marker.toUpperCase()))),
