@@ -47,6 +47,9 @@ jobs:
       - name: Test deterministic cover alt policy
         run: node --test scripts/alt-text-policy.test.mjs
 
+      - name: Test recursive post discovery and changelog retention
+        run: node --test scripts/post-files.test.mjs scripts/ai-changelog.test.mjs
+
       - name: Verify all post cover alt text
         run: node scripts/verify-alt-text.mjs
 
