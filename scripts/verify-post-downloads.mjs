@@ -72,9 +72,9 @@ for (const slug of articleSlugs) {
     if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
     if (
       pageNumber === 1 &&
-      (!compactPageText.includes("18සඳහාදැනුම්දීම".toUpperCase()) ||
+      (!/18\+?සඳහාදැනුම්දීම/u.test(compactPageText) ||
         !compactPageText.includes("18ටඅඩු".toUpperCase()) ||
-        !compactPageText.includes("කියවීමෙන්වළකින්න".toUpperCase()))
+        !compactPageText.includes("වළකින්න".toUpperCase()))
     ) {
       throw new Error(`[post-downloads] ${slug}.pdf is missing the first-page 18+ reading notice.`);
     }

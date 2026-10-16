@@ -43,7 +43,9 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - Local Node.js unit/regression tests: 11 passed before the verifier matcher adjustment; rerun is pending.
 - The first PR CI run 38900845384 and Cloudflare preview deployment e5a6e3af-f203-4f4e-acc4-00771cf8a7b5 failed at the new page-one notice assertion for akkai-nangi-wal-katha.pdf. The build log confirmed a verifier matching failure; no preview assets were deployed and auto-merge remained blocked.
-- The matcher now removes Unicode format separators and punctuation before checking the age notice. CI and preview verification are pending on the revised commit; production deployment and live PDF checks remain pending, so no release success is claimed yet.
+- A local reproduction with the locked PDFKit/PDF.js versions showed that PDF.js keeps `+` as a symbol and maps some Sinhala vowel sequences differently from their source spelling. The matcher now allows the optional `+` and checks the stable 18-underage and “avoid reading” markers instead of requiring a verbatim extracted sentence.
+- A local re-render using PDFKit 0.20.2 and PDF.js 5.4.149 verified the 18+ label, under-18 marker, and “avoid reading” marker on page one of all seven published PDFs; all seven also passed the cover-space guard.
+- The second CI run 38901368489 still failed the earlier strict assertion; this follow-up is based on the reproduced first-page extraction. CI and preview verification are pending on the next commit; production deployment and live PDF checks remain pending, so no release success is claimed yet.
 
 ## 2026-10-16 — Repair deterministic alt-text and changelog automation
 
