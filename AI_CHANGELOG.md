@@ -37,12 +37,13 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 ### Changes
 
 - Added a centered Sinhala 18+ notice card directly below the story-start panel on every article PDF cover.
-- Added a cover-space guard and made the static PDF build verifier require the notice and under-18 warning on page one of every generated article PDF.
+- Added a cover-space guard and made the static PDF build verifier require the notice and under-18 warning on page one of every generated article PDF. The verifier normalizes Unicode and strips whitespace, punctuation, and format separators to tolerate PDF text-extraction boundaries.
 
 ### Verification status
 
-- Local Node.js unit/regression tests: 11 passed; the full PDF/static build verifier remains pending.
-- Full static build, GitHub CI, Cloudflare preview/production deployment, and live PDF verification are pending; no release success is claimed yet.
+- Local Node.js unit/regression tests: 11 passed before the verifier matcher adjustment; rerun is pending.
+- The first PR CI run 38900845384 and Cloudflare preview deployment e5a6e3af-f203-4f4e-acc4-00771cf8a7b5 failed at the new page-one notice assertion for akkai-nangi-wal-katha.pdf. The build log confirmed a verifier matching failure; no preview assets were deployed and auto-merge remained blocked.
+- The matcher now removes Unicode format separators and punctuation before checking the age notice. CI and preview verification are pending on the revised commit; production deployment and live PDF checks remain pending, so no release success is claimed yet.
 
 ## 2026-10-16 — Repair deterministic alt-text and changelog automation
 
