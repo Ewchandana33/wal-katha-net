@@ -72,7 +72,7 @@ for (const slug of articleSlugs) {
     if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
     if (pageNumber === 1) {
       const requiredAgeNoticeChecks = [
-        { label: "adult audience", markers: ["වැඩිහිටි"] },
+        { label: "adult audience", markers: ["වැඩිහිටි", "ඩිහිටි"] },
         { label: "sexual themes", markers: ["ලිංගික", "තේමා"] },
         { label: "under-18 warning", markers: ["18ටඅඩු"] },
         { label: "avoid-reading warning", markers: ["වළකින්න"] },
