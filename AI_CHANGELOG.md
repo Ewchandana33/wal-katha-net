@@ -43,6 +43,8 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Cache-version change release status
 
+- Initial PR #55 CI run 38853800351 failed at the required Build static site step, and Cloudflare preview deployment 9a49ebba-0399-40a6-9f28-0b58b26441c4 failed in the same post-build PDF-link verifier after Astro had generated the site and all seven PDFs. The RegExp-based verifier lost its escaped punctuation inside a template literal; it has been replaced by a literal URL-prefix check plus a 64-hex SHA-256 assertion. The rerun is pending; production remains unchanged.
+
 - The source change is on branch fix/article-pdf-cache-versioning-20261016; required GitHub CI, Cloudflare preview, and production checks are pending. Do not treat the cache-version code as live until those checks and the main-branch deployment are verified.
 
 ## 2026-10-16 — Embed post cover images in article PDFs
