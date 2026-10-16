@@ -577,16 +577,16 @@ const imageObjectSchema = schemaImageUrl
       </div>
       <section class="md:col-10 mt-8" aria-labelledby="post-download-title">
         <div class="flex flex-col items-center gap-3 border-t border-white/10 px-4 py-6 text-center">
-          <h2 id="post-download-title" class="text-base font-bold text-[#F8F8FF]/85">කියවීමට ලිපිය සුරකින්න</h2>
+          <h2 id="post-download-title" class="text-base font-bold text-[#F8F8FF]/85">PDF ලෙස ලිපිය සුරකින්න</h2>
           <a
-            href={`/downloads/${encodeURIComponent(post.id)}.md`}
-            download={`${post.id}.md`}
+            href={`/downloads/${encodeURIComponent(post.id)}.pdf`}
+            download={`${post.id}.pdf`}
             class="inline-flex items-center justify-center rounded-full bg-[#01AD9F] px-5 py-3 font-bold text-[#010203] transition hover:bg-[#10c6b8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#01AD9F]"
-            aria-label={`${title} ලිපිය Markdown ගොනුවක් ලෙස බාගන්න`}
+            aria-label={`${title} ලිපිය PDF ගොනුවක් ලෙස බාගන්න`}
           >
-            Markdown ගොනුව බාගන්න
+            PDF ගොනුව බාගන්න
           </a>
-          <p class="max-w-2xl text-xs leading-6 text-[#F8F8FF]/60">සිංහල පෙළ සහ මුල් ලිපියට සබැඳිය ඇතුළත් වේ.</p>
+          <p class="max-w-2xl text-xs leading-6 text-[#F8F8FF]/60">සිංහල පෙළ, මුල් ලිපියට සබැඳිය සහ සෑම පිටුවකම වෙබ් අඩවි watermark එක ඇතුළත් වේ.</p>
         </div>
       </section>
     </article>
