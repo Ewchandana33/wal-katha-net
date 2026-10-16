@@ -30,18 +30,21 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Why
 
-- PR #52 head `634190fcf70090a0a9229683ef3f86201ff2d9b0` passed the local build, but Cloudflare Pages preview deployment `3102cf77-d753-4d75-a58e-aeee9d4013d9` failed during dependency installation with DNS `ENOTFOUND package-firewall.replit.internal`. Required GitHub CI run `38845171391` also failed at “Install locked dependencies”.
-- The main-branch lockfile has no Replit-internal package URL; this is a portability issue in the PR lockfile, not a failure in PDF generation. Production remains on main SHA `c6bc1e9f92aab0032a387795e5c1d6533065ec35` and successful Pages deployment `b1a1202b-e756-4ed8-8cbd-ae6b533065b8`.
+- PR #52 initially failed at dependency installation because 26 new lockfile tarballs referenced the Replit-only `package-firewall.replit.internal` host. Cloudflare deployment `3102cf77-d753-4d75-a58e-aeee9d4013d9` and GitHub CI run `38845171391` recorded that failure.
+- Registry correction commit `fb546901af26f727adbf7b8af8383aed928e5a6e` made Cloudflare preview deployment `6bcadf34-4e34-4351-9791-66af10ec2525` pass all five stages. Its 173 deployment-log entries had no warning/error/failure matches, and its build verifier checked seven article PDFs across 57 pages.
+- GitHub CI run `38848017465` then reached `astro check` and failed with TypeScript `ts(7016)`: `pdfkit` has no bundled declarations, so the new PDF module lacked types. This was separate from the completed Cloudflare build.
 
 ### Changes
 
-- Changed the 26 lockfile tarball URLs from the Replit-only package proxy to `https://registry.npmjs.org/`, preserving each package name, version, path, and integrity hash.
-- Archived the oldest complete dated entry from `AI_CHANGELOG.md` to the Q4 archive so the active log retains five complete entries.
+- Replaced the 26 Replit-only tarball URL prefixes with `https://registry.npmjs.org/`, preserving package versions, paths, and integrity hashes.
+- Added `@types/pdfkit@0.17.6` as a dev dependency. Yarn 1.22.22 generated one exact lock entry using the existing `@types/node@*` resolution; no runtime dependency or PDF behavior changed.
+- Moved the oldest complete dated log entry to `archive/AI_CHANGELOG-2026-Q4.md` to keep the active log at five entries (the archive now has 22).
 
 ### Verification status
 
-- Before commit, verified exactly 26 URL replacements, zero remaining internal-host references, and no lockfile differences beyond that URL-prefix replacement. This static check does not establish that package installation now succeeds.
-- The new GitHub CI and Cloudflare Pages preview checks are pending. The failed run/deployment evidence above is retained; no merge or production-release success is claimed here.
+- Yarn completed dependency resolution with `@types/pdfkit@0.17.6`; the generated lock diff is one package entry and contains no Replit-internal registry host. A local full Astro check was not treated as passing because that scratch install initially omitted optional platform bindings; the required GitHub CI is the authoritative type-check.
+- Cloudflare preview commit `fb546901af26f727adbf7b8af8383aed928e5a6e` passed all five stages; its build verified 50 pages, 7 PDFs/57 PDF pages, watermarks, canonical source links, attachment/noindex headers, and sitemap exclusion. The new type-dependency commit's CI and preview checks are pending.
+- Production remains on main SHA `c6bc1e9f92aab0032a387795e5c1d6533065ec35`, with successful deployment `b1a1202b-e756-4ed8-8cbd-ae6b533065b8`; no PR change has been reported as a production release.
 
 ## 2026-10-16 — Sinhala article PDFs with repeated site watermark
 
