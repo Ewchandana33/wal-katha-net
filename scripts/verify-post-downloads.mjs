@@ -29,7 +29,10 @@ for (const slug of articleSlugs) {
   const page = readFileSync(join(blogDir, slug, "index.html"), "utf8");
   const pdf = readFileSync(join(downloadsDir, `${slug}.pdf`));
   const sourceUrl = new URL(`/blog/${encodeURIComponent(slug)}/`, baseUrl).href;
-  if (!page.includes(`/downloads/${slug}.pdf`)) throw new Error(`[post-downloads] Missing article-end PDF link on /blog/${slug}/.`);
+  const versionedPdfLink = new RegExp(`/downloads/${slug}\.pdf\?v=[a-f0-9]{64}`);
+  if (!versionedPdfLink.test(page)) {
+    throw new Error(`[post-downloads] Missing article-end PDF link with a SHA-256 cache version on /blog/${slug}/.`);
+  }
   if (pdf.length < 1_000 || pdf.subarray(0, 5).toString("ascii") !== "%PDF-") {
     throw new Error(`[post-downloads] ${slug}.pdf is empty or not a valid PDF.`);
   }
