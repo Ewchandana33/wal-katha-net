@@ -50,12 +50,23 @@ for (const slug of articleSlugs) {
   }).promise;
   const pageCount = document.numPages;
   if (pageCount < 1) throw new Error(`[post-downloads] ${slug}.pdf has no pages.`);
+  if (pageCount < 3) throw new Error(`[post-downloads] ${slug}.pdf needs a cover, story, and final rights page.`);
   verifiedPdfPages += pageCount;
   let containsSinhalaText = false;
   for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
     const page = await document.getPage(pageNumber);
     const textContent = await page.getTextContent();
     const pageText = textContent.items.map((item) => ("str" in item ? item.str : "")).join(" ");
+    if (pageNumber === 1 && !pageText.includes("SINHALA READER EDITION")) {
+      throw new Error(`[post-downloads] ${slug}.pdf is missing its branded cover metadata.`);
+    }
+    const expectedPageNumber = String(pageNumber) + " / " + String(pageCount);
+    if (!pageText.includes(expectedPageNumber)) {
+      throw new Error(`[post-downloads] ${slug}.pdf page ${pageNumber}/${pageCount} is missing its footer page number.`);
+    }
+    if (pageNumber === pageCount && !pageText.includes("PERSONAL READING COPY")) {
+      throw new Error(`[post-downloads] ${slug}.pdf is missing its final usage-rights page.`);
+    }
     if (/[\u0D80-\u0DFF]/u.test(pageText)) containsSinhalaText = true;
     const watermarkCount = pageText.split("https://www.walakatha.net").length - 1;
     if (watermarkCount < 2) {
@@ -86,4 +97,4 @@ for (const name of sitemapFiles) {
     throw new Error(`[post-downloads] Reader copies must not appear in sitemap ${name}.`);
   }
 }
-console.log(`[post-downloads] Verified ${articleSlugs.length} published articles across ${verifiedPdfPages} PDF page(s); every page has a central watermark plus footer, each PDF has an embedded cover image, and all PDFs have source links, article-end links, attachment/noindex headers, and no sitemap entries.`);
+console.log(`[post-downloads] Verified ${articleSlugs.length} published articles across ${verifiedPdfPages} PDF page(s); every page has a watermark, footer, and page number; each has a cover image and final rights page; PDFs retain source/article links, attachment/noindex headers, and stay out of sitemaps.`);
