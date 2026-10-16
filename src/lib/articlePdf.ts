@@ -15,6 +15,8 @@ const BODY_FONT_SIZE = 10.5;
 const BODY_LINE_GAP = BODY_FONT_SIZE * 0.72;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 const BRAND = "WALAKATHA.NET  |  SINHALA READER EDITION";
+const CONTENT_WATERMARK_OPACITY = 0.3;
+const OTHER_PAGE_WATERMARK_OPACITY = 0.18;
 const AGE_NOTICE_TITLE = "වයස අවුරුදු 18+ සඳහා පමණි";
 const AGE_NOTICE_PARAGRAPHS = [
   "මෙම කතාව වැඩිහිටි පාඨකයන් සඳහා ලියා ඇති ප්‍රබන්ධ කෘතියකි. කතාවේ ඇතැම් කොටස්වල ලිංගික තේමා සහ වැඩිහිටියන්ට පමණක් සුදුසු අන්තර්ගතය තිබිය හැක.",
@@ -246,8 +248,10 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
   document.registerFont("Sinhala", fontBytes);
 
   let nextPageKind: "cover" | "content" | "legal" = "cover";
+  const pageKinds: ("cover" | "content" | "legal")[] = [];
   document.on("pageAdded", () => {
     const pageKind = nextPageKind;
+    pageKinds.push(pageKind);
     drawPageChrome(document);
     if (pageKind === "content") {
       document
@@ -637,7 +641,11 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
       .font("Helvetica")
       .fontSize(22)
       .fillColor("#ffffff")
-      .fillOpacity(0.18)
+      .fillOpacity(
+        pageKinds[index] === "content"
+          ? CONTENT_WATERMARK_OPACITY
+          : OTHER_PAGE_WATERMARK_OPACITY,
+      )
       .text(WATERMARK, MARGIN, PAGE_HEIGHT / 2 - 10, {
         width: CONTENT_WIDTH,
         align: "center",
