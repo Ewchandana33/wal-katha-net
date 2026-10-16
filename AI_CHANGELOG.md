@@ -26,6 +26,23 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ## Recent entries
 
+## 2026-10-16 — Repair external CI dependency installation for article PDFs
+
+### Why
+
+- PR #52 head `634190fcf70090a0a9229683ef3f86201ff2d9b0` passed the local build, but Cloudflare Pages preview deployment `3102cf77-d753-4d75-a58e-aeee9d4013d9` failed during dependency installation with DNS `ENOTFOUND package-firewall.replit.internal`. Required GitHub CI run `38845171391` also failed at “Install locked dependencies”.
+- The main-branch lockfile has no Replit-internal package URL; this is a portability issue in the PR lockfile, not a failure in PDF generation. Production remains on main SHA `c6bc1e9f92aab0032a387795e5c1d6533065ec35` and successful Pages deployment `b1a1202b-e756-4ed8-8cbd-ae6b533065b8`.
+
+### Changes
+
+- Changed the 26 lockfile tarball URLs from the Replit-only package proxy to `https://registry.npmjs.org/`, preserving each package name, version, path, and integrity hash.
+- Archived the oldest complete dated entry from `AI_CHANGELOG.md` to the Q4 archive so the active log retains five complete entries.
+
+### Verification status
+
+- Before commit, verified exactly 26 URL replacements, zero remaining internal-host references, and no lockfile differences beyond that URL-prefix replacement. This static check does not establish that package installation now succeeds.
+- The new GitHub CI and Cloudflare Pages preview checks are pending. The failed run/deployment evidence above is retained; no merge or production-release success is claimed here.
+
 ## 2026-10-16 — Sinhala article PDFs with repeated site watermark
 
 ### Why
@@ -101,23 +118,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Repaired 11 cover alt value(s): Akkai-Nangi-wal-katha, Bus-jack-wal-katha, Mage-Nangi-wal-katha, Nimali-saha-boss, School-Wal-Katha, gedara-driver-wal-katha, methsala-akka-wal-katha, nandage-duwa-wal-katha, nethuge-wal-katha, thaththa-duwa-wal-katha, wanamalee-wal-katha.
 - Used neutral title-derived labels; age-sensitive or explicit titles receive a generic fallback. No image model, API key, GSC query, or keyword seed is used.
 - The workflow validates all cover labels, opens or updates a PR, dispatches required CI on the PR head, and leaves the PR in draft for review; production merge requires explicit approval.
-
-
-## 2026-10-15 — Replace credential-dependent alt-text workflow
-
-### Findings
-- The previous scheduled alt-text run (GitHub Actions run 38712121159) was marked successful but logged zero Gemini keys and skipped generated-content validation and PR creation. It was a successful no-op, not an alt-text repair.
-- The repository currently has 11 post cover images: 9 existing alt labels were keyword/brand-stuffed or unsafe for their titles, and 2 were missing. No post supplies an image_keyword seed.
-- The production baseline before this change is Cloudflare Pages deployment d32c12de-0636-4171-9cf8-ccf736b6d1ea for main SHA 5c56696583bbdea46978eb0988190395724bacfb. Its five deployment stages succeeded; the 156 fetched log entries contained no warning/error/failure matches. This does not verify the pending change.
-
-### Changes
-- Replaced the Gemini-dependent generator with a deterministic, Node built-in-only policy. It reads only post title/image frontmatter, does not call an image model or Search Console, does not consume keyword seeds, and does not infer unseen image details.
-- All 11 current cover labels are normalized. Age-sensitive or explicit/age-uncertain titles receive the neutral generic label; other safe titles get concise title-derived labels. The policy rejects missing, branded, sensitive, or overlong values.
-- Removed the unused image_keyword content-schema seed and added unit tests plus a recursive cover-alt validator to required CI.
-- Reworked the scheduled/on-content workflow to use Node 24 and current repository action versions, validate before publishing, push only to the automation-owned bot/deterministic-alt-text branch, open/update a draft PR, and dispatch required CI on the PR head.
-- Pinned required CI to ubuntu-24.04 after GitHub's runner-migration notice so builds do not silently change runner generation.
-
-### Review and deployment boundary
-- Verification of the initial code commit 2aef04fa6f6a52f54fb0350fb28886e2687f8c37 passed in both GitHub CI runs 38739689207 and 38739666097, including type-check/build, alt-policy tests, and the 11-cover validator. Cloudflare preview deployment 25f5c40c-3f0c-4975-a47f-a41af300a917 (https://25f5c40c.wala-katha.pages.dev) passed all five stages; its 158 fetched log lines had no warning/error/failure/deprecation matches. Seven rendered post routes returned HTTP 200 and their own cover labels matched the expected safe values; CI validated all 11 cover entries. GitHub also emitted one notice on this prior head: the CI workflow used ubuntu-latest, scheduled to move to Ubuntu 26 on 2026-10-19. This follow-up pins CI to ubuntu-24.04 to eliminate that implicit runner migration; its new checks/preview are re-run before approval.
-- The PR remains draft. This automation does not merge or deploy production; protected main and the live site remain unchanged until explicit approval.
-- Technical metadata hygiene can improve accessibility and crawl quality but cannot guarantee Google rankings. Historical notes are retained; this entry supersedes prior Gemini-based alt-workflow status.
