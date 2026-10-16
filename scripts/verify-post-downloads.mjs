@@ -70,13 +70,44 @@ for (const slug of articleSlugs) {
       .replace(/[\s\p{Cf}\p{P}]+/gu, "")
       .toUpperCase();
     if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
-    if (
-      pageNumber === 1 &&
-      (!/18\+?සඳහාදැනුම්දීම/u.test(compactPageText) ||
-        !compactPageText.includes("18ටඅඩු".toUpperCase()) ||
-        !compactPageText.includes("වළකින්න".toUpperCase()))
-    ) {
-      throw new Error(`[post-downloads] ${slug}.pdf is missing the first-page 18+ reading notice.`);
+    if (pageNumber === 1) {
+      const requiredAgeNoticeChecks = [
+        { label: "adult audience", markers: ["වැඩිහිටි", "ඩිහිටි"] },
+        { label: "sexual themes", markers: ["ලිංගික", "තේමා"] },
+        { label: "under-18 warning", markers: ["18ටඅඩු"] },
+        { label: "avoid-reading warning", markers: ["වළකින්න"] },
+        { label: "parental responsibility", markers: ["දෙමාපිය", "වගකීම"] },
+        { label: "fiction disclaimer", markers: ["චරිත"] },
+        { label: "real-person disclaimer", markers: ["සැබෑ", "පුද්ගල", "සම්බන්ධ"] },
+        { label: "lawful adult confirmation", markers: ["නීතිය", "අවසර", "තහවුරුකරයි"] },
+      ];
+      const matchesForCheck = requiredAgeNoticeChecks.map((check) => ({
+        ...check,
+        matches: check.markers.filter((marker) => compactPageText.includes(marker.toUpperCase())),
+      }));
+      const missingAgeNoticeChecks = matchesForCheck.filter((check) => check.matches.length === 0);
+      // PDF.js can reorder Sinhala vowel signs in extracted glyph text; this anchor stays stable.
+      const storyStartMarker = "සිටකතාවනිල";
+      const lastNoticeMarkerPosition = Math.max(
+        ...matchesForCheck.map((check) =>
+          Math.max(...check.matches.map((marker) => compactPageText.indexOf(marker.toUpperCase()))),
+        ),
+      );
+      const storyStartPosition = compactPageText.indexOf(storyStartMarker.toUpperCase());
+      if (
+        !/18\+?සඳහාපමණි/u.test(compactPageText) ||
+        missingAgeNoticeChecks.length > 0 ||
+        storyStartPosition <= lastNoticeMarkerPosition
+      ) {
+        const titlePosition = compactPageText.search(/18\+?සඳහාපමණි/u);
+        const noticeStart = titlePosition >= 0 ? titlePosition : compactPageText.lastIndexOf("18");
+        const noticeEnd = storyStartPosition > noticeStart ? storyStartPosition : undefined;
+        const extractedNotice = compactPageText.slice(Math.max(0, noticeStart), noticeEnd);
+        const missingLabels = missingAgeNoticeChecks.map((check) => check.label);
+        throw new Error(
+          `[post-downloads] ${slug}.pdf is missing a first-page 18+ notice anchor or has the story-start marker before it. Missing anchors: ${missingLabels.join(", ") || "none"}. Extracted notice: ${extractedNotice}`,
+        );
+      }
     }
     if (/[\u0D80-\u0DFF]/u.test(pageText)) containsSinhalaText = true;
     const watermarkCount = pageText.split("https://www.walakatha.net").length - 1;

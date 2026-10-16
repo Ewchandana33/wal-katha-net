@@ -16,16 +16,39 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ## Status snapshot — 2026-10-16
 
-- Current production application baseline is main commit bc8e0affffe86b5a9c318c780a483384d4e6aedb (PR #58). Cloudflare Pages project wala-katha serves walakatha.net and www.walakatha.net; both custom-domain records are active. Production deployment 289c58bd-091d-49f9-9d02-68249e3f68ff (https://289c58bd.wala-katha.pages.dev) targets that exact commit and all five stages succeeded. All 173 available deployment log entries, including container logs, were scanned; no warning, deprecation, error, fatal, failure, or exception matches were found.
-- The last full live SEO and Sri Lanka locale audit run 38865509323 completed successfully on earlier production commit d68d1ace5c457f2949271f322378fb97442b2bc1; it is not an audit of bc8e0affffe86b5a9c318c780a483384d4e6aedb. Direct checks of the current homepage, robots.txt, and sitemap index returned HTTP 200. The automated audit checks the homepage, robots.txt, all declared sitemaps and sitemap-listed URLs, canonical links, Sinhala document language, si-LK/x-default alternates, descriptions, indexability, and si_LK Open Graph locale.
-- On the earlier production baseline d68d1ace5c457f2949271f322378fb97442b2bc1, the required PDF build verifier passed for all 7 published articles across 60 PDF pages. It checked a cover image per PDF, Sinhala text, canonical source links, a visible article-end PDF link, central watermark plus footer on every page, attachment/noindex headers, and exclusion of reader PDFs from sitemaps. Direct live checks on that baseline confirmed six sitemap-listed articles plus the configured bus-jack-wal-katha noindex article each link to a SHA-256-versioned PDF; all seven returned HTTP 200 with a valid PDF signature, embedded image, application/pdf, attachment disposition, and X-Robots-Tag: noindex, nofollow. The bus-jack HTML page remains noindex,follow and absent from sitemaps.
+- Current production application baseline is main commit 8256791c79fc922aa702b97d954613bdaf453fa9 (PR #61). Cloudflare Pages project wala-katha serves walakatha.net and www.walakatha.net; both custom-domain records are active. Production deployment 41fa8fc0-febc-469f-bc1e-9475e593056b targets that exact commit and all five stages succeeded. All 173 available deployment log entries, including container logs, were scanned; no warning, deprecation, error, fatal, failure, or exception matches were found.
+- The live SEO/Sri Lanka locale verifier passed on 2026-10-16 against the current production site: homepage, robots.txt, the sitemap index and child sitemap, and 26 indexable URLs passed canonical, Sinhala-language, si-LK/x-default hreflang, description, indexability, and si_LK Open Graph checks. It also confirmed that the configured noindex article is excluded from feeds and marked noindex,follow.
+- The latest PDF release (PR #60, merge commit bfcc113db0c8643cf19626f24d2b8669ba7ebfae) passed CI and deployed successfully before the current documentation-only main commit. Its PDF verifier covered all 7 published articles across 60 pages; live checks confirmed SHA-256-versioned links and attachment/noindex headers. Its shorter 18+ notice is the baseline being expanded by the current change. Reader PDFs remain excluded from sitemaps, and the configured bus-jack-wal-katha article remains noindex,follow.
 - Latest verified Search Console keyword-sync run is `38700591415` (2026-10-15), before the 2026-10-16 PDF/cache release. Its export covers 2026-07-15–2026-10-12 (500 global queries, 394 usable queries, 46 pages); the homepage query `වැල්` had 4,075 impressions, 90 clicks, 2.21% calculated CTR, and average position 5.2 in that historical window. The post-recrawl follow-up run `38726508677` succeeded but skipped its report-PR step because its data gates were not met. These records do not demonstrate a post-release ranking or traffic effect.
 - Keep the comparison gates for any later claim: Google-indexed verdict, a crawl at or after the snippet release, at least seven days after deployment, a complete 28-day post-crawl window plus three-day data lag, and at least 500 impressions in each global comparison window. Label Sri Lanka separately and directional when either window has fewer than 100 impressions.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 29 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 30 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-16 — Expand the first-page PDF age notice
+
+### Why
+
+- The prior PDF release includes only a short 18+ warning, while the requested notice must identify the fictional adult nature of the work, warn minors, clarify parental responsibility and fictionality, and confirm lawful adult access.
+- The story-start marker currently appears above the notice. It must follow the complete notice at the bottom of the first page.
+
+### Changes
+
+- Replaced the short warning with the requested Sinhala title and all four full paragraphs in a high-contrast, bordered notice card. A vector warning icon keeps the symbol legible with the embedded Sinhala font.
+- Reserved cover space for the larger notice, added a first-page fit guard, and moved “මෙතැන් සිට කතාව නිල වශයෙන් ආරම්භ වේ” immediately below the notice.
+- Extended the production PDF verifier to check representative text from every requested paragraph and the ordering of the story-start marker after the complete notice.
+
+### Verification status
+
+- Baseline before this change: main commit 8256791c79fc922aa702b97d954613bdaf453fa9; Cloudflare production deployment 41fa8fc0-febc-469f-bc1e-9475e593056b passed all five stages. All 173 returned logs, including container logs, were scanned with no warning, deprecation, error, fatal, failure, or exception matches.
+- The live SEO/Sri Lanka locale audit passed on the baseline: 26 indexable URLs, one sitemap chain, canonical and locale metadata, and the configured noindex article checks.
+- Local build, PDF extraction/fit verification, GitHub CI, Cloudflare preview/production deployment logs, and live PDF checks for this change are pending. No production success is claimed yet.
+
+### SEO boundary
+
+- This change affects downloadable reader PDFs, which remain noindex and excluded from sitemaps. Canonical HTML and Sri Lankan locale metadata are unchanged. No Google ranking improvement is promised.
 
 ## 2026-10-16 — Verify 18+ PDF notice production release
 
@@ -91,20 +114,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Cloudflare PR preview deployment 0347a236-d929-41f8-b454-9a6e6f7c292f succeeded at https://0347a236.wala-katha.pages.dev. Production deployment 65e32337-7d59-4da5-8016-a95acd1243f9 targets the merge commit; all five stages succeeded. All 173 available production deployment log entries were scanned with no warning, deprecation, error, fatal, failure, or exception matches.
 - Live homepage, robots.txt, and sitemap index returned HTTP 200. The live Wanamalee PDF returned HTTP 200 as application/pdf, is 450,228 bytes, has 23 pages, and is marked X-Robots-Tag: noindex, nofollow. Rendered pages 1, 2, and 23 were visually checked: cover, story layout, watermark/page numbering, and final rights notice are present.
 - The last full SEO/locale audit remains run 38865509323 on the earlier d68d1ace5c457f2949271f322378fb97442b2bc1 release; no Google rank or traffic improvement is claimed.
-
-## 2026-10-16 — Book-style Sinhala reader PDFs and closing rights page
-
-### Why
-
-- The existing PDF cover rendered portrait artwork as a short landscape strip, and PDFs had no separate closing-use notice. The reader edition needs a real cover, consistent dark book styling, and a final rights reminder without changing story text or existing watermarks/links.
-
-### Changes
-
-- Rebuilt `src/lib/articlePdf.ts` around a large, aspect-preserving cover frame, dynamic title/date/source metadata, dark pages and charcoal cards with red borders, red heading accents, justified Sinhala body text with 1.9-style leading, and quote/block-quote dialogue panels. Native JPEG/PNG cover bytes are embedded unchanged; other supported formats are converted losslessly without cropping or watermark removal.
-- Added a dedicated final page explaining personal reading use and that reproduction, modification, republication, distribution, public posting, or sale needs prior written permission from the applicable rights holder. This is a notice, not DRM or a claim of ownership.
-- Kept the exact site watermark and source URL, with center watermark and footer on every page. Footer numbering remains `n / total` and now counts the separate cover and final page.
-- Extended `scripts/verify-post-downloads.mjs` to require the branded cover metadata, page numbering, per-page watermark/footer, and final notice on every generated article PDF.
-
-### Verification status
-
-- GitHub CI, Cloudflare preview, PDF visual review, and production deployment verification are pending for this PR; no release success is claimed yet.

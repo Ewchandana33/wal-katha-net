@@ -15,9 +15,16 @@ const BODY_FONT_SIZE = 10.5;
 const BODY_LINE_GAP = BODY_FONT_SIZE * 0.72;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 const BRAND = "WALAKATHA.NET  |  SINHALA READER EDITION";
-const AGE_NOTICE_TITLE = "වයස අවුරුදු 18+ සඳහා දැනුම්දීම";
-const AGE_NOTICE_TEXT =
-  "මෙම කතාවේ ඇතැම් කොටස්වල වැඩිහිටියන්ට පමණක් සුදුසු තේමා හෝ අන්තර්ගතය තිබිය හැක. ඔබ වයස අවුරුදු 18ට අඩු නම්, කරුණාකර කියවීමෙන් වළකින්න.";
+const AGE_NOTICE_TITLE = "වයස අවුරුදු 18+ සඳහා පමණි";
+const AGE_NOTICE_PARAGRAPHS = [
+  "මෙම කතාව වැඩිහිටි පාඨකයන් සඳහා ලියා ඇති ප්‍රබන්ධ කෘතියකි. කතාවේ ඇතැම් කොටස්වල ලිංගික තේමා සහ වැඩිහිටියන්ට පමණක් සුදුසු අන්තර්ගතය තිබිය හැක.",
+  "වයස අවුරුදු 18ට අඩු අය කරුණාකර මෙය කියවීමෙන් වළකින්න. ළමයින්ට මෙම ගොනුව ලඟා විය නොහැකි ලෙස තබාගැනීම දෙමාපියන්ගේ වගකීමකි.",
+  "කතාවේ සියලුම චරිත සහ සිදුවීම් සම්පූර්ණයෙන්ම ප්‍රබන්ධ වන අතර සැබෑ පුද්ගලයින් හෝ සිදුවීම් හා සම්බන්ධයක් නැත.",
+  "මෙම ගොනුව කියවීමෙන්, ඔබ වයස අවුරුදු 18ට වැඩි බවත්, ඔබේ රටේ නීතියට අනුව මෙය කියවීමට අවසර ඇති බවත් තහවුරු කරයි.",
+];
+const AGE_NOTICE_BODY_FONT_SIZE = 8.2;
+const AGE_NOTICE_BODY_LINE_GAP = 1.5;
+const AGE_NOTICE_PARAGRAPH_GAP = 4;
 
 type ArticlePdfInput = {
   title: string;
@@ -271,7 +278,8 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
   document.addPage();
 
   const maxImageWidth = CONTENT_WIDTH - 30;
-  const maxImageHeight = 404;
+  // Reserve room on the cover for the expanded age notice and story-start marker.
+  const maxImageHeight = 340;
   const aspectRatio = coverImage.width / coverImage.height;
   const imageWidth = Math.min(maxImageWidth, maxImageHeight * aspectRatio);
   const imageHeight = imageWidth / aspectRatio;
@@ -338,9 +346,102 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
       link: input.sourceUrl,
     });
 
-  document.moveDown(0.6);
-  const startBoxY = document.y;
+  document.moveDown(0.55);
+  const ageNoticeX = MARGIN + 10;
+  const ageNoticeWidth = CONTENT_WIDTH - 20;
+  const ageNoticePadding = 11;
+  const ageNoticeTextWidth = ageNoticeWidth - ageNoticePadding * 2;
+  const ageNoticeY = document.y;
+  document.font("Sinhala").fontSize(10);
+  const ageNoticeTitleHeight = document.heightOfString(AGE_NOTICE_TITLE, {
+    width: ageNoticeTextWidth,
+    align: "center",
+  });
+  const ageNoticeTitleWidth = document.widthOfString(AGE_NOTICE_TITLE);
+  document.font("Sinhala").fontSize(AGE_NOTICE_BODY_FONT_SIZE);
+  const ageNoticeParagraphHeights = AGE_NOTICE_PARAGRAPHS.map((paragraph) =>
+    document.heightOfString(paragraph, {
+      width: ageNoticeTextWidth,
+      align: "left",
+      lineGap: AGE_NOTICE_BODY_LINE_GAP,
+    }),
+  );
+  const ageNoticeTitleGap = 6;
+  const ageNoticeBodyHeight =
+    ageNoticeParagraphHeights.reduce((total, height) => total + height, 0) +
+    AGE_NOTICE_PARAGRAPH_GAP * (AGE_NOTICE_PARAGRAPHS.length - 1);
+  const ageNoticeHeight =
+    ageNoticePadding * 2 +
+    ageNoticeTitleHeight +
+    ageNoticeTitleGap +
+    ageNoticeBodyHeight +
+    2;
   const startBoxHeight = 34;
+  const startBoxGap = 9;
+  const startBoxY = ageNoticeY + ageNoticeHeight + startBoxGap;
+  if (startBoxY + startBoxHeight > PAGE_HEIGHT - BOTTOM_MARGIN) {
+    throw new Error(
+      "Article PDF cover has insufficient room for the full age notice and story-start marker: " +
+        input.title +
+        ".",
+    );
+  }
+
+  document
+    .roundedRect(ageNoticeX, ageNoticeY, ageNoticeWidth, ageNoticeHeight, 6)
+    .fill("#241616");
+  document
+    .roundedRect(ageNoticeX, ageNoticeY, ageNoticeWidth, ageNoticeHeight, 6)
+    .lineWidth(1.2)
+    .strokeColor(ACCENT)
+    .stroke();
+  const warningIconSize = 14;
+  const warningTitleGap = 5;
+  const warningGroupWidth = warningIconSize + warningTitleGap + ageNoticeTitleWidth;
+  const warningGroupX = ageNoticeX + (ageNoticeWidth - warningGroupWidth) / 2;
+  const ageNoticeTitleY = ageNoticeY + ageNoticePadding;
+
+  // Draw the warning symbol as vector geometry so it renders with the embedded Sinhala font.
+  const warningIconX = warningGroupX;
+  const warningIconY = ageNoticeTitleY + (ageNoticeTitleHeight - warningIconSize) / 2;
+  const warningCenterX = warningIconX + warningIconSize / 2;
+  document.save();
+  document
+    .moveTo(warningCenterX, warningIconY)
+    .lineTo(warningIconX + warningIconSize, warningIconY + warningIconSize)
+    .lineTo(warningIconX, warningIconY + warningIconSize)
+    .closePath()
+    .fillColor("#ffc857")
+    .fill();
+  document
+    .moveTo(warningCenterX, warningIconY + 4)
+    .lineTo(warningCenterX, warningIconY + 8)
+    .lineWidth(1.5)
+    .strokeColor("#241616")
+    .stroke();
+  document.circle(warningCenterX, warningIconY + 10.5, 0.9).fill("#241616");
+  document.restore();
+
+  document
+    .font("Sinhala")
+    .fontSize(10)
+    .fillColor("#ffb4aa")
+    .text(AGE_NOTICE_TITLE, warningGroupX + warningIconSize + warningTitleGap, ageNoticeTitleY, {
+      width: ageNoticeTitleWidth,
+      lineBreak: false,
+    });
+
+  let ageNoticeParagraphY = ageNoticeTitleY + ageNoticeTitleHeight + ageNoticeTitleGap;
+  document.font("Sinhala").fontSize(AGE_NOTICE_BODY_FONT_SIZE).fillColor("#ffffff");
+  for (let index = 0; index < AGE_NOTICE_PARAGRAPHS.length; index += 1) {
+    document.text(AGE_NOTICE_PARAGRAPHS[index], ageNoticeX + ageNoticePadding, ageNoticeParagraphY, {
+      width: ageNoticeTextWidth,
+      align: "left",
+      lineGap: AGE_NOTICE_BODY_LINE_GAP,
+    });
+    ageNoticeParagraphY += ageNoticeParagraphHeights[index] + AGE_NOTICE_PARAGRAPH_GAP;
+  }
+
   document
     .roundedRect(MARGIN, startBoxY, CONTENT_WIDTH, startBoxHeight, 6)
     .fill("#1f1f1f");
@@ -358,62 +459,6 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
       align: "center",
       lineBreak: false,
     });
-
-  const ageNoticeX = MARGIN + 10;
-  const ageNoticeWidth = CONTENT_WIDTH - 20;
-  const ageNoticePadding = 11;
-  const ageNoticeY = startBoxY + startBoxHeight + 12;
-  document.font("Sinhala").fontSize(9);
-  const ageNoticeTitleHeight = document.heightOfString(AGE_NOTICE_TITLE, {
-    width: ageNoticeWidth - ageNoticePadding * 2,
-    align: "center",
-  });
-  document.font("Sinhala").fontSize(8.5);
-  const ageNoticeTextHeight = document.heightOfString(AGE_NOTICE_TEXT, {
-    width: ageNoticeWidth - ageNoticePadding * 2,
-    align: "center",
-    lineGap: 2,
-  });
-  const ageNoticeHeight =
-    ageNoticePadding * 2 + ageNoticeTitleHeight + 4 + ageNoticeTextHeight;
-  if (ageNoticeY + ageNoticeHeight > PAGE_HEIGHT - BOTTOM_MARGIN) {
-    throw new Error(
-      "Article PDF cover has insufficient room for its required age notice: " +
-        input.title +
-        ".",
-    );
-  }
-
-  document
-    .roundedRect(ageNoticeX, ageNoticeY, ageNoticeWidth, ageNoticeHeight, 6)
-    .fill("#241616");
-  document
-    .roundedRect(ageNoticeX, ageNoticeY, ageNoticeWidth, ageNoticeHeight, 6)
-    .lineWidth(1.2)
-    .strokeColor(ACCENT)
-    .stroke();
-  document
-    .font("Sinhala")
-    .fontSize(9)
-    .fillColor("#ffb4aa")
-    .text(AGE_NOTICE_TITLE, ageNoticeX + ageNoticePadding, ageNoticeY + ageNoticePadding, {
-      width: ageNoticeWidth - ageNoticePadding * 2,
-      align: "center",
-    });
-  document
-    .font("Sinhala")
-    .fontSize(8.5)
-    .fillColor("#ffffff")
-    .text(
-      AGE_NOTICE_TEXT,
-      ageNoticeX + ageNoticePadding,
-      ageNoticeY + ageNoticePadding + ageNoticeTitleHeight + 4,
-      {
-        width: ageNoticeWidth - ageNoticePadding * 2,
-        align: "center",
-        lineGap: 2,
-      },
-    );
 
   nextPageKind = "content";
   document.addPage();
