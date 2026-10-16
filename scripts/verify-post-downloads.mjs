@@ -65,8 +65,19 @@ for (const slug of articleSlugs) {
     if (!pageText.includes(expectedPageNumber)) {
       throw new Error(`[post-downloads] ${slug}.pdf page ${pageNumber}/${pageCount} is missing its footer page number.`);
     }
-    const compactPageText = pageText.replace(/\s+/g, "").toUpperCase();
+    const compactPageText = pageText
+      .normalize("NFKC")
+      .replace(/[\s\p{Cf}\p{P}]+/gu, "")
+      .toUpperCase();
     if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
+    if (
+      pageNumber === 1 &&
+      (!/18\+?සඳහාදැනුම්දීම/u.test(compactPageText) ||
+        !compactPageText.includes("18ටඅඩු".toUpperCase()) ||
+        !compactPageText.includes("වළකින්න".toUpperCase()))
+    ) {
+      throw new Error(`[post-downloads] ${slug}.pdf is missing the first-page 18+ reading notice.`);
+    }
     if (/[\u0D80-\u0DFF]/u.test(pageText)) containsSinhalaText = true;
     const watermarkCount = pageText.split("https://www.walakatha.net").length - 1;
     if (watermarkCount < 2) {
