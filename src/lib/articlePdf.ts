@@ -466,7 +466,6 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
     .text("PERSONAL READING COPY", MARGIN + 16, document.y, {
       width: legalWidth,
       align: "center",
-      characterSpacing: 1.1,
     });
   document.moveDown(1.1);
   document

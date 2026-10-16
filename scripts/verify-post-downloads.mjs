@@ -53,6 +53,7 @@ for (const slug of articleSlugs) {
   if (pageCount < 3) throw new Error(`[post-downloads] ${slug}.pdf needs a cover, story, and final rights page.`);
   verifiedPdfPages += pageCount;
   let containsSinhalaText = false;
+  let rightsNoticePage = 0;
   for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
     const page = await document.getPage(pageNumber);
     const textContent = await page.getTextContent();
@@ -64,9 +65,8 @@ for (const slug of articleSlugs) {
     if (!pageText.includes(expectedPageNumber)) {
       throw new Error(`[post-downloads] ${slug}.pdf page ${pageNumber}/${pageCount} is missing its footer page number.`);
     }
-    if (pageNumber === pageCount && !pageText.includes("PERSONAL READING COPY")) {
-      throw new Error(`[post-downloads] ${slug}.pdf is missing its final usage-rights page.`);
-    }
+    const compactPageText = pageText.replace(/\s+/g, "").toUpperCase();
+    if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
     if (/[\u0D80-\u0DFF]/u.test(pageText)) containsSinhalaText = true;
     const watermarkCount = pageText.split("https://www.walakatha.net").length - 1;
     if (watermarkCount < 2) {
@@ -75,6 +75,9 @@ for (const slug of articleSlugs) {
     if (pageNumber === 1 && !pageText.includes(sourceUrl)) {
       throw new Error(`[post-downloads] ${slug}.pdf is missing its canonical source URL.`);
     }
+  }
+  if (rightsNoticePage !== pageCount) {
+    throw new Error("[post-downloads] " + slug + ".pdf has its final rights notice on page " + (rightsNoticePage || "none") + " instead of its last page (" + pageCount + ").");
   }
   if (!containsSinhalaText) throw new Error(`[post-downloads] ${slug}.pdf does not contain extractable Sinhala text.`);
   await document.destroy();
