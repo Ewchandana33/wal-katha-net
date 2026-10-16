@@ -18,6 +18,8 @@ export async function getStaticPaths() {
       props: {
         title,
         body: String(post.body ?? ""),
+        coverImagePath: String(post.data.image ?? ""),
+        coverImageAlt: String(post.data.image_alt ?? title),
         publishedDate,
         sourceUrl,
       },
@@ -29,6 +31,8 @@ export const GET: APIRoute = async ({ props }) => {
   const pdf = await buildArticlePdf({
     title: String(props.title ?? "Untitled"),
     body: String(props.body ?? ""),
+    coverImagePath: String(props.coverImagePath ?? ""),
+    coverImageAlt: String(props.coverImageAlt ?? props.title ?? ""),
     publishedDate: props.publishedDate ? String(props.publishedDate) : undefined,
     sourceUrl: String(props.sourceUrl ?? config.site.base_url),
   });
