@@ -33,6 +33,9 @@ for (const slug of articleSlugs) {
   if (pdf.length < 1_000 || pdf.subarray(0, 5).toString("ascii") !== "%PDF-") {
     throw new Error(`[post-downloads] ${slug}.pdf is empty or not a valid PDF.`);
   }
+  if (!/\/Subtype\s*\/Image\b/.test(pdf.toString("latin1"))) {
+    throw new Error(`[post-downloads] ${slug}.pdf is missing its embedded cover image.`);
+  }
   const document = await getDocument({
     data: new Uint8Array(pdf),
     isEvalSupported: false,
@@ -76,4 +79,4 @@ for (const name of sitemapFiles) {
     throw new Error(`[post-downloads] Reader copies must not appear in sitemap ${name}.`);
   }
 }
-console.log(`[post-downloads] Verified ${articleSlugs.length} published articles across ${verifiedPdfPages} PDF page(s); every page has a central watermark plus footer, source links, article-end PDF links, attachment/noindex headers, and no sitemap entries.`);
+console.log(`[post-downloads] Verified ${articleSlugs.length} published articles across ${verifiedPdfPages} PDF page(s); every page has a central watermark plus footer, each PDF has an embedded cover image, and all PDFs have source links, article-end links, attachment/noindex headers, and no sitemap entries.`);

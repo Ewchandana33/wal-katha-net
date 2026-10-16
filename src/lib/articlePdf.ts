@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, sep } from "node:path";
+import sharp from "sharp";
 import PDFDocument from "pdfkit";
 
 const PAGE_WIDTH = 595.28;
@@ -12,6 +13,8 @@ type ArticlePdfInput = {
   title: string;
   body: string;
   sourceUrl: string;
+  coverImagePath: string;
+  coverImageAlt?: string;
   publishedDate?: string;
 };
 
@@ -19,6 +22,33 @@ type TextBlock = {
   kind: "paragraph" | "heading" | "list";
   text: string;
 };
+
+const COVER_HEIGHT = 176;
+const COVER_IMAGE_PATH = /^\/images\/posts\/[A-Za-z0-9._-]+\.(?:avif|jpe?g|png|webp)$/i;
+
+async function prepareCoverImage(imagePath: string): Promise<Buffer> {
+  if (!COVER_IMAGE_PATH.test(imagePath)) {
+    throw new Error(
+      "Article PDF cover must be a local /images/posts asset; received: " +
+        (imagePath || "(missing)") +
+        ".",
+    );
+  }
+
+  const postsRoot = resolve(process.cwd(), "public/images/posts");
+  const sourcePath = resolve(process.cwd(), "public", imagePath.slice(1));
+  if (!sourcePath.startsWith(postsRoot + sep)) {
+    throw new Error("Article PDF cover path escapes the post image directory: " + imagePath + ".");
+  }
+
+  const background = { r: 247, g: 244, b: 237, alpha: 1 };
+  return sharp(readFileSync(sourcePath), { failOn: "error" })
+    .rotate()
+    .flatten({ background })
+    .resize({ width: 1600, height: 800, fit: "contain", background, withoutEnlargement: true })
+    .jpeg({ quality: 86, mozjpeg: true })
+    .toBuffer();
+}
 
 function plainInlineText(value: string): string {
   return value
@@ -113,6 +143,7 @@ function appendPdf(document: InstanceType<typeof PDFDocument>): Promise<Uint8Arr
 }
 
 export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Array> {
+  const coverImageBytes = await prepareCoverImage(input.coverImagePath);
   const fontBytes = readFileSync(
     resolve(process.cwd(), "src/assets/fonts/NotoSansSinhala-VF.ttf"),
   );
@@ -159,11 +190,47 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
   };
 
   addPage(false);
+  const coverTop = MARGIN;
+  document.save();
+  document.rect(MARGIN, coverTop, contentWidth, COVER_HEIGHT).fill("#f7f4ed");
+  document.image(coverImageBytes, MARGIN + 5, coverTop + 5, {
+    fit: [contentWidth - 10, COVER_HEIGHT - 10],
+    align: "center",
+    valign: "center",
+  });
+  document.restore();
+  document
+    .rect(MARGIN, coverTop, contentWidth, COVER_HEIGHT)
+    .lineWidth(0.8)
+    .strokeColor("#c9b98f")
+    .stroke();
+  document.y = coverTop + COVER_HEIGHT + 12;
+  if (input.coverImageAlt?.trim()) {
+    document
+      .font("Sinhala")
+      .fontSize(7)
+      .fillColor("#68747a")
+      .text(input.coverImageAlt.trim(), { width: contentWidth, align: "right" });
+  }
+  document
+    .font("Helvetica-Bold")
+    .fontSize(7)
+    .fillColor("#8a6d3b")
+    .text("WALAKATHA.NET  |  SINHALA READER EDITION", { width: contentWidth, characterSpacing: 0.8 });
+  document.moveDown(0.55);
   document
     .font("Sinhala")
     .fontSize(21)
     .fillColor("#141c23")
     .text(input.title, { width: contentWidth, lineGap: 5 });
+  document.moveDown(0.45);
+  document
+    .moveTo(MARGIN, document.y)
+    .lineTo(PAGE_WIDTH - MARGIN, document.y)
+    .lineWidth(1)
+    .strokeColor("#c9b98f")
+    .stroke();
+  document.moveDown(0.55);
   document
     .font("Helvetica")
     .fontSize(8)
