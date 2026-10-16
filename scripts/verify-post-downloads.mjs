@@ -70,13 +70,34 @@ for (const slug of articleSlugs) {
       .replace(/[\s\p{Cf}\p{P}]+/gu, "")
       .toUpperCase();
     if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
-    if (
-      pageNumber === 1 &&
-      (!/18\+?සඳහාදැනුම්දීම/u.test(compactPageText) ||
-        !compactPageText.includes("18ටඅඩු".toUpperCase()) ||
-        !compactPageText.includes("වළකින්න".toUpperCase()))
-    ) {
-      throw new Error(`[post-downloads] ${slug}.pdf is missing the first-page 18+ reading notice.`);
+    if (pageNumber === 1) {
+      const requiredAgeNoticeMarkers = [
+        "ලිංගිකතේමා",
+        "18ටඅඩු",
+        "වළකින්න",
+        "දෙමාපියන්ගේවගකීමකි",
+        "සියලුමචරිත",
+        "සැබෑපුද්ගලයින්",
+        "ඔබේරටේනීතියටඅනුව",
+        "තහවුරුකරයි",
+      ];
+      const missingAgeNoticeMarkers = requiredAgeNoticeMarkers.filter(
+        (marker) => !compactPageText.includes(marker.toUpperCase()),
+      );
+      const storyStartMarker = "මෙතැන්සිටකතාවනිලවශයෙන්ආරම්භවේ";
+      const lastNoticeMarkerPosition = Math.max(
+        ...requiredAgeNoticeMarkers.map((marker) => compactPageText.indexOf(marker.toUpperCase())),
+      );
+      const storyStartPosition = compactPageText.indexOf(storyStartMarker.toUpperCase());
+      if (
+        !/18\+?සඳහාපමණි/u.test(compactPageText) ||
+        missingAgeNoticeMarkers.length > 0 ||
+        storyStartPosition <= lastNoticeMarkerPosition
+      ) {
+        throw new Error(
+          `[post-downloads] ${slug}.pdf is missing the complete first-page 18+ notice or has the story-start marker before it. Missing notice markers: ${missingAgeNoticeMarkers.join(", ") || "none"}.`,
+        );
+      }
     }
     if (/[\u0D80-\u0DFF]/u.test(pageText)) containsSinhalaText = true;
     const watermarkCount = pageText.split("https://www.walakatha.net").length - 1;
