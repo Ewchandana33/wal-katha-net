@@ -9,6 +9,8 @@ on:
       - "scripts/alt-text-policy.mjs"
       - "scripts/generate-alt-text.mjs"
       - "scripts/verify-alt-text.mjs"
+      - "scripts/post-files.mjs"
+      - "scripts/ai-changelog.mjs"
       - ".github/workflows/generate-alt-text.yml"
   schedule:
     - cron: "30 4 * * *"
@@ -49,14 +51,14 @@ jobs:
             echo "Non-main validation only; no automation PR will be opened."
             exit 0
           fi
-          if git diff --quiet -- src/content/posts AI_CHANGELOG.md; then
+          if git diff --quiet -- src/content/posts AI_CHANGELOG.md archive; then
             echo "No content or changelog changes; nothing to commit."
             exit 0
           fi
           BRANCH="bot/deterministic-alt-text"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/content/posts AI_CHANGELOG.md
+          git add src/content/posts AI_CHANGELOG.md archive
           git commit -m "seo: repair deterministic cover alt text"
           git push --force origin "HEAD:refs/heads/$BRANCH"
           EXISTING=$(gh pr list --head "$BRANCH" --state open --json url --jq ".[0].url // empty" || true)
@@ -65,8 +67,13 @@ jobs:
             PR_URL="$EXISTING"
             echo "Updated existing PR $PR_URL"
           else
-            PR_URL=$(gh pr create --draft --head "$BRANCH" --base main --title "seo: safe deterministic image alt text" --body-file /tmp/alt-text-report.md)
+            PR_URL=$(gh pr create --head "$BRANCH" --base main --title "seo: safe deterministic image alt text" --body-file /tmp/alt-text-report.md)
           fi
           # GitHub-token-created PRs need explicit required-check dispatch.
+          if [ -n "$EXISTING" ]; then
+            IS_DRAFT=$(gh pr view "$PR_URL" --json isDraft --jq '.isDraft')
+            if [ "$IS_DRAFT" = "true" ]; then gh pr ready "$PR_URL"; fi
+          fi
           gh workflow run ci.yml --ref "$BRANCH"
-          echo "Draft PR $PR_URL created. Production merge requires explicit review and approval."
+          gh pr merge "$PR_URL" --auto --squash
+          echo "Queued $PR_URL for protected auto-merge after required CI and Cloudflare preview checks."

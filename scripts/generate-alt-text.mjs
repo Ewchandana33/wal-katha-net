@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-import { appendFile, readFile, readdir, writeFile } from "node:fs/promises";
+import { appendFile, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { coverAltForTitle, isAcceptableCoverAlt, readFrontmatterScalar } from "./alt-text-policy.mjs";
+import { recordAiChange } from "./ai-changelog.mjs";
+import { listPostFiles } from "./post-files.mjs";
 const postsDir = path.join(process.cwd(), "src", "content", "posts");
 const changelogPath = path.join(process.cwd(), "AI_CHANGELOG.md");
 const frontmatterPattern = /^---\r?\n([\s\S]*?)\r?\n---/;
@@ -46,8 +48,8 @@ async function main() {
   if (covers === 0) throw new Error("No post cover images were found; refusing a silent no-op.");
   if (updated.length) {
     const date = new Date().toISOString().slice(0, 10);
-    const entry = ["", "", "## " + date + " — Automated deterministic cover-alt repair", "", "- Repaired " + updated.length + " cover alt value(s): " + updated.join(", ") + ".", "- Used neutral title-derived labels; age-sensitive or explicit titles receive a generic fallback. No image model, API key, GSC query, or keyword seed is used.", "- The workflow validates all cover labels, opens or updates a PR, dispatches required CI on the PR head, and leaves the PR in draft for review; production merge requires explicit approval.", ""].join("\n");
-    await appendFile(changelogPath, entry, "utf8");
+    const entry = ["", "", "## " + date + " — Automated deterministic cover-alt repair", "", "- Repaired " + updated.length + " cover alt value(s): " + updated.join(", ") + ".", "- Used neutral title-derived labels; age-sensitive or explicit titles receive a generic fallback. No image model, API key, GSC query, or keyword seed is used.", "- The workflow validates all cover labels, opens or updates a PR, dispatches required CI on the PR head, and queues protected auto-merge after required CI and Cloudflare preview checks; it never writes directly to main.", ""].join("\n");
+    await recordAiChange(changelogPath, entry);
   }
   const report = ["## Deterministic cover alt text", "", "Verified covers: **" + covers + "** | Updated: **" + updated.length + "**", "", updated.length ? "Updated posts: " + updated.join(", ") : "All existing cover alt values already pass the policy.", "", "Labels are neutral and deterministic. Sensitive titles use the generic fallback; no visual details are inferred."].join("\n") + "\n";
   await writeFile("/tmp/alt-text-report.md", report, "utf8");

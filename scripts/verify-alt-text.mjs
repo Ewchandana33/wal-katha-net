@@ -1,20 +1,10 @@
 #!/usr/bin/env node
-import { readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { isAcceptableCoverAlt, readFrontmatterScalar } from "./alt-text-policy.mjs";
+import { listPostFiles } from "./post-files.mjs";
 const postsDir = path.join(process.cwd(), "src", "content", "posts");
 const frontmatterPattern = /^---\r?\n([\s\S]*?)\r?\n---/;
-async function listPostFiles(directory, relative = "") {
-  const entries = await readdir(path.join(directory, relative), { withFileTypes: true });
-  const nested = await Promise.all(entries.map((entry) => {
-    const child = path.join(relative, entry.name);
-    if (entry.isDirectory()) return listPostFiles(directory, child);
-    if (entry.isFile() && /\.mdx?$/i.test(entry.name) && !entry.name.startsWith("-")) return [child];
-    return [];
-  }));
-  return nested.flat().sort();
-}
-
 const files = await listPostFiles(postsDir);
 const errors = [];
 let covers = 0;

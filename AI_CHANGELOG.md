@@ -16,17 +16,44 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ## Status snapshot — 2026-10-16
 
-- Current production baseline is main commit `d68d1ace5c457f2949271f322378fb97442b2bc1` (PR #55). Cloudflare Pages project `wala-katha` serves `walakatha.net` and `www.walakatha.net`; both custom-domain records are active. Production deployment `e6dba80d-92ba-4449-9a9f-7af8c2ed0d80` targets that exact commit and all five stages succeeded. All 173 available deployment log entries, including container logs, were scanned; no warning, deprecation, error, fatal, failure, or exception matches were found.
-- GitHub's live SEO and Sri Lanka locale audit run `38865509323` completed successfully on the production commit. The automated audit checks the homepage, robots.txt, all declared sitemaps and sitemap-listed URLs, canonical links, Sinhala document language, `si-LK`/`x-default` alternates, descriptions, indexability, and `si_LK` Open Graph locale.
-- Production's required PDF build verifier passed for all 7 published articles across 60 PDF pages. It checked a cover image per PDF, Sinhala text, canonical source links, a visible article-end PDF link, central watermark plus footer on every page, attachment/noindex headers, and exclusion of reader PDFs from sitemaps. Direct live checks confirmed six sitemap-listed articles plus the configured `bus-jack-wal-katha` noindex article each link to a SHA-256-versioned PDF; all seven returned HTTP 200 with a valid PDF signature, embedded image, `application/pdf`, attachment disposition, and `X-Robots-Tag: noindex, nofollow`. The `bus-jack` HTML page remains `noindex,follow` and absent from sitemaps.
+- Current production baseline is main commit 08ba9be504162867f4ee6b6467159c6389a9806e (PR #57). Cloudflare Pages project wala-katha serves walakatha.net and www.walakatha.net; both custom-domain records are active. Production deployment 65e32337-7d59-4da5-8016-a95acd1243f9 targets that exact commit and all five stages succeeded. All 173 available deployment log entries, including container logs, were scanned; no warning, deprecation, error, fatal, failure, or exception matches were found.
+- The last full live SEO and Sri Lanka locale audit run 38865509323 completed successfully on earlier production commit d68d1ace5c457f2949271f322378fb97442b2bc1; it is not an audit of 08ba9be504162867f4ee6b6467159c6389a9806e. Direct checks of the current homepage, robots.txt, and sitemap index returned HTTP 200. The automated audit checks the homepage, robots.txt, all declared sitemaps and sitemap-listed URLs, canonical links, Sinhala document language, si-LK/x-default alternates, descriptions, indexability, and si_LK Open Graph locale.
+- On the earlier production baseline d68d1ace5c457f2949271f322378fb97442b2bc1, the required PDF build verifier passed for all 7 published articles across 60 PDF pages. It checked a cover image per PDF, Sinhala text, canonical source links, a visible article-end PDF link, central watermark plus footer on every page, attachment/noindex headers, and exclusion of reader PDFs from sitemaps. Direct live checks on that baseline confirmed six sitemap-listed articles plus the configured bus-jack-wal-katha noindex article each link to a SHA-256-versioned PDF; all seven returned HTTP 200 with a valid PDF signature, embedded image, application/pdf, attachment disposition, and X-Robots-Tag: noindex, nofollow. The bus-jack HTML page remains noindex,follow and absent from sitemaps.
 - Latest verified Search Console keyword-sync run is `38700591415` (2026-10-15), before the 2026-10-16 PDF/cache release. Its export covers 2026-07-15–2026-10-12 (500 global queries, 394 usable queries, 46 pages); the homepage query `වැල්` had 4,075 impressions, 90 clicks, 2.21% calculated CTR, and average position 5.2 in that historical window. The post-recrawl follow-up run `38726508677` succeeded but skipped its report-PR step because its data gates were not met. These records do not demonstrate a post-release ranking or traffic effect.
 - Keep the comparison gates for any later claim: Google-indexed verdict, a crawl at or after the snippet release, at least seven days after deployment, a complete 28-day post-crawl window plus three-day data lag, and at least 500 impressions in each global comparison window. Label Sri Lanka separately and directional when either window has fewer than 100 impressions.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 25 earlier dated entries from 2026-10-14 through 2026-10-15; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 27 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
 
 ## Recent entries
 
+## 2026-10-16 — Repair deterministic alt-text and changelog automation
+
+### Why
+
+- Scheduled GitHub Actions run 38878945840 failed with ReferenceError: listPostFiles is not defined in scripts/generate-alt-text.mjs. The generator called a helper absent from that file; the verifier had a separate copy, so ordinary CI had not caught the automation failure.
+- The generated changelog was appended at the file end without the repository’s five-entry/20 KiB archive rotation, and generated SEO PRs remained drafts instead of using the repository’s protected, check-gated auto-merge flow.
+
+### Changes
+
+- Added scripts/post-files.mjs as the single recursive Markdown discovery helper used by both the alt-text generator and verifier; added nested-file and draft-exclusion tests and wired them into required CI.
+- Added scripts/ai-changelog.mjs to prepend dated entries, retain the five newest entries and 20 KiB limit, archive complete older entries by quarter, and update archive coverage/index. Added retention and duplicate-entry tests.
+- Updated the deterministic alt-text workflow’s path filters and staging to include the shared helpers and archive. It now opens or updates a ready bot PR, dispatches required CI, and queues protected squash auto-merge; it never writes directly to main.
+
+### Verification at implementation time
+
+- Local Node.js 24 run: all 6 tests passed (the 4 existing policy tests and 2 new regression tests). A fixture run discovered and repaired 2 posts, then the full alt-text validator passed.
+- GitHub CI, Cloudflare preview, and production verification for this repair were pending when this entry was first recorded.
+
+## 2026-10-16 — Verify PR #57 reader-PDF release
+
+### Correction to the pending status in “Book-style Sinhala reader PDFs and closing rights page”
+
+- This entry supersedes that entry’s pending verification status; the earlier note remains as the record of the initial PR state.
+- PR #57 merged to main as commit 08ba9be504162867f4ee6b6467159c6389a9806e. The first CI run, 38882638409, failed because the PDF verifier did not detect the final usage-rights page; follow-up run 38883150185 passed, and auto-merge run 38883146788 succeeded.
+- Cloudflare PR preview deployment 0347a236-d929-41f8-b454-9a6e6f7c292f succeeded at https://0347a236.wala-katha.pages.dev. Production deployment 65e32337-7d59-4da5-8016-a95acd1243f9 targets the merge commit; all five stages succeeded. All 173 available production deployment log entries were scanned with no warning, deprecation, error, fatal, failure, or exception matches.
+- Live homepage, robots.txt, and sitemap index returned HTTP 200. The live Wanamalee PDF returned HTTP 200 as application/pdf, is 450,228 bytes, has 23 pages, and is marked X-Robots-Tag: noindex, nofollow. Rendered pages 1, 2, and 23 were visually checked: cover, story layout, watermark/page numbering, and final rights notice are present.
+- The last full SEO/locale audit remains run 38865509323 on the earlier d68d1ace5c457f2949271f322378fb97442b2bc1 release; no Google rank or traffic improvement is claimed.
 
 ## 2026-10-16 — Book-style Sinhala reader PDFs and closing rights page
 
@@ -104,49 +131,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 ### SEO boundary
 
 - Canonical article HTML remains the only index target; downloadable copies are noindex and omitted from sitemaps. This is technical SEO hygiene, not a ranking shortcut. No Google top-ranking, post-release indexing, or traffic increase is claimed; the existing Search Console comparison gates still apply.
-
-## 2026-10-16 — Repair external CI dependency installation for article PDFs
-
-### Why
-
-- PR #52 initially failed at dependency installation because 26 new lockfile tarballs referenced the Replit-only `package-firewall.replit.internal` host. Cloudflare deployment `3102cf77-d753-4d75-a58e-aeee9d4013d9` and GitHub CI run `38845171391` recorded that failure.
-- Registry correction commit `fb546901af26f727adbf7b8af8383aed928e5a6e` made Cloudflare preview deployment `6bcadf34-4e34-4351-9791-66af10ec2525` pass all five stages. Its 173 deployment-log entries had no warning/error/failure matches, and its build verifier checked seven article PDFs across 57 pages.
-- GitHub CI run `38848017465` then reached `astro check` and failed with TypeScript `ts(7016)`: `pdfkit` has no bundled declarations, so the new PDF module lacked types. This was separate from the completed Cloudflare build.
-
-### Changes
-
-- Replaced the 26 Replit-only tarball URL prefixes with `https://registry.npmjs.org/`, preserving package versions, paths, and integrity hashes.
-- Added `@types/pdfkit@0.17.6` as a dev dependency. Yarn 1.22.22 generated one exact lock entry using the existing `@types/node@*` resolution; no runtime dependency or PDF behavior changed.
-- Moved the oldest complete dated log entry to `archive/AI_CHANGELOG-2026-Q4.md` to keep the active log at five entries (the archive now has 22).
-
-### Verification status
-
-- Yarn completed dependency resolution with `@types/pdfkit@0.17.6`; the generated lock diff is one package entry and contains no Replit-internal registry host. A local full Astro check was not treated as passing because that scratch install initially omitted optional platform bindings; the required GitHub CI is the authoritative type-check.
-- Cloudflare preview commit `fb546901af26f727adbf7b8af8383aed928e5a6e` passed all five stages; its build verified 50 pages, 7 PDFs/57 PDF pages, watermarks, canonical source links, attachment/noindex headers, and sitemap exclusion. The new type-dependency commit's CI and preview checks are pending.
-- Production remains on main SHA `c6bc1e9f92aab0032a387795e5c1d6533065ec35`, with successful deployment `b1a1202b-e756-4ed8-8cbd-ae6b533065b8`; no PR change has been reported as a production release.
-
-## 2026-10-16 — Sinhala article PDFs with repeated site watermark
-
-### Why
-
-- The existing article-end download was Markdown; the requested reader copy is a downloadable PDF with the site URL repeated on every page.
-- Keep canonical HTML as the only search landing page. Reader PDFs are a convenience, not an SEO ranking shortcut.
-
-### Changes
-
-- Added a build-time PDF endpoint for every published article, using PDFKit and an embedded Noto Sans Sinhala font (SIL Open Font License). The PDF keeps selectable/extractable Sinhala text, the article title/date, and a link to the canonical HTML article.
-- Changed the article-end button to download `.pdf`. Existing Markdown download URLs remain available for backward compatibility but are no longer the article-page CTA.
-- Added `https://www.walakatha.net` as centered page content and as a footer on every PDF page. It is embedded in the page content, not an optional annotation/layer; PDF editing/rasterization can still remove or obscure any watermark, so absolute removal prevention is not claimed.
-- Added PDF attachment, MIME, one-day cache, and `X-Robots-Tag: noindex, nofollow` headers. PDFs are excluded from sitemaps; canonical article HTML remains authoritative.
-- Extended the required build verifier with PDF.js to check every published article has a valid PDF, extractable Sinhala text, the canonical source URL, at least two URL watermarks on every page, a visible PDF download link, attachment/noindex headers, and no sitemap entry.
-
-### Local verification
-
-- `yarn check` completed successfully and `yarn test` passed all five tests. `yarn check` reported 20 dependency-resolution/deduplication notices; Yarn 1 also emitted Node's `DEP0169` `url.parse()` deprecation warning. These are environment/dependency-tree notices, not PDF/build failures; no unrelated lockfile resolutions were changed to hide them.
-- `yarn build` completed successfully: 50 site pages, seven article PDFs across 57 PDF pages, and the PDF.js build verifier confirmed per-page center/footer watermarks, extractable Sinhala, and source URLs. The build also passed sitemap-indexability, featured-link, social-image, and critical-CSS checks.
-- GitHub PR checks and Cloudflare preview/production deployment verification are pending; do not treat local build success as a release.
-
-### SEO and release boundary
-
-- PDF downloads remain noindex and out of sitemaps; the HTML article's canonical URL, Sri Lankan locale metadata, and existing SEO text are unchanged. No ranking or traffic increase is claimed.
-- A PDF watermark is deterrence, not DRM; no method can make a user-editable PDF watermark literally impossible to remove.
