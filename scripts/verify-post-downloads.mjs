@@ -67,6 +67,14 @@ for (const slug of articleSlugs) {
     }
     const compactPageText = pageText.replace(/\s+/g, "").toUpperCase();
     if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
+    if (
+      pageNumber === 1 &&
+      (!compactPageText.includes("18+සඳහාදැනුම්දීම".toUpperCase()) ||
+        !compactPageText.includes("18ටඅඩු".toUpperCase()) ||
+        !compactPageText.includes("කියවීමෙන්වළකින්න".toUpperCase()))
+    ) {
+      throw new Error(`[post-downloads] ${slug}.pdf is missing the first-page 18+ reading notice.`);
+    }
     if (/[\u0D80-\u0DFF]/u.test(pageText)) containsSinhalaText = true;
     const watermarkCount = pageText.split("https://www.walakatha.net").length - 1;
     if (watermarkCount < 2) {

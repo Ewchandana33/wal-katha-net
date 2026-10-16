@@ -15,6 +15,9 @@ const BODY_FONT_SIZE = 10.5;
 const BODY_LINE_GAP = BODY_FONT_SIZE * 0.72;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 const BRAND = "WALAKATHA.NET  |  SINHALA READER EDITION";
+const AGE_NOTICE_TITLE = "වයස අවුරුදු 18+ සඳහා දැනුම්දීම";
+const AGE_NOTICE_TEXT =
+  "මෙම කතාවේ ඇතැම් කොටස්වල වැඩිහිටියන්ට පමණක් සුදුසු තේමා හෝ අන්තර්ගතය තිබිය හැක. ඔබ වයස අවුරුදු 18ට අඩු නම්, කරුණාකර කියවීමෙන් වළකින්න.";
 
 type ArticlePdfInput = {
   title: string;
@@ -355,6 +358,62 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
       align: "center",
       lineBreak: false,
     });
+
+  const ageNoticeX = MARGIN + 10;
+  const ageNoticeWidth = CONTENT_WIDTH - 20;
+  const ageNoticePadding = 11;
+  const ageNoticeY = startBoxY + startBoxHeight + 12;
+  document.font("Sinhala").fontSize(9);
+  const ageNoticeTitleHeight = document.heightOfString(AGE_NOTICE_TITLE, {
+    width: ageNoticeWidth - ageNoticePadding * 2,
+    align: "center",
+  });
+  document.font("Sinhala").fontSize(8.5);
+  const ageNoticeTextHeight = document.heightOfString(AGE_NOTICE_TEXT, {
+    width: ageNoticeWidth - ageNoticePadding * 2,
+    align: "center",
+    lineGap: 2,
+  });
+  const ageNoticeHeight =
+    ageNoticePadding * 2 + ageNoticeTitleHeight + 4 + ageNoticeTextHeight;
+  if (ageNoticeY + ageNoticeHeight > PAGE_HEIGHT - BOTTOM_MARGIN) {
+    throw new Error(
+      "Article PDF cover has insufficient room for its required age notice: " +
+        input.title +
+        ".",
+    );
+  }
+
+  document
+    .roundedRect(ageNoticeX, ageNoticeY, ageNoticeWidth, ageNoticeHeight, 6)
+    .fill("#241616");
+  document
+    .roundedRect(ageNoticeX, ageNoticeY, ageNoticeWidth, ageNoticeHeight, 6)
+    .lineWidth(1.2)
+    .strokeColor(ACCENT)
+    .stroke();
+  document
+    .font("Sinhala")
+    .fontSize(9)
+    .fillColor("#ffb4aa")
+    .text(AGE_NOTICE_TITLE, ageNoticeX + ageNoticePadding, ageNoticeY + ageNoticePadding, {
+      width: ageNoticeWidth - ageNoticePadding * 2,
+      align: "center",
+    });
+  document
+    .font("Sinhala")
+    .fontSize(8.5)
+    .fillColor("#ffffff")
+    .text(
+      AGE_NOTICE_TEXT,
+      ageNoticeX + ageNoticePadding,
+      ageNoticeY + ageNoticePadding + ageNoticeTitleHeight + 4,
+      {
+        width: ageNoticeWidth - ageNoticePadding * 2,
+        align: "center",
+        lineGap: 2,
+      },
+    );
 
   nextPageKind = "content";
   document.addPage();

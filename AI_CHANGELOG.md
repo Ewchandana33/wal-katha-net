@@ -23,9 +23,26 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Keep the comparison gates for any later claim: Google-indexed verdict, a crawl at or after the snippet release, at least seven days after deployment, a complete 28-day post-crawl window plus three-day data lag, and at least 500 impressions in each global comparison window. Label Sri Lanka separately and directional when either window has fewer than 100 impressions.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 27 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 28 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-16 — Add 18+ notice to article PDF covers
+
+### Why
+
+- The published PDF covers show the story-start line but leave the remaining cover space without the requested age notice.
+- The PDF renderer already uses equal 46-point left and right content margins; preserve that balanced layout and keep reader PDFs non-indexable.
+
+### Changes
+
+- Added a centered Sinhala 18+ notice card directly below the story-start panel on every article PDF cover.
+- Added a cover-space guard and made the static PDF build verifier require the notice and under-18 warning on page one of every generated article PDF.
+
+### Verification status
+
+- Local Node.js unit/regression tests: 11 passed; the full PDF/static build verifier remains pending.
+- Full static build, GitHub CI, Cloudflare preview/production deployment, and live PDF verification are pending; no release success is claimed yet.
 
 ## 2026-10-16 — Repair deterministic alt-text and changelog automation
 
@@ -116,20 +133,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 ### SEO boundary
 
 - The PDF remains non-indexable and excluded from sitemaps; no Google ranking or traffic improvement is promised.
-
-## 2026-10-16 — PR #52 production release and live PDF verification
-
-### Correction to pending release status
-
-- This entry supersedes the pending GitHub/Cloudflare status recorded in “2026-10-16 — Repair external CI dependency installation for article PDFs” and “2026-10-16 — Sinhala article PDFs with repeated site watermark”. Those entries remain as the chronological failure and implementation record.
-- PR #52 merged at 2026-10-16T04:10:32Z as protected main commit `93a64c1a4e123c95eb062c5b5657c82d03a7de8c`. Required GitHub CI run `38849118469` passed: dependency install, Astro type-check, tests, static build, and pagination/homepage SEO output checks. The Cloudflare Pages check run `116806985615` also passed.
-
-### Cloudflare and live verification
-
-- Preview deployment `948bb1f7-2e21-4ee2-9f86-08484e9da4b9` for PR head `781e5d14044cf2e8d05461cfaa8f588128795d6a` passed all five stages. Production deployment `28a52960-2dfb-4756-aca6-100538bd5241` for the exact main merge commit passed all five stages. All 173 returned log entries for each deployment were checked; no warning, deprecation, error, fatal, or failure matches were found.
-- The production build verifier confirmed 50 site pages and seven article PDFs spanning 57 PDF pages, with each page's centered watermark and footer, extractable Sinhala, source links, article CTA, attachment/noindex headers, and PDF sitemap exclusion.
-- Live checks on `https://www.walakatha.net` returned HTTP 200 for all seven PDF routes. Each served `application/pdf`, an attachment disposition, and `X-Robots-Tag: noindex, nofollow`; a full sample download had the `%PDF-` signature. The article page linked to its PDF, and `sitemap-0.xml` contained no `/downloads/` URLs. Its canonical URL was the HTML article; locale metadata included `hreflang=si-LK` and `og:locale=si_LK`.
-
-### SEO boundary
-
-- Canonical article HTML remains the only index target; downloadable copies are noindex and omitted from sitemaps. This is technical SEO hygiene, not a ranking shortcut. No Google top-ranking, post-release indexing, or traffic increase is claimed; the existing Search Console comparison gates still apply.
