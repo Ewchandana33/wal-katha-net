@@ -16,17 +16,40 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ## Status snapshot — 2026-10-17
 
-- Production source is main commit 63a71655fe23e045677635692db2885c4d722080 (PR #66, documentation-only after the PDF watermark release). Cloudflare Pages project wala-katha is connected to Ewchandana33/wal-katha-net on main and serves walakatha.net and www.walakatha.net. Production deployment d127537e-ae01-4045-aff5-6ac529cc72d0 targets that exact commit; queued, initialize, clone, build, and deploy stages all succeeded. All 173 returned deployment-log entries were scanned for warning, deprecation, error, fatal, failure, and exception markers; none matched.
+- Production source is main commit 858b65e81dfc9a8a14b4d8b790b3dca73165071b (PR #67). Cloudflare Pages project wala-katha is connected to Ewchandana33/wal-katha-net on main and serves walakatha.net and www.walakatha.net. Production deployment 45816c70-c0fb-4109-b583-0a68a4fef204 targets that exact commit; queued, initialize, clone, build, and deploy stages all succeeded. All 173 returned deployment-log entries were scanned for warning, deprecation, error, fatal, failure, and exception markers; none matched.
 - A direct live SEO/locale audit on 2026-10-17 found the www homepage returns 200, the apex host redirects to www, and robots.txt plus the sitemap chain are available. All 26 URLs in sitemap-0.xml returned 200 and passed canonical, Sinhala-language, description, si-LK/x-default hreflang, and si_LK Open Graph checks; no noindex page was listed in that sitemap. The existing dedicated live verifier also checks the configured noindex article separately.
-- PR #65's production PDF change remains the current released renderer: its 13-page live sample had no centered URL watermark on cover/final pages, one on each interior page, and the footer/page number on all pages. PDFs are attachment/noindex and excluded from sitemaps. The new author-rights banner and complete final-page terms are pending in the current dated entry below; they are not yet in production.
+- PR #67 is the current released PDF renderer: all seven versioned production downloads returned HTTP 200 as application/pdf attachments with X-Robots-Tag noindex, nofollow. PDF.js verified the author-rights notice on each last story page, all requested rights sections on each final page, one centered URL watermark per interior page only, and footer/page numbers on all 74 pages. Production pages 12–13 of the 13-page Akkai Nangi PDF were rendered and reviewed.
 - PR #62 expands the 18+ notice on every generated reader-PDF cover. Its PDF verifier passed for all seven published articles; live checks confirmed all seven SHA-256-versioned links return application/pdf attachments with X-Robots-Tag: noindex, nofollow, and the required first-page notice/story ordering. Reader PDFs remain excluded from sitemaps, and the configured bus-jack-wal-katha article remains noindex,follow.
 - Latest verified Search Console keyword-sync run is `38700591415` (2026-10-15), before the 2026-10-16 PDF/cache release. Its export covers 2026-07-15–2026-10-12 (500 global queries, 394 usable queries, 46 pages); the homepage query `වැල්` had 4,075 impressions, 90 clicks, 2.21% calculated CTR, and average position 5.2 in that historical window. The post-recrawl follow-up run `38726508677` succeeded but skipped its report-PR step because its data gates were not met. These records do not demonstrate a post-release ranking or traffic effect.
 - Keep the comparison gates for any later claim: Google-indexed verdict, a crawl at or after the snippet release, at least seven days after deployment, a complete 28-day post-crawl window plus three-day data lag, and at least 500 impressions in each global comparison window. Label Sri Lanka separately and directional when either window has fewer than 100 impressions.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 34 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 35 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-17 — Verify author-rights PDF release in production
+
+### Correction and outcome
+
+- This follow-up supersedes the pending CI/Cloudflare/live-verification status in “Add author-rights banner and complete usage terms to reader PDFs” above. The change is now merged and released; the earlier entry remains as the implementation record.
+
+### GitHub and Cloudflare release evidence
+
+- PR #67 merged on 2026-10-17T04:35:13Z as squash commit 858b65e81dfc9a8a14b4d8b790b3dca73165071b from feature commit 0f223e632772076ebc55da928b23961abc5465f9.
+- GitHub CI run 39002856576 succeeded, including Astro type-check, regression/SEO tests, and production build. Trusted auto-merge run 39002856560 succeeded after required checks.
+- Cloudflare preview deployment a615005d-bb5a-4fbe-8be5-e69df370c7b0 and production deployment 45816c70-c0fb-4109-b583-0a68a4fef204 both targeted the expected commits and completed all five stages. Each returned 173 log entries; scans found zero warning, deprecation, error, fatal, failure, or exception markers.
+
+### Live PDF verification
+
+- All seven live article pages link to their current SHA-256-versioned PDF; all seven downloads returned HTTP 200, application/pdf, Content-Disposition attachment, and X-Robots-Tag noindex, nofollow.
+- PDF.js verified all seven released PDFs (74 pages total): the author notice is present on the last story page, every requested rights section and all six prohibited actions are on the final page, the centered watermark appears exactly once on each interior story page and not on cover/final pages, and every page retains its footer, page number, source/article links, and extractable Sinhala text.
+- Production pages 12–13 of the 13-page Akkai Nangi PDF were rendered and visually reviewed; the black-and-white author banner and complete final legal page are visible, without clipping, and page numbering is intact.
+
+### Live SEO verification
+
+- scripts/verify-live-seo.mjs passed after deployment: homepage, sitemap chain, 26 indexable pages, corrected-article discovery in XML/image/RSS, and the configured noindex article excluded and marked noindex,follow; canonical URLs, Sinhala lang, si-LK/x-default hreflang, descriptions, and si_LK Open Graph locale all passed.
+- Latest verified GSC keyword sync is still run 38700591415 (2026-10-15); the post-recrawl follow-up run 38726508677 also predates this release. There is no post-release Search Console ranking evidence, and no Google position is claimed.
 
 ## 2026-10-17 — Add author-rights banner and complete usage terms to reader PDFs
 
@@ -114,26 +137,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 ### SEO boundary
 
 - The PDF change does not alter indexable HTML. Technical SEO/locale checks pass, but Google rankings are not guaranteed. No new Search Console performance window was available; the latest repository snapshot remains the 2026-10-15 run covering data through 2026-10-12.
-
-## 2026-10-16 — Expand the first-page PDF age notice
-
-### Why
-
-- The prior PDF release includes only a short 18+ warning, while the requested notice must identify the fictional adult nature of the work, warn minors, clarify parental responsibility and fictionality, and confirm lawful adult access.
-- The story-start marker currently appears above the notice. It must follow the complete notice at the bottom of the first page.
-
-### Changes
-
-- Replaced the short warning with the requested Sinhala title and all four full paragraphs in a high-contrast, bordered notice card. A vector warning icon keeps the symbol legible with the embedded Sinhala font.
-- Reserved cover space for the larger notice, added a first-page fit guard, and moved “මෙතැන් සිට කතාව නිල වශයෙන් ආරම්භ වේ” immediately below the notice.
-- Extended the production PDF verifier to check representative text from every requested paragraph and the ordering of the story-start marker after the complete notice.
-
-### Verification status
-
-- Baseline before this change: main commit 8256791c79fc922aa702b97d954613bdaf453fa9; Cloudflare production deployment 41fa8fc0-febc-469f-bc1e-9475e593056b passed all five stages. All 173 returned logs, including container logs, were scanned with no warning, deprecation, error, fatal, failure, or exception matches.
-- The live SEO/Sri Lanka locale audit passed on the pre-change baseline: 26 indexable URLs, one sitemap chain, canonical and locale metadata, and the configured noindex article checks.
-- This entry’s pending verification status is superseded by the dated “Verify expanded first-page age notice production release” entry below. The first strict PDF-extraction checks exposed Sinhala font-mapping variants; the final CI verifier accepts the verified stable anchors while preserving first-page and notice/story order checks.
-
-### SEO boundary
-
-- This change affects downloadable reader PDFs, which remain noindex and excluded from sitemaps. Canonical HTML and Sri Lankan locale metadata are unchanged. No Google ranking improvement is promised.
