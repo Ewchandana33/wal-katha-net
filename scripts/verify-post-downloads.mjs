@@ -3,6 +3,10 @@ import { join, resolve } from "node:path";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 const root = process.cwd();
+const WATERMARK = "https://www.walakatha.net";
+const CENTER_WATERMARK_FONT_SIZE = 22;
+const FOOTER_WATERMARK_FONT_SIZE = 8;
+const PAGE_MARGIN = 46;
 const dist = resolve(root, "dist");
 const blogDir = join(dist, "blog");
 const downloadsDir = join(dist, "downloads");
@@ -110,9 +114,35 @@ for (const slug of articleSlugs) {
       }
     }
     if (/[\u0D80-\u0DFF]/u.test(pageText)) containsSinhalaText = true;
-    const watermarkCount = pageText.split("https://www.walakatha.net").length - 1;
-    if (watermarkCount < 2) {
-      throw new Error(`[post-downloads] ${slug}.pdf page ${pageNumber}/${pageCount} is missing its repeated page watermark and footer.`);
+    const viewport = page.getViewport({ scale: 1 });
+    const centeredWatermarkCount = textContent.items.filter((item) => {
+      if (!("str" in item) || item.str !== WATERMARK) return false;
+      const fontSize = Math.abs(item.transform[0]);
+      const centerX = item.transform[4] + item.width / 2;
+      return (
+        Math.abs(fontSize - CENTER_WATERMARK_FONT_SIZE) < 0.5 &&
+        Math.abs(centerX - viewport.width / 2) < 2 &&
+        Math.abs(item.transform[5] - viewport.height / 2) <= CENTER_WATERMARK_FONT_SIZE
+      );
+    }).length;
+    const shouldHaveCenteredWatermark = pageNumber > 1 && pageNumber < pageCount;
+    const expectedCenteredWatermarkCount = shouldHaveCenteredWatermark ? 1 : 0;
+    if (centeredWatermarkCount !== expectedCenteredWatermarkCount) {
+      throw new Error(
+        "[post-downloads] " + slug + ".pdf page " + pageNumber + "/" + pageCount + " expected " + expectedCenteredWatermarkCount + " centered URL watermark(s), found " + centeredWatermarkCount + ".",
+      );
+    }
+    const hasFooterUrl = textContent.items.some(
+      (item) =>
+        "str" in item &&
+        item.str === WATERMARK &&
+        Math.abs(item.height - FOOTER_WATERMARK_FONT_SIZE) < 0.5 &&
+        Math.abs(item.transform[4] - PAGE_MARGIN) < 1 &&
+        item.transform[5] >= 0 &&
+        item.transform[5] < 50,
+    );
+    if (!hasFooterUrl) {
+      throw new Error("[post-downloads] " + slug + ".pdf page " + pageNumber + "/" + pageCount + " is missing its repeated URL footer.");
     }
     if (pageNumber === 1 && !pageText.includes(sourceUrl)) {
       throw new Error(`[post-downloads] ${slug}.pdf is missing its canonical source URL.`);
@@ -142,4 +172,4 @@ for (const name of sitemapFiles) {
     throw new Error(`[post-downloads] Reader copies must not appear in sitemap ${name}.`);
   }
 }
-console.log(`[post-downloads] Verified ${articleSlugs.length} published articles across ${verifiedPdfPages} PDF page(s); every page has a watermark, footer, and page number; each has a cover image and final rights page; PDFs retain source/article links, attachment/noindex headers, and stay out of sitemaps.`);
+console.log(`[post-downloads] Verified ${articleSlugs.length} published articles across ${verifiedPdfPages} PDF page(s); every interior page has one centered watermark, cover and final rights pages omit it, and every page has a footer and page number; each has a cover image and final rights page; PDFs retain source/article links, attachment/noindex headers, and stay out of sitemaps.`);

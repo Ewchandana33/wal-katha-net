@@ -23,9 +23,31 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Keep the comparison gates for any later claim: Google-indexed verdict, a crawl at or after the snippet release, at least seven days after deployment, a complete 28-day post-crawl window plus three-day data lag, and at least 500 impressions in each global comparison window. Label Sri Lanka separately and directional when either window has fewer than 100 impressions.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 32 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 33 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-17 — Restrict the centered PDF watermark to story pages
+
+### Why
+
+- The user clarified the original requirement: the cover-image page and final rights page must not have the large centered URL watermark, while every story page between them must retain it. PR #64 raised the interior watermark to 30% but left a faint 18% centered watermark on the cover and final page.
+- The live PDF review confirmed this mismatch in three production PDFs (13, 5, and 23 pages; 41 pages total). The existing cover artwork, source attribution, and repeated footer URL are separate elements and should remain intact.
+
+### Changes
+
+- Draw the centered URL watermark only on pages tracked as story/content pages, at the existing 30% opacity. Do not draw it on the cover or final rights page.
+- Strengthen the build-time PDF verifier to require exactly one centered watermark on every interior page, none on the first/final page, and the existing footer URL on every page.
+- Preserve PR #64's historical entry; apply the active-log five-entry/20 KiB rotation policy.
+
+### Verification status
+
+- Before this follow-up, the live sample PDFs returned HTTP 200 as application/pdf and X-Robots-Tag: noindex, nofollow. The 13-page, 5-page, and 23-page files were checked across all 41 pages: the centered watermark appeared on every page at 18% on the cover/final page and 30% on interior pages. Pages 1, 7, and 13 of the 13-page PDF were rendered and visually reviewed.
+- This follow-up's local type-check/build, PR CI, Cloudflare preview and production deployment/log review, and post-deploy PDF check are pending.
+
+### SEO boundary
+
+- This changes PDF rendering and its build verifier only. HTML metadata, canonical URLs, sitemap, and indexing rules are unchanged; no Google ranking outcome is claimed.
 
 ## 2026-10-16 — Improve interior-page PDF watermark visibility
 
@@ -103,23 +125,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Verified all seven production PDFs and their article-page SHA-256-versioned links. Each PDF returned HTTP 200 as an attachment with application/pdf and X-Robots-Tag: noindex, nofollow; page one contains the 18+ label, under-18 marker, and “avoid reading” warning.
 - Purged only the seven stable unversioned PDF URLs from Cloudflare after a warm edge served an old Wanamalee file. Rechecked all seven stable URLs; they now return the updated PDF with the notice.
 - The PDF renderer keeps equal 46-point left and right story margins; the new notice card stays within the first-page cover area.
-
-## 2026-10-16 — Add 18+ notice to article PDF covers
-
-### Why
-
-- The published PDF covers show the story-start line but leave the remaining cover space without the requested age notice.
-- The PDF renderer already uses equal 46-point left and right content margins; preserve that balanced layout and keep reader PDFs non-indexable.
-
-### Changes
-
-- Added a centered Sinhala 18+ notice card directly below the story-start panel on every article PDF cover.
-- Added a cover-space guard and made the static PDF build verifier require the notice and under-18 warning on page one of every generated article PDF. The verifier normalizes Unicode and strips whitespace, punctuation, and format separators to tolerate PDF text-extraction boundaries.
-
-### Verification status
-
-- Local Node.js unit/regression tests: 11 passed before the verifier matcher adjustment; rerun is pending.
-- The first PR CI run 38900845384 and Cloudflare preview deployment e5a6e3af-f203-4f4e-acc4-00771cf8a7b5 failed at the new page-one notice assertion for akkai-nangi-wal-katha.pdf. The build log confirmed a verifier matching failure; no preview assets were deployed and auto-merge remained blocked.
-- A local reproduction with the locked PDFKit/PDF.js versions showed that PDF.js keeps `+` as a symbol and maps some Sinhala vowel sequences differently from their source spelling. The matcher now allows the optional `+` and checks the stable 18-underage and “avoid reading” markers instead of requiring a verbatim extracted sentence.
-- A local re-render using PDFKit 0.20.2 and PDF.js 5.4.149 verified the 18+ label, under-18 marker, and “avoid reading” marker on page one of all seven published PDFs; all seven also passed the cover-space guard.
-- The second CI run 38901368489 still failed the earlier strict assertion; this follow-up is based on the reproduced first-page extraction. CI and preview verification are pending on the next commit; production deployment and live PDF checks remain pending, so no release success is claimed yet.

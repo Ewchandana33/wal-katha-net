@@ -16,7 +16,6 @@ const BODY_LINE_GAP = BODY_FONT_SIZE * 0.72;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 const BRAND = "WALAKATHA.NET  |  SINHALA READER EDITION";
 const CONTENT_WATERMARK_OPACITY = 0.3;
-const OTHER_PAGE_WATERMARK_OPACITY = 0.18;
 const AGE_NOTICE_TITLE = "වයස අවුරුදු 18+ සඳහා පමණි";
 const AGE_NOTICE_PARAGRAPHS = [
   "මෙම කතාව වැඩිහිටි පාඨකයන් සඳහා ලියා ඇති ප්‍රබන්ධ කෘතියකි. කතාවේ ඇතැම් කොටස්වල ලිංගික තේමා සහ වැඩිහිටියන්ට පමණක් සුදුසු අන්තර්ගතය තිබිය හැක.",
@@ -636,22 +635,20 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
   const range = document.bufferedPageRange();
   for (let index = range.start; index < range.start + range.count; index += 1) {
     document.switchToPage(index);
-    document.save();
-    document
-      .font("Helvetica")
-      .fontSize(22)
-      .fillColor("#ffffff")
-      .fillOpacity(
-        pageKinds[index] === "content"
-          ? CONTENT_WATERMARK_OPACITY
-          : OTHER_PAGE_WATERMARK_OPACITY,
-      )
-      .text(WATERMARK, MARGIN, PAGE_HEIGHT / 2 - 10, {
-        width: CONTENT_WIDTH,
-        align: "center",
-        lineBreak: false,
-      });
-    document.restore();
+    if (pageKinds[index] === "content") {
+      document.save();
+      document
+        .font("Helvetica")
+        .fontSize(22)
+        .fillColor("#ffffff")
+        .fillOpacity(CONTENT_WATERMARK_OPACITY)
+        .text(WATERMARK, MARGIN, PAGE_HEIGHT / 2 - 10, {
+          width: CONTENT_WIDTH,
+          align: "center",
+          lineBreak: false,
+        });
+      document.restore();
+    }
 
     document.save();
     document
