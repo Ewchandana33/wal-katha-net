@@ -182,6 +182,25 @@ function splitQuotedDialogue(text: string): TextBlock[] {
   return blocks;
 }
 
+function isAuthorRightsNotice(value: string): boolean {
+  const compact = plainInlineText(value)
+    .normalize("NFKC")
+    .replace(/[\s\p{Cf}\p{P}]+/gu, "")
+    .toUpperCase();
+  const hasNoticeLabel = ["විශේෂසටහන", "විශෙෂසටහන", "විෙශ්ෂසටහන"].some((marker) =>
+    compact.includes(marker.toUpperCase()),
+  );
+  const hasAuthorShare = ["කර්තෘභාගය", "කතෘභාගය"].some((marker) =>
+    compact.includes(marker.toUpperCase()),
+  );
+  return (
+    hasNoticeLabel &&
+    compact.includes("සම්පූර්ණඅයිතිය".toUpperCase()) &&
+    hasAuthorShare &&
+    compact.includes("මුල්රචකයාටහිමි".toUpperCase())
+  );
+}
+
 function markdownToBlocks(markdown: string): TextBlock[] {
   const blocks: TextBlock[] = [];
   let paragraph: string[] = [];
@@ -206,6 +225,13 @@ function markdownToBlocks(markdown: string): TextBlock[] {
     }
     if (inCodeFence) {
       paragraph.push(line);
+      continue;
+    }
+
+    // Keep the Markdown notice on the article page; the PDF renderer draws one
+    // high-contrast copy after the story body.
+    if (isAuthorRightsNotice(line.replace(/^>\s?/, ""))) {
+      flushParagraph();
       continue;
     }
 

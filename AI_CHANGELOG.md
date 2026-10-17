@@ -24,9 +24,26 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Keep the comparison gates for any later claim: Google-indexed verdict, a crawl at or after the snippet release, at least seven days after deployment, a complete 28-day post-crawl window plus three-day data lag, and at least 500 impressions in each global comparison window. Label Sri Lanka separately and directional when either window has fewer than 100 impressions.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 35 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 36 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-17 — Remove the duplicate author-rights note from story PDFs
+
+### Root cause
+
+- The supplied PDF screenshot shows the rights statement twice at the story ending: the Markdown blockquote is rendered as a dialogue callout, and the PDF renderer adds its own black banner. The earlier release check confirmed the banner was present but did not count duplicate statements.
+- A scan of all ten story Markdown files on main found one matching end-of-story note in each source file.
+
+### Changes
+
+- Keep the Markdown note intact for the article's HTML; skip only the standalone Sinhala rights-note line when converting Markdown into PDF story blocks. Retain the generator-owned single black banner with white text.
+- Extend the generated-PDF verifier to require exactly one complete-rights marker on the final story page for every published article PDF.
+- The existing PDF cache version hashes the renderer source, so generated links automatically get a new version. No HTML metadata, canonical URLs, sitemap, or indexing rules change; reader PDFs remain noindex.
+
+### Verification status
+
+- GitHub CI, Cloudflare preview/production deployment, deployment-log review, and live-PDF checks are pending for this correction. The previous release is not evidence that this new change passed.
 
 ## 2026-10-17 — Verify author-rights PDF release in production
 
@@ -118,22 +135,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 ### SEO boundary
 
 - No canonical HTML, metadata, sitemap, or indexing behavior changes are intended. Reader PDFs remain noindex and excluded from sitemaps; no Google ranking result is guaranteed.
-
-## 2026-10-16 — Verify expanded first-page age notice production release
-
-### Correction to the pending status in “Expand the first-page PDF age notice”
-
-- This entry supersedes that entry’s pending verification status while preserving its implementation notes and initial failures as historical context.
-- The first three PDF extraction assertions exposed Sinhala font-mapping differences rather than missing visible notice content: PDF.js/Poppler reorder vowel signs or substitute glyph text, including in the adult-audience phrase and story-start line. The verifier now uses stable Sinhala anchors and still requires every notice section plus story-start-after-notice ordering. Rendered page one was visually checked.
-
-### Verification
-
-- PR #62 merged to protected main as a5f03e34d99794603897ad40509516889c03762b; feature head was 678495955875ded2bd06d036499d93079b49ffe2. GitHub CI run 38912470940 passed type-check, regressions, all seven generated-PDF notice/fit checks, static build, pagination SEO, and homepage SEO.
-- Cloudflare preview deployment ee740317-8d6e-4965-aa48-9682581a59cb and production deployment ceba01ac-4184-4de0-b9e1-7dc5c5256080 each passed all five stages. All 173 log entries per deployment, including container logs, were scanned with zero warning, deprecation, error, fatal, failure, or exception matches.
-- Post-release node scripts/verify-live-seo.mjs passed: 26 indexable pages, sitemap/feeds, canonicals, Sinhala language, si-LK locale metadata, and the configured noindex article checks.
-- All seven live SHA-256-versioned article-PDF links, including the configured noindex article, returned HTTP 200 application/pdf attachments with X-Robots-Tag: noindex, nofollow. Page-one 18+ title, under-18 and avoid-reading notices, legal confirmation, and story-start-after-notice ordering passed. One live A4 cover was raster-rendered and visually checked for the warning icon, notice layout, ordering, and fit.
-- Local node --check, git diff --check, and the AI changelog retention test passed. The retention utility archived the oldest dated entry without splitting or rewriting it.
-
-### SEO boundary
-
-- The PDF change does not alter indexable HTML. Technical SEO/locale checks pass, but Google rankings are not guaranteed. No new Search Console performance window was available; the latest repository snapshot remains the 2026-10-15 run covering data through 2026-10-12.
