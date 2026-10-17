@@ -13,6 +13,8 @@ const AUTHOR_NOTICE_MARKERS = [
   { label: "author royalties", markers: ["කර්තෘභාගය"] },
   { label: "original author attribution", markers: ["මුල්රචකයාටහිමි", "මුල්රචකයා"] },
 ];
+const AUTHOR_NOTICE_COUNT_MARKER = "සම්පූර්ණඅයිතිය";
+
 const RIGHTS_PAGE_MARKERS = [
   { label: "private-use heading", markers: ["ද්ගලිකභාවිතය"] },
   { label: "private reading only", markers: ["ෙපෟද්ගලිකකියවීම"] },
@@ -101,8 +103,8 @@ for (const slug of articleSlugs) {
     if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
     if (pageNumber === pageCount - 1) {
       const missingAuthorNotice = AUTHOR_NOTICE_MARKERS.filter(
-        (check) => !check.markers.some((marker) => compactPageText.includes(marker.toUpperCase())),
-      );
+        (check) => !check.markers.some((marker) => comp      const authorNoticeCount =
+        compactPageText.split(AUTHOR_NOTICE_COUNT_MARKER.toUpperCase()).length - 1;
       const visibleAuthorNotice = textContent.items.some(
         (item) =>
           "str" in item &&
@@ -111,9 +113,26 @@ for (const slug of articleSlugs) {
           item.transform[5] > 50 &&
           item.transform[5] < page.getViewport({ scale: 1 }).height - 50,
       );
-      if (missingAuthorNotice.length > 0 || !visibleAuthorNotice) {
+      const authorNoticeProblems = [
+        ...missingAuthorNotice.map((check) => check.label),
+        ...(!visibleAuthorNotice ? ["visible 9pt banner text"] : []),
+        ...(authorNoticeCount !== 1
+          ? ["exactly one complete rights statement (found " + authorNoticeCount + ")"]
+          : []),
+      ];
+      if (authorNoticeProblems.length > 0) {
         throw new Error(
-          `[post-downloads] ${slug}.pdf page ${pageNumber}/${pageCount} is missing the highlighted end-of-story author notice: ${[...missingAuthorNotice.map((check) => check.label), ...(!visibleAuthorNotice ? ["visible 9pt banner text"] : [])].join(", ")}.`,
+          "[post-downloads] " +
+            slug +
+            ".pdf page " +
+            pageNumber +
+            "/" +
+            pageCount +
+            " has an invalid highlighted end-of-story author notice: " +
+            authorNoticeProblems.join(", ") +
+            ".",
+        );
+      }banner text"] : [])].join(", ")}.`,
         );
       }
     }
