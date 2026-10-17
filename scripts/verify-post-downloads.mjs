@@ -7,6 +7,31 @@ const WATERMARK = "https://www.walakatha.net";
 const CENTER_WATERMARK_FONT_SIZE = 22;
 const FOOTER_WATERMARK_FONT_SIZE = 8;
 const PAGE_MARGIN = 46;
+const AUTHOR_NOTICE_MARKERS = [
+  { label: "author-rights notice label", markers: ["විෙශ්ෂසටහන", "විශේෂසටහන"] },
+  { label: "complete-work rights", markers: ["සම්පූර්ණඅයිතිය"] },
+  { label: "author royalties", markers: ["කර්තෘභාගය"] },
+  { label: "original author attribution", markers: ["මුල්රචකයාටහිමි", "මුල්රචකයා"] },
+];
+const RIGHTS_PAGE_MARKERS = [
+  { label: "private-use heading", markers: ["ද්ගලිකභාවිතය"] },
+  { label: "private reading only", markers: ["ෙපෟද්ගලිකකියවීම"] },
+  { label: "commercial-use prohibition", markers: ["වාණිජඅරමුණු"] },
+  { label: "ownership heading", markers: ["හිමිකම"] },
+  { label: "ownership of content", markers: ["අන්තර්ගතෙය්හිමිකම්"] },
+  { label: "no rights transfer", markers: ["කිසිදුහිමිකමක්ඔබට"] },
+  { label: "prohibited-actions heading", markers: ["තහනම්කරනකි්රයා"] },
+  { label: "prior written permission", markers: ["පූර්වලිඛිතඅවසරයකින්"] },
+  { label: "copying prohibition", markers: ["පිටපත්කිරීම"] },
+  { label: "editing prohibition", markers: ["වෙනස්කිරීම", "සංස්කරණයකිරීම"] },
+  { label: "republication prohibition", markers: ["පළකිරීම"] },
+  { label: "public-sharing prohibition", markers: ["ප්රකාශකිරීම", "ප්‍රකාශකිරීම"] },
+  { label: "distribution prohibition", markers: ["ෙබදාහැරීම", "ෙබදාහුරීම"] },
+  { label: "commercial-sale prohibition", markers: ["විකිණීම", "වාණිජලාභයක්"] },
+  { label: "attribution and watermark protections", markers: ["attribution", "watermark"] },
+  { label: "legal-action warning", markers: ["නීතිමය"] },
+  { label: "reader acknowledgment", markers: ["කියවාතේරුම්ගෙන", "එකඟවනබව"] },
+];
 const dist = resolve(root, "dist");
 const blogDir = join(dist, "blog");
 const downloadsDir = join(dist, "downloads");
@@ -74,6 +99,37 @@ for (const slug of articleSlugs) {
       .replace(/[\s\p{Cf}\p{P}]+/gu, "")
       .toUpperCase();
     if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
+    if (pageNumber === pageCount - 1) {
+      const missingAuthorNotice = AUTHOR_NOTICE_MARKERS.filter(
+        (check) => !check.markers.some((marker) => compactPageText.includes(marker.toUpperCase())),
+      );
+      const visibleAuthorNotice = textContent.items.some(
+        (item) =>
+          "str" in item &&
+          item.str.includes("කර්තෘභාගය") &&
+          Math.abs(item.height - 9) < 0.5 &&
+          item.transform[5] > 50 &&
+          item.transform[5] < page.getViewport({ scale: 1 }).height - 50,
+      );
+      if (missingAuthorNotice.length > 0 || !visibleAuthorNotice) {
+        throw new Error(
+          `[post-downloads] ${slug}.pdf page ${pageNumber}/${pageCount} is missing the highlighted end-of-story author notice: ${[...missingAuthorNotice.map((check) => check.label), ...(!visibleAuthorNotice ? ["visible 9pt banner text"] : [])].join(", ")}.`,
+        );
+      }
+    }
+    if (pageNumber === pageCount) {
+      const missingRightsSections = RIGHTS_PAGE_MARKERS.filter(
+        (check) => !check.markers.some((marker) => compactPageText.includes(marker.toUpperCase())),
+      );
+      if (
+        !compactPageText.includes("අයිතිවාසිකම්සහභාවිතෙකාන්ෙද්සි".toUpperCase()) ||
+        missingRightsSections.length > 0
+      ) {
+        throw new Error(
+          `[post-downloads] ${slug}.pdf final page is missing requested rights/usage terms: ${missingRightsSections.map((check) => check.label).join(", ") || "rights-page heading"}.`,
+        );
+      }
+    }
     if (pageNumber === 1) {
       const requiredAgeNoticeChecks = [
         { label: "adult audience", markers: ["වැඩිහිටි", "ඩිහිටි"] },
@@ -172,4 +228,4 @@ for (const name of sitemapFiles) {
     throw new Error(`[post-downloads] Reader copies must not appear in sitemap ${name}.`);
   }
 }
-console.log(`[post-downloads] Verified ${articleSlugs.length} published articles across ${verifiedPdfPages} PDF page(s); every interior page has one centered watermark, cover and final rights pages omit it, and every page has a footer and page number; each has a cover image and final rights page; PDFs retain source/article links, attachment/noindex headers, and stay out of sitemaps.`);
+console.log(`[post-downloads] Verified ${articleSlugs.length} published articles across ${verifiedPdfPages} PDF page(s); the final story page has the highlighted author-rights notice, final rights pages include all requested usage terms, every interior page has one centered watermark, cover and final rights pages omit it, and every page has a footer and page number; PDFs retain source/article links, attachment/noindex headers, and stay out of sitemaps.`);

@@ -23,6 +23,59 @@ const AGE_NOTICE_PARAGRAPHS = [
   "කතාවේ සියලුම චරිත සහ සිදුවීම් සම්පූර්ණයෙන්ම ප්‍රබන්ධ වන අතර සැබෑ පුද්ගලයින් හෝ සිදුවීම් හා සම්බන්ධයක් නැත.",
   "මෙම ගොනුව කියවීමෙන්, ඔබ වයස අවුරුදු 18ට වැඩි බවත්, ඔබේ රටේ නීතියට අනුව මෙය කියවීමට අවසර ඇති බවත් තහවුරු කරයි.",
 ];
+const AUTHOR_RIGHTS_NOTICE =
+  "• විශේෂ සටහන: මෙම නිර්මාණයේ සම්පූර්ණ අයිතිය සහ කර්තෘභාගය එහි මුල් රචකයාට හිමි වේ.";
+const RIGHTS_SECTIONS = [
+  {
+    heading: "පෞද්ගලික භාවිතය",
+    paragraphs: [
+      "මෙම PDF පිටපත පෞද්ගලික කියවීම සඳහා පමණි. වාණිජ අරමුණු සඳහා හෝ වෙනත් කිසිදු ප්‍රයෝජනයක් සඳහා මෙය භාවිත කිරීමට අවසර නැත.",
+    ],
+    items: [],
+  },
+  {
+    heading: "හිමිකම",
+    paragraphs: [
+      "මෙහි ඇති කතාව, කවර කලාකෘතිය සහ අනෙකුත් සියලුම අන්තර්ගතයේ හිමිකම් අදාළ හිමිකරුවන් සතුය. මෙම PDF පිටපත බාගත කිරීමෙන් හෝ කියවීමෙන් කිසිදු හිමිකමක් ඔබට පැවරෙන්නේ නැත. එමෙන්ම වෙනත් අයෙකුට හිමිකමක් ලබා දීමක්ද සිදු නොවේ.",
+    ],
+    items: [],
+  },
+  {
+    heading: "තහනම් කරන ක්‍රියා",
+    paragraphs: [
+      "අදාළ අයිතිවාසිකම් හිමියාගේ පූර්ව ලිඛිත අවසරයකින් තොරව පහත ක්‍රියා සිදු කිරීම තහනම්ය:",
+    ],
+    items: [
+      "මෙම කතාව හෝ එහි කොටස් පිටපත් කිරීම",
+      "වෙනස් කිරීම හෝ සංස්කරණය කිරීම",
+      "වෙනත් වෙබ් අඩවි, සමාජ මාධ්‍ය හෝ වේදිකා වල නැවත පළ කිරීම",
+      "ප්‍රසිද්ධියේ ප්‍රකාශ කිරීම",
+      "වෙනත් අයට බෙදාහැරීම",
+      "විකිණීම හෝ වාණිජ ලාභයක් සඳහා යොදා ගැනීම",
+    ],
+  },
+  {
+    heading: "Attribution සහ Watermark",
+    paragraphs: [
+      "කවරයේ සහ ලිපියේ දැනටමත් ඇති attribution සහ watermark ඉවත් කිරීම හෝ වෙනස් කිරීම නොකරන්න. ඒවා මෙම කෘතියේ මූලාශ්‍රය සහ හිමිකම පෙන්වන සලකුණු වේ.",
+    ],
+    items: [],
+  },
+  {
+    heading: "අවවාදය",
+    paragraphs: [
+      "මෙම කොන්දේසි උල්ලංඝනය කිරීමෙන් අදාළ නීතිමය ක්‍රියාමාර්ග ගැනීමට හිමිකරුවන්ට අයිතිය ඇත.",
+    ],
+    items: [],
+  },
+  {
+    heading: "පිළිගැනීම",
+    paragraphs: [
+      "මෙම PDF පිටපත බාගත කිරීමෙන් හෝ කියවීමෙන්, ඔබ ඉහත සඳහන් සියලු කොන්දේසි කියවා තේරුම් ගෙන ඒවාට එකඟ වන බව සලකනු ලැබේ.",
+    ],
+    items: [],
+  },
+];
 const AGE_NOTICE_BODY_FONT_SIZE = 8.2;
 const AGE_NOTICE_BODY_LINE_GAP = 1.5;
 const AGE_NOTICE_PARAGRAPH_GAP = 4;
@@ -563,6 +616,51 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
     if (!isList) firstParagraph = false;
   }
 
+  const storyNoticeX = MARGIN + 8;
+  const storyNoticeWidth = CONTENT_WIDTH - 16;
+  const storyNoticePaddingX = 14;
+  const storyNoticePaddingY = 9;
+  const storyNoticeTextWidth = storyNoticeWidth - storyNoticePaddingX * 2;
+  document.font("Sinhala").fontSize(9);
+  const storyNoticeTextHeight = document.heightOfString(AUTHOR_RIGHTS_NOTICE, {
+    width: storyNoticeTextWidth,
+    align: "center",
+    lineGap: 2,
+  });
+  const storyNoticeHeight = storyNoticeTextHeight + storyNoticePaddingY * 2;
+  let storyNoticeY = document.y + 9;
+  if (
+    pageKinds[pageKinds.length - 1] !== "content" ||
+    storyNoticeY + storyNoticeHeight > contentBottom
+  ) {
+    nextPageKind = "content";
+    document.addPage();
+    storyNoticeY = document.y + 8;
+  }
+  document
+    .roundedRect(storyNoticeX, storyNoticeY, storyNoticeWidth, storyNoticeHeight, 4)
+    .fill("#000000");
+  document
+    .roundedRect(storyNoticeX, storyNoticeY, storyNoticeWidth, storyNoticeHeight, 4)
+    .lineWidth(1)
+    .strokeColor("#ffffff")
+    .stroke();
+  document
+    .font("Sinhala")
+    .fontSize(9)
+    .fillColor("#ffffff")
+    .text(
+      AUTHOR_RIGHTS_NOTICE,
+      storyNoticeX + storyNoticePaddingX,
+      storyNoticeY + storyNoticePaddingY,
+      {
+        width: storyNoticeTextWidth,
+        align: "center",
+        lineGap: 2,
+      },
+    );
+  document.y = storyNoticeY + storyNoticeHeight + 8;
+
   nextPageKind = "legal";
   document.addPage();
   const legalWidth = CONTENT_WIDTH - 32;
@@ -593,24 +691,45 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
     .stroke();
   document.moveDown(0.9);
 
-  const legalParagraphs = [
-    "මෙම PDF පිටපත පෞද්ගලික කියවීම සඳහා පමණි.",
-    "මෙහි ඇති කතාව, කවර කලාකෘතිය සහ අනෙකුත් අන්තර්ගතයේ හිමිකම් ඒ ඒ අදාළ හිමිකරුවන් සතුය. මෙම PDF පිටපතෙන් කිසිදු හිමිකමක් පවරා දීමක් හෝ වෙනත් අයෙකුට හිමිකමක් ලබා දීමක් සිදු නොවේ.",
-    "අදාළ අයිතිවාසිකම් හිමියාගේ පූර්ව ලිඛිත අවසරයකින් තොරව මෙම කතාව හෝ එහි කොටස් පිටපත් කිරීම, වෙනස් කිරීම, නැවත පළ කිරීම, ප්‍රසිද්ධ කිරීම, බෙදාහැරීම හෝ විකිණීම අවසර නැත.",
-    "කවරයේ හෝ ලිපියේ දැනටමත් ඇති attribution සහ watermark ඉවත් කිරීම හෝ වෙනස් කිරීම නොකරන්න. නිල මූලාශ්‍රය පහත ලිපිනයයි:",
-  ];
-  for (let index = 0; index < legalParagraphs.length; index += 1) {
+  for (const section of RIGHTS_SECTIONS) {
     document
       .font("Sinhala")
-      .fontSize(index === 0 ? 11 : 10)
-      .fillColor("#ffffff")
-      .text(legalParagraphs[index], MARGIN + 16, document.y, {
+      .fontSize(9.2)
+      .fillColor("#ffb4aa")
+      .text(section.heading, MARGIN + 16, document.y, {
         width: legalWidth,
-        align: index === 0 ? "center" : "justify",
-        lineGap: BODY_LINE_GAP,
-        indent: index > 0 ? 14 : 0,
+        lineGap: 1,
       });
-    document.moveDown(0.65);
+    document.moveDown(0.16);
+    for (const paragraph of section.paragraphs) {
+      document
+        .font("Sinhala")
+        .fontSize(8.2)
+        .fillColor("#ffffff")
+        .text(paragraph, MARGIN + 16, document.y, {
+          width: legalWidth,
+          align: "justify",
+          lineGap: 1.2,
+        });
+      document.moveDown(0.18);
+    }
+    for (const item of section.items) {
+      document
+        .font("Sinhala")
+        .fontSize(8.2)
+        .fillColor("#ffffff")
+        .text("• " + item, MARGIN + 20, document.y, {
+          width: legalWidth - 4,
+          align: "left",
+          lineGap: 1,
+          indent: 8,
+        });
+      document.moveDown(0.08);
+    }
+    document.moveDown(0.22);
+  }
+  if (pageKinds[pageKinds.length - 1] !== "legal" || document.y > contentBottom) {
+    throw new Error("Article PDF rights notice does not fit on one final page: " + input.title + ".");
   }
   document
     .font("Helvetica")
@@ -631,6 +750,10 @@ export async function buildArticlePdf(input: ArticlePdfInput): Promise<Uint8Arra
       link: WATERMARK,
       align: "center",
     });
+
+  if (pageKinds[pageKinds.length - 1] !== "legal" || document.y > contentBottom) {
+    throw new Error("Article PDF source links do not fit on the final rights page: " + input.title + ".");
+  }
 
   const range = document.bufferedPageRange();
   for (let index = range.start; index < range.start + range.count; index += 1) {
