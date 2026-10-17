@@ -103,7 +103,9 @@ for (const slug of articleSlugs) {
     if (compactPageText.includes("PERSONALREADINGCOPY")) rightsNoticePage = pageNumber;
     if (pageNumber === pageCount - 1) {
       const missingAuthorNotice = AUTHOR_NOTICE_MARKERS.filter(
-        (check) => !check.markers.some((marker) => comp      const authorNoticeCount =
+        (check) => !check.markers.some((marker) => compactPageText.includes(marker.toUpperCase())),
+      );
+      const authorNoticeCount =
         compactPageText.split(AUTHOR_NOTICE_COUNT_MARKER.toUpperCase()).length - 1;
       const visibleAuthorNotice = textContent.items.some(
         (item) =>
@@ -131,8 +133,6 @@ for (const slug of articleSlugs) {
             " has an invalid highlighted end-of-story author notice: " +
             authorNoticeProblems.join(", ") +
             ".",
-        );
-      }banner text"] : [])].join(", ")}.`,
         );
       }
     }
