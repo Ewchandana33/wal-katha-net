@@ -537,13 +537,14 @@ const isAgeGateExcludedPage = AGE_GATE_EXCLUDED_PATHS.includes(normalizedPathnam
     <link rel="apple-touch-icon" href="/images/app-icon.jpg" />
     <link rel="manifest" href="/manifest.json" />
 
-    {/* The comments/likes Cloudflare Worker is already allowed by the CSP
-        connect-src in public/_headers, but the DNS lookup and TLS
-        handshake only began when the first fetch fired. Warming the
-        connection here removes that round-trip from interaction latency,
-        which is what INP measures. */}
-    <link rel="preconnect" href="https://comments.wala-katha.workers.dev" crossorigin />
-    <link rel="dns-prefetch" href="https://comments.wala-katha.workers.dev" />
+    {isArticle && (
+      <>
+        {/* Comments and likes run only on story pages. Keep their DNS/TLS warm-up
+            there, but avoid an unused connection on the homepage and other pages. */}
+        <link rel="preconnect" href="https://comments.wala-katha.workers.dev" crossorigin />
+        <link rel="dns-prefetch" href="https://comments.wala-katha.workers.dev" />
+      </>
+    )}
 
     {/* 2026-09 CWV: imagesrcset/imagesizes added so the preload fetches the
         same mobile variant the <picture> source in FeaturedSlider.astro
@@ -635,7 +636,7 @@ const isAgeGateExcludedPage = AGE_GATE_EXCLUDED_PATHS.includes(normalizedPathnam
         default dark surface and then repaints to the reader's chosen
         paper/sepia surface, producing a visible flash on every
         navigation. Reads localStorage only - no network, no blocking I/O. */}
-    <ReaderToolsHead />
+    {isArticle && <ReaderToolsHead />}
   </head>
   <body class="bg-[#050505] text-[#f8fafc] min-h-screen flex flex-col antialiased selection:bg-emerald-500/30 selection:text-[#34d399] overflow-x-hidden" style="touch-action: pan-y; overscroll-behavior-x: none;">
     <AgeVerificationGate skip={isAgeGateExcludedPage} />
@@ -651,7 +652,7 @@ const isAgeGateExcludedPage = AGE_GATE_EXCLUDED_PATHS.includes(normalizedPathnam
         drawer). Mounted last so it paints above Footer without needing a
         stacking-context hack, and stays below #age-gate-overlay
         (z-index 999999) so an unverified visitor cannot reach it. */}
-    <ReaderTools />
+    {isArticle && <ReaderTools />}
 
   </body>
 </html>
