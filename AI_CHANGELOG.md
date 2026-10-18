@@ -25,9 +25,34 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Performance baseline from the supplied 2026-10-17 PageSpeed report: mobile lab score 79; field p75 LCP 3.7 s, INP 442 ms, CLS 0.25. The report extractor returned the same mobile-emulated snapshot for the desktop URL, and direct PageSpeed API reruns were quota-blocked (429); no independent desktop score or post-change result is verified.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 37 earlier dated entries from 2026-10-14 through 2026-10-16; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 38 earlier dated entries from 2026-10-14 through 2026-10-17; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-18 — Re-check homepage PageSpeed after the production optimization
+
+### Why
+
+- The user supplied a saved PageSpeed Insights MHTML snapshot while the homepage performance optimization (PR #71) was already live. This follow-up records what that distinct snapshot verifies and which remaining diagnostics belong to other systems or have a navigation trade-off.
+
+### Findings
+
+- The attached snapshot URL is the mobile report ny10ywdw27; it was captured at 2026-10-18 08:14 GMT+5:30. It is not the js3jhb6qnu report ID in the URLs written in the request, so do not treat the attachment as the desktop result or as a matched rerun of the earlier 2026-10-17 report.
+- Mobile Lighthouse scores are Performance 87, Accessibility 100, Best Practices 100, and SEO 100. Lab metrics: FCP 2.0 s, LCP 3.5 s, TBT 0 ms, CLS 0, and Speed Index 4.3 s.
+- The report has insufficient URL-specific CrUX data. The separate origin-level 28-day data shows p75 LCP 3.7 s, INP 442 ms, and CLS 0.25 (Core Web Vitals assessment failed). These rolling origin metrics do not establish a post-release effect.
+- Remaining Lighthouse diagnostics include 586 ms forced-reflow time attributed to Astro ClientRouter, a 1,001–1,051 ms critical request chain including the Cloudflare beacon and /cdn-cgi/rum, and an estimated 10 KiB of legacy JavaScript from Cloudflare utility. These are diagnostics, not failed SEO/accessibility checks. The Cloudflare utility is outside the generated app bundle; removing it may give up analytics. Removing ClientRouter would change soft navigation to full-page loads and remove route transitions, so neither change is made without an explicit product decision.
+- PR #71 already removes the article-only ReaderTools bundle and comments Worker connection hints from the homepage, keeps them on article pages, and adds a build-time regression verifier. This snapshot is not a controlled before/after test; no causal score increase or Google ranking result is claimed.
+
+### Verification status
+
+- GitHub PR #71 is merged as production-source commit f1c7500c8c1f7c0aaf0dd76629c1a6c63eb71129. Its CI run 39090192157 and Cloudflare PR deployment 102e6bc4-5bcc-4bca-8308-7b9f52050d0c succeeded.
+- Production deployment 49a9b25a-ad76-46d8-8a9b-4c46174be58b built that source commit; all five stages succeeded. All 174 log entries, including container logs, were checked for warning, deprecation, error, fatal, failure, and exception markers; none matched.
+- The current homepage returns HTTP 200; the apex host redirects to the www host, and the robots and sitemap-index endpoints return HTTP 200. Live homepage HTML has the expected canonical, si-LK/x-default hreflang, si_LK Open Graph locale, and Sinhala description; it omits the ReaderTools root/bundle and comments Worker preconnect. The PR build verifier confirms article pages retain those reader/comment features.
+- The most recent production Pages deployment is documentation-only deployment 434f4af7-a176-45ab-a1ba-00e82b23ff4f from main commit 2e0ca757c6a5de5ea1e4bed55f06410674e1b63e; all five stages succeeded and all 174 returned log entries had no warning/error markers.
+
+### SEO and measurement boundary
+
+- No app source or Cloudflare analytics setting changed in this follow-up. Search ranking cannot be guaranteed. Use a new, matching mobile/desktop PageSpeed run and a later 28-day CrUX window before attributing a performance change to PR #71.
 
 ## 2026-10-18 — Scope reader tools and comment warm-up to article pages
 
@@ -123,27 +148,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - This changes generated reader PDFs only; HTML metadata, canonical URLs, robots rules, and sitemaps are not edited. The existing build verifier continues to require PDF attachment/noindex headers and exclusion from XML sitemaps. No Google ranking outcome is promised.
 
-## 2026-10-17 — Restrict the centered PDF watermark to story pages
-
-### Why
-
-- The user clarified the original requirement: the cover-image page and final rights page must not have the large centered URL watermark, while every story page between them must retain it. PR #64 raised the interior watermark to 30% but left a faint 18% centered watermark on the cover and final page.
-- The live PDF review confirmed this mismatch in three production PDFs (13, 5, and 23 pages; 41 pages total). The existing cover artwork, source attribution, and repeated footer URL are separate elements and should remain intact.
-
-### Changes
-
-- Draw the centered URL watermark only on pages tracked as story/content pages, at the existing 30% opacity. Do not draw it on the cover or final rights page.
-- Strengthen the build-time PDF verifier to require exactly one centered watermark on every interior page, none on the first/final page, and the existing footer URL on every page.
-- Preserve PR #64's historical entry; apply the active-log five-entry/20 KiB rotation policy.
-
-### Verification status
-
-- Before this follow-up, the live sample PDFs returned HTTP 200 as application/pdf and X-Robots-Tag: noindex, nofollow. The 13-page, 5-page, and 23-page files were checked across all 41 pages: the centered watermark appeared on every page at 18% on the cover/final page and 30% on interior pages. Pages 1, 7, and 13 of the 13-page PDF were rendered and visually reviewed.
-- PR #65 merged at 2026-10-17T03:28:45Z as commit 098d654405032ad3c4ba7eb03e3b8a98bde955b9. The Type-check and production build check (GitHub Actions run 38998719644) and Cloudflare Pages PR check succeeded.
-- Cloudflare preview deployment 806aac5e-d3d9-40fe-b364-b4ed5d055579 and production deployment a3dbc699-120c-4fb5-8ac7-31711abdaf53 completed all five stages successfully. All 173 returned log entries for each deployment, including container logs, were scanned; no warning, deprecation, error, fatal, failure, or exception matches were found.
-- The post-deploy Akkai Nangi production PDF (13 pages) returned HTTP 200 as application/pdf with X-Robots-Tag: noindex, nofollow. PDF.js checks confirmed zero centered 22pt URL watermarks on pages 1 and 13, exactly one on pages 2–12, and the 8pt footer URL plus page number on all 13 pages. PyMuPDF confirmed 30% opacity on every interior centered watermark.
-- Production pages 1, 7, and 13 were rendered and visually reviewed; the requested cover/final-page removal and interior-page watermark are confirmed.
-
-### SEO boundary
-
-- This changes PDF rendering and its build verifier only. HTML metadata, canonical URLs, sitemap, and indexing rules are unchanged; no Google ranking outcome is claimed.
