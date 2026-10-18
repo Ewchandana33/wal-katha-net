@@ -529,6 +529,87 @@ const isAgeGateExcludedPage = AGE_GATE_EXCLUDED_PATHS.includes(normalizedPathnam
       }
     </style>
 
+    <style is:global>
+      body {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      input,
+      textarea,
+      select,
+      option,
+      [contenteditable="true"],
+      [contenteditable=""],
+      [data-allow-select] {
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+        user-select: text !important;
+      }
+      img {
+        -webkit-user-drag: none;
+        user-drag: none;
+      }
+
+      #content-protection-toast {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        width: min(78vw, 240px);
+        background: #0c0d10;
+        border: 1px solid rgba(1, 173, 159, 0.35);
+        color: #F8F8FF;
+        padding: 18px 16px 16px;
+        border-radius: 1.25rem;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.03);
+        text-align: center;
+        user-select: none;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, -50%) scale(0.9);
+        transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      #content-protection-toast.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      #content-protection-toast .cp-icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        background: rgba(1, 173, 159, 0.12);
+        border: 1px solid rgba(1, 173, 159, 0.35);
+        color: #01AD9F;
+        flex-shrink: 0;
+        box-shadow: 0 0 14px rgba(1, 173, 159, 0.25);
+      }
+      #content-protection-toast .cp-icon-wrap svg {
+        display: block;
+        width: 17px;
+        height: 17px;
+      }
+      #content-protection-toast .cp-text {
+        font-size: 12.5px;
+        font-weight: 700;
+        line-height: 1.5;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #content-protection-toast {
+          transition: opacity 0.15s ease;
+        }
+      }
+    </style>
+
     {/* rel="shortcut icon" is a legacy alias no spec has required since
         HTML5; rel="icon" is the current form and every browser honours it.
         apple-touch-icon was missing entirely, so iOS "Add to Home Screen"
