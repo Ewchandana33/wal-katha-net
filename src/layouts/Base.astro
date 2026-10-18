@@ -627,7 +627,8 @@ const isAgeGateExcludedPage = AGE_GATE_EXCLUDED_PATHS.includes(normalizedPathnam
     </script>
     <script src="/scripts/deferred-perf.js" defer></script>
 
-    <ClientRouter fallback="swap" />
+    {/* The homepage does not need client-side page swapping. PageSpeed traced a 586 ms forced reflow here, so keep Astro's navigation runtime off the initial homepage load; other routes retain it for their lifecycle consumers. */}
+    {!isHomePage && <ClientRouter fallback="swap" />}
 
     {/* Reader Tools - blocking inline script that restores the saved
         reading preferences (surface colour, font, size, line-height)
