@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 const dist = resolve(process.cwd(), "dist");
 const homepage = readFileSync(resolve(dist, "index.html"), "utf8");
 const readerToolsAsset = "/_astro/ReaderTools.astro";
+const clientRouterAsset = "/_astro/ClientRouter";
 
 function hasCommentsWarmup(html) {
   return html.split("<link").slice(1).some((part) => {
@@ -30,11 +31,13 @@ function collectHtml(directory) {
 assert.ok(!homepage.includes("data-rt-root"), "Homepage must not render the article reader-tools panel");
 assert.ok(!homepage.includes(readerToolsAsset), "Homepage must not download the article reader-tools JavaScript bundle");
 assert.equal(hasCommentsWarmup(homepage), false, "Homepage must not preconnect to the article-only comments Worker");
+assert.ok(!homepage.includes(clientRouterAsset), "Homepage must not load the Astro ClientRouter runtime");
 
 const articlePages = collectHtml(resolve(dist, "blog")).map((path) => readFileSync(path, "utf8"));
 assert.ok(articlePages.length > 0, "Build should generate article HTML pages");
 assert.ok(articlePages.some((html) => html.includes("data-rt-root")), "Article pages must retain the reader-tools panel");
 assert.ok(articlePages.some((html) => html.includes(readerToolsAsset)), "Article pages must retain the reader-tools JavaScript bundle");
 assert.ok(articlePages.some(hasCommentsWarmup), "Article pages must retain comments Worker preconnect hints");
+assert.ok(articlePages.some((html) => html.includes(clientRouterAsset)), "Article pages must retain ClientRouter for reader-tools navigation lifecycle");
 
-console.log("[homepage-performance] Reader tools and comments preconnect are excluded from the homepage and retained on article pages.");
+console.log("[homepage-performance] ClientRouter, reader tools, and comments warm-up are excluded from the homepage; article navigation is retained.");
