@@ -54,7 +54,7 @@ const titleStyles = readFileSync(
   resolve(process.cwd(), "src/styles/index-overrides.css"),
   "utf8",
 );
-for (const color of ["#f3f7ee", "#a2e088"]) {
+for (const color of ["#0a3818", "#1e5c2b", "#a2e088"]) {
   assert.ok(
     titleStyles.toLowerCase().includes(color),
     `Homepage title style should include ${color}`,
@@ -67,18 +67,8 @@ assert.match(
 );
 assert.match(
   titleStyles,
-  /\.home-title__text\s*\{[^}]*white-space:\s*normal/s,
-  "Homepage title should be allowed to wrap on narrow screens",
-);
-assert.match(
-  titleStyles,
-  /\.home-title__text\s*\{[^}]*text-wrap:\s*balance/s,
-  "Homepage title should balance line breaks when it wraps",
-);
-assert.doesNotMatch(
-  titleStyles,
-  /\.home-title__text::(?:before|after)/i,
-  "Homepage title should not use layered pseudo-text bevels",
+  /\.home-title__text\s*\{[^}]*white-space:\s*nowrap/s,
+  "Homepage title should stay on one line",
 );
 assert.match(
   titleStyles,
@@ -115,5 +105,5 @@ const localeMeta = (html.match(/<meta\b[^>]*>/gi) || []).find((tag) => attribute
 assert.equal(attribute(localeMeta || "", "content"), "si_LK", "Homepage Open Graph locale should target Sinhala in Sri Lanka");
 
 console.log(
-  "[homepage-seo] Sinhala-first title, responsive live-text H1, transparent styling, SVG vine ornament, locale metadata, and description verified.",
+  "[homepage-seo] Sinhala-first title, one-line live-text H1, transparent styling, SVG vine ornament, locale metadata, and description verified.",
 );
