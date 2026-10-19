@@ -165,3 +165,125 @@ html, body {
   color: #34d399 !important;
   border: 1px solid rgba(16, 185, 129, 0.2) !important;
 }
+
+/* Keep the visible homepage H1 as live, selectable Sinhala text. The
+   transparent inline SVG supplies only the vine and leaf ornament. */
+.home-title {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  width: 100%;
+  min-height: clamp(3.75rem, 11vw, 8rem);
+  place-items: center;
+  overflow: visible;
+  padding: 0.65rem 0.1rem;
+  background: transparent;
+  text-align: center;
+}
+
+.home-title__text {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  max-width: 100%;
+  color: #1e5c2b;
+  background-image: linear-gradient(
+    155deg,
+    #b8ed9a 0%,
+    #71b95a 23%,
+    #1e5c2b 52%,
+    #0a3818 80%,
+    #2c7137 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 0.55px #a2e088;
+  font-family: "Noto Sans Sinhala", "Iskoola Pota", system-ui, sans-serif;
+  font-size: clamp(0.78rem, 4.1vw, 2.45rem);
+  font-weight: 800;
+  letter-spacing: 0.015em;
+  line-height: 1.65;
+  white-space: nowrap;
+  text-shadow:
+    0 -1px 0 rgba(221, 255, 194, 0.72),
+    0 1px 0 rgba(86, 139, 66, 0.92),
+    0 2px 0 #244d26,
+    0 4px 0 #102a15,
+    0 6px 5px rgba(0, 0, 0, 0.78);
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.8))
+    drop-shadow(0 0 10px rgba(102, 168, 77, 0.16));
+}
+
+.home-title__text::before,
+.home-title__text::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  white-space: inherit;
+  content: attr(data-title);
+}
+
+.home-title__text::before {
+  z-index: 2;
+  clip-path: inset(0 0 52% 0);
+  -webkit-text-stroke: 0.7px rgba(208, 247, 173, 0.92);
+  text-shadow: -0.5px -0.5px 0 rgba(236, 255, 211, 0.8);
+}
+
+.home-title__text::after {
+  z-index: 0;
+  clip-path: inset(48% 0 0 0);
+  -webkit-text-stroke: 0.8px rgba(4, 24, 10, 0.92);
+  text-shadow: 0 2px 1px rgba(0, 0, 0, 0.8);
+}
+
+.home-title__ornament {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.home-title__vine {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.home-title__leaf {
+  stroke: #a2e088;
+  stroke-width: 1.35;
+}
+
+.home-title__vein {
+  fill: none;
+  stroke: rgba(207, 245, 169, 0.84);
+  stroke-linecap: round;
+  stroke-width: 1.1;
+}
+
+@supports not (-webkit-background-clip: text) {
+  .home-title__text {
+    color: #a2e088;
+    background: none;
+    -webkit-text-fill-color: #a2e088;
+  }
+}
+
+@media (max-width: 380px) {
+  .home-title__text {
+    font-size: clamp(0.72rem, 4vw, 0.95rem);
+    letter-spacing: 0;
+  }
+
+  .home-title__ornament {
+    opacity: 0.78;
+  }
+}
