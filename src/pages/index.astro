@@ -198,11 +198,44 @@ const homePageSchema = {
   <div class="section pt-4 pb-12 min-h-screen bg-[#050505] text-slate-200 antialiased">
     <div class="container">
 
-      <h1 id="speakable-home-heading" class="home-title mb-4">
-        <span class="home-title__text">
-          {homeH1}
-        </span>
-      </h1>
+      <div class="home-title-shell mb-4">
+        <h1 id="speakable-home-heading" class="home-title">
+          <span class="home-title__text">{homeH1}</span>
+        </h1>
+        <div class="home-title__portrait" aria-hidden="true">
+          <svg viewBox="0 0 180 190" role="presentation" focusable="false">
+            <defs>
+              <linearGradient id="portrait-gold" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#fff0b8"/>
+                <stop offset=".48" stop-color="#d7a83d"/>
+                <stop offset="1" stop-color="#8d6424"/>
+              </linearGradient>
+              <linearGradient id="portrait-fabric" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#30251c"/>
+                <stop offset="1" stop-color="#090909"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="97" cy="178" rx="65" ry="7" fill="#d7a83d" opacity=".18"/>
+            <path d="M42 164h97l-8 6H48z" fill="url(#portrait-gold)" opacity=".75"/>
+            <path d="M55 166l-4 15M126 166l5 15" stroke="#b98a35" stroke-width="3" stroke-linecap="round"/>
+            <path d="M72 73c-7 12-8 25-4 39l-10 31c-2 7 3 13 11 13h40c9 0 14-7 10-15l-15-29c-2-11 0-21-6-34z" fill="url(#portrait-fabric)" stroke="#d7a83d" stroke-opacity=".72" stroke-width="1.5"/>
+            <path d="M70 86c-8 11-13 23-20 31-5 8-1 15 6 16 5 1 9-4 13-11l14-20" fill="#b77d58" stroke="#e6bb69" stroke-width="1.1"/>
+            <path d="M102 87c10 10 16 21 23 32 4 7 0 13-6 13-5 0-8-4-12-10l-15-20" fill="#b77d58" stroke="#e6bb69" stroke-width="1.1"/>
+            <path d="M69 114c8 7 18 10 29 7l17 26c3 6 0 10-7 10H62c-7 0-10-5-6-11z" fill="url(#portrait-fabric)" stroke="#d7a83d" stroke-width="1.3"/>
+            <path d="M71 127l-8 35M104 129l14 31" stroke="#b77d58" stroke-width="8" stroke-linecap="round"/>
+            <path d="M63 160c-10 1-16 6-17 11h24c4-4 3-8-7-11zM116 159c11 0 17 5 18 11h-25c-3-4-2-8 7-11z" fill="#b77d58"/>
+            <path d="M70 47c-2-17 8-29 23-29 17 0 25 12 23 29l-4 18c-3 13-12 21-21 21S74 78 71 65z" fill="#b77d58" stroke="#e6bb69" stroke-width="1.1"/>
+            <path d="M66 52c-4-22 8-39 28-39 20 0 31 14 27 37l-6 2c-2-9-8-13-14-18-8 8-17 12-31 12l-1 11z" fill="#17100d" stroke="#d7a83d" stroke-width="1.2"/>
+            <path d="M70 45c-8 16-4 37 8 47l-9 7c-16-13-18-43-7-58zM112 43c9 12 8 31-2 43l7 6c16-15 17-39 3-53z" fill="#17100d" stroke="#d7a83d" stroke-width="1.1"/>
+            <path d="M78 52h7M98 52h7" stroke="#3d2119" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M86 65c3 2 6 2 9 0" stroke="#7b3e31" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+            <circle cx="112" cy="60" r="2" fill="#f4d27e"/>
+            <path d="M81 83l12 10 12-10" fill="none" stroke="url(#portrait-gold)" stroke-width="1.6"/>
+            <path d="M44 28c-7 5-12 12-15 21M133 23c8 7 12 15 14 24" stroke="#d7a83d" stroke-opacity=".6" fill="none" stroke-width="1.2" stroke-linecap="round"/>
+            <circle cx="35" cy="57" r="2" fill="#f4d27e" opacity=".7"/><circle cx="145" cy="64" r="1.5" fill="#f4d27e" opacity=".7"/>
+          </svg>
+        </div>
+      </div>
 
       <FeaturedSlider />
       <AdsterraBanner />

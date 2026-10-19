@@ -14,6 +14,21 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Use one archive file per quarter and append later entries from that quarter to it. At quarter rollover, create the next quarter file. Verify each dated entry appears exactly once in the active log or an archive.
 - If later evidence changes a conclusion, add a dated correction that names the superseded entry; retain the earlier note as historical context.
 
+## 2026-10-19 — Rebuild the homepage title in a premium black-and-gold layout
+
+### Request and changes
+
+- The user asked to remove the current title treatment and rebuild it in a premium style, with a seated adult woman at the far right of the title.
+- Replaced the centered ivory title and small gold divider with a responsive dark black/brown panel, fine gold edge lighting, bold warm-gold Sinhala text, and an original inline vector illustration of a fully clothed adult woman seated at the right. The heading remains live, selectable Sinhala text; the illustration is decorative and hidden from assistive technology. No image download or font request was added.
+- Kept the page title, description, canonical/hreflang, structured data, navigation logo, and post content unchanged.
+- Updated the homepage verifier to check the new right-side portrait layout, live H1, and responsive wrapping.
+
+### Verification status
+
+- Branch created: `design/homepage-title-premium-20261019`. Changes are prepared for review only; no merge or production deployment has been performed.
+- Automated build, type-check, SEO verifier, and visual mobile/desktop review are pending because no local build environment was run during this GitHub edit.
+- This is a visual-only change; no search ranking or traffic outcome is claimed.
+
 ## Status snapshot — 2026-10-19
 
 - Cloudflare Pages project wala-katha is connected to Ewchandana33/wal-katha-net on main and serves walakatha.net and www.walakatha.net. The latest production deployment is be27a7f1-3390-4249-a329-772985b723a1, targeting main commit a1183c38b510a6bada150514af64fd32783ce9cb (PR #78); the deployment reports success.

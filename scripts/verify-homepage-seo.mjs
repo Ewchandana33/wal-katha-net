@@ -34,11 +34,6 @@ assert.match(
 );
 assert.doesNotMatch(
   headings[0][1],
-  /<svg\b/i,
-  "Homepage H1 should not include the previous vine artwork",
-);
-assert.doesNotMatch(
-  headings[0][1],
   /<img\b/i,
   "Homepage title styling should not depend on a picture or logo image",
 );
@@ -47,49 +42,18 @@ const titleStyles = readFileSync(
   resolve(process.cwd(), "src/styles/index-overrides.css"),
   "utf8",
 );
-const titleStyleStart = titleStyles.indexOf(".home-title {");
-const mobileTitleStyles = titleStyles.indexOf("@media (max-width: 380px)");
-assert.ok(titleStyleStart >= 0, "Homepage title styles should exist");
-assert.ok(mobileTitleStyles > titleStyleStart, "Homepage mobile title styles should follow the desktop rules");
+const titleStyleStart = titleStyles.indexOf(".home-title-shell {");
+const mobileTitleStyles = titleStyles.indexOf("@media (max-width: 480px)");
+assert.ok(titleStyleStart >= 0, "Premium homepage title styles should exist");
+assert.ok(mobileTitleStyles > titleStyleStart, "Homepage mobile title styles should follow desktop rules");
 const homeTitleStyles = titleStyles.slice(titleStyleStart, mobileTitleStyles);
-assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#f4ead0/i, "Homepage title should use warm ivory text");
-assert.match(homeTitleStyles, /\.home-title::before\s*\{[^}]*background:\s*#e8bc51/i, "Homepage title should use the brand gold accent");
-assert.match(homeTitleStyles, /\.home-title::after\s*\{[^}]*background:\s*linear-gradient/s, "Homepage title should retain a restrained divider");
-assert.doesNotMatch(
-  homeTitleStyles,
-  /#(?:0a3818|1e5c2b|a2e088|10b981|34d399)|rgba\(\s*16\s*,\s*185\s*,\s*129/i,
-  "Homepage title styling should not use the previous green palette",
-);
-assert.doesNotMatch(
-  titleStyles,
-  /home-title__(?:ornament|vine|leaf|vein)/i,
-  "Homepage styles should not retain unused vine ornament rules",
-);
-assert.match(
-  titleStyles,
-  /\.home-title\s*\{[^}]*background:\s*transparent/s,
-  "Homepage title area should have a transparent background",
-);
-assert.match(
-  titleStyles,
-  /\.home-title__text\s*\{[^}]*white-space:\s*normal/s,
-  "Homepage title should be allowed to wrap on narrow screens",
-);
-assert.match(
-  titleStyles,
-  /\.home-title__text\s*\{[^}]*text-wrap:\s*balance/s,
-  "Homepage title should balance line breaks when it wraps",
-);
-assert.doesNotMatch(
-  titleStyles,
-  /\.home-title__text::(?:before|after)/i,
-  "Homepage title should not use layered pseudo-text bevels",
-);
-assert.match(
-  titleStyles,
-  /@media\s*\(max-width:\s*380px\)/,
-  "Homepage title should adapt on narrow mobile screens",
-);
+assert.match(homeTitleStyles, /grid-template-columns:[^;]*clamp\(5\.25rem/i, "Title layout should reserve space for the portrait at the far right");
+assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#fff0c7/i, "Homepage title should use high-contrast warm gold text");
+assert.match(homeTitleStyles, /\.home-title__portrait\s*\{/, "Homepage title should include the decorative portrait area");
+assert.match(homeTitleStyles, /\.home-title-shell\s*\{[^}]*background:[\s\S]*linear-gradient/s, "Homepage title should use a premium dark layered background");
+assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*overflow-wrap:\s*anywhere/s, "Homepage title should wrap safely on narrow screens");
+assert.doesNotMatch(titleStyles, /\.home-title::(?:before|after)/i, "Previous centered divider ornaments should be removed");
+assert.match(titleStyles, /@media\s*\(max-width:\s*480px\)/, "Homepage title should adapt on narrow mobile screens");
 
 const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
 const descriptions = metaTags.filter((tag) => /\bname=["']description["']/i.test(tag));
