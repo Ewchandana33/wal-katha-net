@@ -14,9 +14,9 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Use one archive file per quarter and append later entries from that quarter to it. At quarter rollover, create the next quarter file. Verify each dated entry appears exactly once in the active log or an archive.
 - If later evidence changes a conclusion, add a dated correction that names the superseded entry; retain the earlier note as historical context.
 
-## Status snapshot — 2026-10-18
+## Status snapshot — 2026-10-19
 
-- Production main is commit 38aff5fa5cddb2f6b86d64634248fa0c0ff40f06 (PR #75), with PRs #74 and #71 included. Cloudflare Pages project wala-katha is connected to Ewchandana33/wal-katha-net on main and serves walakatha.net and www.walakatha.net. Production deployment 413a198e-40cf-477d-8f13-c1392c22cb7a targets that commit and reports success.
+- Cloudflare Pages project wala-katha is connected to Ewchandana33/wal-katha-net on main and serves walakatha.net and www.walakatha.net. The latest production deployment is 366940a6-645e-48e6-97fb-9f53d2636414, targeting main commit 6e95ade21b02b94ab5b125730bbb660df96ec177 (PR #76); all five stages report success.
 - A direct live SEO/locale audit on 2026-10-17 found the www homepage returns 200, the apex host redirects to www, and robots.txt plus the sitemap chain are available. All 26 URLs in sitemap-0.xml returned 200 and passed canonical, Sinhala-language, description, si-LK/x-default hreflang, and si_LK Open Graph checks; no noindex page was listed in that sitemap. The existing dedicated live verifier also checks the configured noindex article separately.
 - PR #67 is the current released PDF renderer: all seven versioned production downloads returned HTTP 200 as application/pdf attachments with X-Robots-Tag noindex, nofollow. PDF.js verified the author-rights notice on each last story page, all requested rights sections on each final page, one centered URL watermark per interior page only, and footer/page numbers on all 74 pages. Production pages 12–13 of the 13-page Akkai Nangi PDF were rendered and reviewed.
 - PR #62 expands the 18+ notice on every generated reader-PDF cover. Its PDF verifier passed for all seven published articles; live checks confirmed all seven SHA-256-versioned links return application/pdf attachments with X-Robots-Tag: noindex, nofollow, and the required first-page notice/story ordering. Reader PDFs remain excluded from sitemaps, and the configured bus-jack-wal-katha article remains noindex,follow.
@@ -25,9 +25,29 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - PageSpeed status: the 2026-10-17 mobile baseline scored 79; the distinct 2026-10-18 mobile snapshot scored Performance 87 and SEO/Accessibility/Best Practices 100, with lab LCP 3.5 s, TBT 0 ms, CLS 0. It attributed 586 ms forced reflow to Astro ClientRouter; PR #74 now excludes that asset from fresh homepage HTML. No post-PR #74 PageSpeed run is available, so a new score or measured reduction is unverified; desktop remains unverified. Prior PSI API reruns were quota-blocked with 429.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 40 earlier dated entries from 2026-10-14 through 2026-10-17; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 41 earlier dated entries from 2026-10-14 through 2026-10-17; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-19 — Style the homepage Sinhala title to match the supplied reference
+
+### Request
+
+- The user asked to style the existing homepage title like the supplied ornamental green reference, not to place the reference image or a logo in the page. Keep the live title text and navigation logo unchanged.
+
+### Changes
+
+- Keep the exact H1 as live, selectable Sinhala text and style it with a transparent background, a layered green metallic gradient/bevel, and an aria-hidden inline SVG vine-and-leaf ornament. No image asset or additional font download is used; the navigation logo, page title, metadata, canonical URLs, hreflang, and content remain unchanged.
+- Extend the homepage verifier to check the unchanged H1 text, real text content, decorative SVG accessibility, no image inside the title, transparent background, single-line title, and narrow-screen styling.
+
+### Verification status
+
+- Local `yarn test`: PASS (8 tests). Local `yarn build`: PASS (50 static pages; PDF, featured-link, social metadata, critical CSS, and homepage-performance verifiers passed). `node scripts/verify-homepage-seo.mjs`: PASS. `git diff --check`: PASS.
+- The default Prettier check cannot resolve the Astro parser from the existing configuration. With the Astro plugin loaded explicitly, the same three files already fail the check at the pristine base commit; the added sections match Prettier output, and no unrelated formatting was applied.
+- GitHub Actions CI run `39187074164` passed Astro type-checking, regression-test steps, the static production build, and pagination/homepage SEO verifiers for commit `f648c1c9e1e57dc62f3e7df44070a2dd3575c0cb`; the Cloudflare Pages check also passed.
+- Cloudflare preview deployment `d52ec353-b722-4f12-9ab6-fe2693aacc8e` built that same branch commit and completed all five stages successfully. All 174 returned deployment-log entries, including container logs, were checked; none contained warning, deprecation, error, fatal, failure, or exception markers. The deployment URL and stable branch-preview URL returned HTTP 200. Preview HTML retained the exact text H1 and decorative, `aria-hidden` SVG; title, description, canonical URL, `si-LK` hreflang, and `x-default` hreflang matched production.
+- The live homepage returned HTTP 200 and still serves the original H1 without the ornament. Production remains on successful Cloudflare deployment `366940a6-645e-48e6-97fb-9f53d2636414`, commit `6e95ade21b02b94ab5b125730bbb660df96ec177`; PR #77 remains open as a draft and is not merged. No production deployment was made.
+- SEO/GEO boundary: this change is visual-only around the live heading; no page metadata, canonical/hreflang, structured data, or content was changed. No search-ranking or AI citation outcome is claimed.
 
 ## 2026-10-18 — Restore the copy-protection notice styles
 
@@ -121,28 +141,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - PR #71 merged automatically after GitHub Type-check and production build and Cloudflare Pages checks both completed successfully. Preview deployment 102e6bc4-5bcc-4bca-8308-7b9f52050d0c completed all five stages successfully; all 174 returned log entries, including container logs, had no warning, deprecation, error, fatal, failure, or exception markers.
 - Production deployment 49a9b25a-ad76-46d8-8a9b-4c46174be58b built and deployed commit f1c7500c8c1f7c0aaf0dd76629c1a6c63eb71129; all five stages succeeded and none of its 174 returned log entries matched those markers. Live homepage and a sitemap-selected article route both returned HTTP 200. Raw HTML checks confirmed the homepage omits the reader-tools root, its JavaScript bundle, and comments preconnect, while the article retains all three.
 - PageSpeed API reruns remain blocked by HTTP 429 (daily quota zero); the desktop fetcher returned the mobile-emulated report. No independent desktop score or post-release PageSpeed/CrUX change is verified.
-
-## 2026-10-17 — Remove the duplicate author-rights note from story PDFs
-
-### Root cause
-
-- The supplied PDF screenshot shows the rights statement twice at the story ending: the Markdown blockquote is rendered as a dialogue callout, and the PDF renderer adds its own black banner. The earlier release check confirmed the banner was present but did not count duplicate statements.
-- A scan of all ten story Markdown files on main found one matching end-of-story note in each source file.
-
-### Changes
-
-- Keep the Markdown note intact for the article's HTML; skip only the standalone Sinhala rights-note line when converting Markdown into PDF story blocks. Retain the generator-owned single black banner with white text.
-- Extend the generated-PDF verifier to require exactly one complete-rights marker on the final story page for every published article PDF.
-- The existing PDF cache version hashes the renderer source, so generated links automatically get a new version. No HTML metadata, canonical URLs, sitemap, or indexing rules change; reader PDFs remain noindex.
-
-### Verification status
-
-### Verification
-
-- PR #69 merged to protected main as `0b8d3267ffe903c1ae2e24973af3a3ceac33dc0c` from corrected feature head `7501160af5bab4d33d1c91a15faeef0c5f7d3c10`. The first verifier draft at `9dfe175f98c249950a96c1f77fe841d8e92453e5` failed its build with `SyntaxError: missing ) after argument list`; it was repaired before merge, and that failed draft was not deployed to production.
-- GitHub CI run `39025636464` passed type-check, regression and changelog tests, static build (including generated-PDF verification), pagination SEO, and homepage SEO checks.
-- Cloudflare preview deployment `5c14e350-031a-4693-af53-85f90e462740` and production deployment `9f1a995a-ab69-4ea1-a38e-22a61a69831f` both completed queued, initialize, clone, build, and deploy stages successfully. All 173 log entries from each deployment, including container logs, were reviewed; neither had warning, deprecation, error, fatal, failure, or exception matches.
-- The production Bus Jack article retains its Markdown rights note. Its versioned live PDF returned HTTP 200 as `application/pdf` with `X-Robots-Tag: noindex, nofollow`; text extraction found exactly one full rights marker on page 4 of 5. PyMuPDF rendering visually confirmed a single dark/black banner with white 9pt text.
-- No individual story Markdown files were changed. The shared renderer automatically filters the recognized standalone Sinhala rights-note variants for current and future article PDFs; the generated-PDF verifier fails when the final story page contains anything other than exactly one complete rights marker.
-- SEO boundary: this is a PDF-only correction. HTML metadata, canonical URLs, sitemap, and indexing behavior were not changed, and no Google ranking result is claimed.
-

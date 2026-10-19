@@ -22,7 +22,59 @@ assert.equal(decodeHtml(title.trim()), expectedTitle, "Homepage title should lea
 const headings = [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)];
 assert.equal(headings.length, 1, `Expected one homepage H1; found ${headings.length}`);
 const headingText = decodeHtml(headings[0][1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim());
-assert.equal(headingText, expectedH1, "Homepage H1 should match the Sinhala-first page topic");
+assert.equal(
+  headingText,
+  expectedH1,
+  "Homepage H1 should match the Sinhala-first page topic",
+);
+assert.match(
+  headings[0][1],
+  /<span\b[^>]*class="home-title__text"[^>]*>/i,
+  "Homepage H1 should retain real, visible text",
+);
+const titleOrnament = headings[0][1].match(
+  /<svg\b[^>]*class="home-title__ornament"[^>]*>/i,
+)?.[0];
+assert.ok(
+  titleOrnament,
+  "Homepage H1 should include its inline SVG vine ornament",
+);
+assert.equal(
+  attribute(titleOrnament, "aria-hidden"),
+  "true",
+  "Decorative title vines should be hidden from assistive technology",
+);
+assert.doesNotMatch(
+  headings[0][1],
+  /<img\b/i,
+  "Homepage title styling should not depend on a picture or logo image",
+);
+
+const titleStyles = readFileSync(
+  resolve(process.cwd(), "src/styles/index-overrides.css"),
+  "utf8",
+);
+for (const color of ["#0a3818", "#1e5c2b", "#a2e088"]) {
+  assert.ok(
+    titleStyles.toLowerCase().includes(color),
+    `Homepage title style should include ${color}`,
+  );
+}
+assert.match(
+  titleStyles,
+  /\.home-title\s*\{[^}]*background:\s*transparent/s,
+  "Homepage title area should have a transparent background",
+);
+assert.match(
+  titleStyles,
+  /\.home-title__text\s*\{[^}]*white-space:\s*nowrap/s,
+  "Homepage title should stay on one line",
+);
+assert.match(
+  titleStyles,
+  /@media\s*\(max-width:\s*380px\)/,
+  "Homepage title should adapt on narrow mobile screens",
+);
 
 const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
 const descriptions = metaTags.filter((tag) => /\bname=["']description["']/i.test(tag));
@@ -52,4 +104,6 @@ for (const locale of ["si-LK", "x-default"]) {
 const localeMeta = (html.match(/<meta\b[^>]*>/gi) || []).find((tag) => attribute(tag, "property").toLowerCase() === "og:locale");
 assert.equal(attribute(localeMeta || "", "content"), "si_LK", "Homepage Open Graph locale should target Sinhala in Sri Lanka");
 
-console.log("[homepage-seo] Sinhala-first title and H1, one H1, and the Search Console-aligned description verified.");
+console.log(
+  "[homepage-seo] Sinhala-first title, one-line live-text H1, transparent styling, SVG vine ornament, locale metadata, and description verified.",
+);
