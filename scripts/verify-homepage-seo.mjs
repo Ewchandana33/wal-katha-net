@@ -42,18 +42,20 @@ const titleStyles = readFileSync(
   resolve(process.cwd(), "src/styles/index-overrides.css"),
   "utf8",
 );
-const titleStyleStart = titleStyles.indexOf(".home-title-shell {");
-const mobileTitleStyles = titleStyles.indexOf("@media (max-width: 480px)");
-assert.ok(titleStyleStart >= 0, "Premium homepage title styles should exist");
+const titleStyleStart = titleStyles.indexOf(".home-title-stage {");
+const mobileTitleStyles = titleStyles.indexOf("@media (max-width: 480px)", titleStyleStart);
+assert.ok(titleStyleStart >= 0, "Open homepage title styles should exist");
 assert.ok(mobileTitleStyles > titleStyleStart, "Homepage mobile title styles should follow desktop rules");
 const homeTitleStyles = titleStyles.slice(titleStyleStart, mobileTitleStyles);
-assert.match(homeTitleStyles, /grid-template-columns:[^;]*clamp\(5\.25rem/i, "Title layout should reserve space for the portrait at the far right");
-assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#fff0c7/i, "Homepage title should use high-contrast warm gold text");
-assert.match(homeTitleStyles, /\.home-title__portrait\s*\{/, "Homepage title should include the decorative portrait area");
-assert.match(homeTitleStyles, /\.home-title-shell\s*\{[^}]*background:[\s\S]*linear-gradient/s, "Homepage title should use a premium dark layered background");
+assert.match(homeTitleStyles, /background:\s*transparent/i, "Homepage title must have no card background");
+assert.match(homeTitleStyles, /border:\s*0/i, "Homepage title must have no card border");
+assert.match(homeTitleStyles, /box-shadow:\s*none/i, "Homepage title must have no card shadow");
+assert.match(homeTitleStyles, /\.home-title__figure\s*\{/, "Homepage title should include a decorative seated-woman illustration");
+assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#f4ead0/i, "Homepage title should use warm ivory typography");
 assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*overflow-wrap:\s*anywhere/s, "Homepage title should wrap safely on narrow screens");
-assert.doesNotMatch(titleStyles, /\.home-title::(?:before|after)/i, "Previous centered divider ornaments should be removed");
 assert.match(titleStyles, /@media\s*\(max-width:\s*480px\)/, "Homepage title should adapt on narrow mobile screens");
+assert.match(headings[0][1], /class="home-title__english"/i, "Decorative brand wordmark should remain separate from the live Sinhala H1");
+
 
 const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
 const descriptions = metaTags.filter((tag) => /\bname=["']description["']/i.test(tag));
