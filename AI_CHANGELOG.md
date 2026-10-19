@@ -45,7 +45,7 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - Baseline at 0ecfdad13a46151ade0ef0d6bef458a6c9f28ff6: yarn test passed (8/8), yarn check passed, yarn build passed (50 pages), and the homepage SEO verifier passed. Existing dependency-resolution and Node deprecation warnings were observed.
 - After the change: yarn test passed (8/8); yarn check passed; yarn build passed (50 pages, including PDF, featured-link, social metadata, critical CSS, and homepage-performance checks); node scripts/verify-homepage-seo.mjs and node scripts/ai-changelog.test.mjs passed; git diff --check passed. The generated homepage contains no title SVG, and compiled CSS contains the ivory/gold title styles.
-- GitHub PR/CI and Cloudflare preview checks are pending publication of the feature branch. No production deployment was started.
+- Draft PR #82 is open on branch `fix/homepage-title-gold-20261019`. Initial implementation commit `a9f1e060e8af84323182e2342bbf4b2338249bc0` passed the Type-check and production build check (run 39239296763, job 118015932982). Cloudflare Pages check and preview deployment `2619e587-44cd-44bd-94bf-5e9bb3323c22` succeeded; PR preview: https://2619e587.wala-katha.pages.dev; branch preview: https://fix-homepage-title-gold-2026.wala-katha.pages.dev. Existing draft PR #81 was left unchanged. No production deployment was started.
 - Scope is presentation-only; H1 text, SEO metadata, navigation, and other homepage content remain unchanged. No ranking or traffic outcome is claimed.
 
 ## 2026-10-19 — Improve readability of the homepage Sinhala title
