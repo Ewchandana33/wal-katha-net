@@ -32,17 +32,10 @@ assert.match(
   /<span\b[^>]*class="home-title__text"[^>]*>/i,
   "Homepage H1 should retain real, visible text",
 );
-const titleOrnament = headings[0][1].match(
-  /<svg\b[^>]*class="home-title__ornament"[^>]*>/i,
-)?.[0];
-assert.ok(
-  titleOrnament,
-  "Homepage H1 should include its inline SVG vine ornament",
-);
-assert.equal(
-  attribute(titleOrnament, "aria-hidden"),
-  "true",
-  "Decorative title vines should be hidden from assistive technology",
+assert.doesNotMatch(
+  headings[0][1],
+  /<svg\b/i,
+  "Homepage H1 should not include the previous vine artwork",
 );
 assert.doesNotMatch(
   headings[0][1],
@@ -54,12 +47,24 @@ const titleStyles = readFileSync(
   resolve(process.cwd(), "src/styles/index-overrides.css"),
   "utf8",
 );
-for (const color of ["#f3f7ee", "#a2e088"]) {
-  assert.ok(
-    titleStyles.toLowerCase().includes(color),
-    `Homepage title style should include ${color}`,
-  );
-}
+const titleStyleStart = titleStyles.indexOf(".home-title {");
+const mobileTitleStyles = titleStyles.indexOf("@media (max-width: 380px)");
+assert.ok(titleStyleStart >= 0, "Homepage title styles should exist");
+assert.ok(mobileTitleStyles > titleStyleStart, "Homepage mobile title styles should follow the desktop rules");
+const homeTitleStyles = titleStyles.slice(titleStyleStart, mobileTitleStyles);
+assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#f4ead0/i, "Homepage title should use warm ivory text");
+assert.match(homeTitleStyles, /\.home-title::before\s*\{[^}]*background:\s*#e8bc51/i, "Homepage title should use the brand gold accent");
+assert.match(homeTitleStyles, /\.home-title::after\s*\{[^}]*background:\s*linear-gradient/s, "Homepage title should retain a restrained divider");
+assert.doesNotMatch(
+  homeTitleStyles,
+  /#(?:0a3818|1e5c2b|a2e088|10b981|34d399)|rgba\(\s*16\s*,\s*185\s*,\s*129/i,
+  "Homepage title styling should not use the previous green palette",
+);
+assert.doesNotMatch(
+  titleStyles,
+  /home-title__(?:ornament|vine|leaf|vein)/i,
+  "Homepage styles should not retain unused vine ornament rules",
+);
 assert.match(
   titleStyles,
   /\.home-title\s*\{[^}]*background:\s*transparent/s,
@@ -115,5 +120,5 @@ const localeMeta = (html.match(/<meta\b[^>]*>/gi) || []).find((tag) => attribute
 assert.equal(attribute(localeMeta || "", "content"), "si_LK", "Homepage Open Graph locale should target Sinhala in Sri Lanka");
 
 console.log(
-  "[homepage-seo] Sinhala-first title, responsive live-text H1, transparent styling, SVG vine ornament, locale metadata, and description verified.",
+  "[homepage-seo] Sinhala-first title, responsive live-text H1, gold accent, locale metadata, and description verified.",
 );

@@ -25,9 +25,28 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - PageSpeed status: the 2026-10-17 mobile baseline scored 79; the distinct 2026-10-18 mobile snapshot scored Performance 87 and SEO/Accessibility/Best Practices 100, with lab LCP 3.5 s, TBT 0 ms, CLS 0. It attributed 586 ms forced reflow to Astro ClientRouter; PR #74 now excludes that asset from fresh homepage HTML. No post-PR #74 PageSpeed run is available, so a new score or measured reduction is unverified; desktop remains unverified. Prior PSI API reruns were quota-blocked with 429.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 42 earlier dated entries from 2026-10-14 through 2026-10-18; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 43 earlier dated entries from 2026-10-14 through 2026-10-18; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-19 — Restyle the homepage Sinhala heading with gold accents
+
+### Request and cause
+
+- The supplied mobile screenshot shows the homepage H1 surrounded by green vine artwork and emerald styling that conflicts with the site's dark surface and gold wordmark.
+
+### Changes
+
+- Remove the H1's inline green vine SVG and its unused CSS rules. Keep the exact live Sinhala H1 text and all page metadata unchanged.
+- Use warm ivory text with a restrained gold divider and centered diamond, matching the existing wordmark palette. Preserve balanced wrapping on small screens; add no image or font request.
+- Update the homepage SEO verifier to require the gold treatment, responsive live text, and absence of the previous SVG/green title palette.
+
+### Verification status
+
+- Baseline at 0ecfdad13a46151ade0ef0d6bef458a6c9f28ff6: yarn test passed (8/8), yarn check passed, yarn build passed (50 pages), and the homepage SEO verifier passed. Existing dependency-resolution and Node deprecation warnings were observed.
+- After the change: yarn test passed (8/8); yarn check passed; yarn build passed (50 pages, including PDF, featured-link, social metadata, critical CSS, and homepage-performance checks); node scripts/verify-homepage-seo.mjs and node scripts/ai-changelog.test.mjs passed; git diff --check passed. The generated homepage contains no title SVG, and compiled CSS contains the ivory/gold title styles.
+- GitHub PR/CI and Cloudflare preview checks are pending publication of the feature branch. No production deployment was started.
+- Scope is presentation-only; H1 text, SEO metadata, navigation, and other homepage content remain unchanged. No ranking or traffic outcome is claimed.
 
 ## 2026-10-19 — Improve readability of the homepage Sinhala title
 
@@ -118,27 +137,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 ### SEO boundary
 
 - Canonical, hreflang, metadata, robots rules, sitemap, and content were unchanged. No Google ranking outcome is claimed.
-## 2026-10-18 — Re-check homepage PageSpeed after the production optimization
-
-### Why
-
-- The user supplied a saved PageSpeed Insights MHTML snapshot while the homepage performance optimization (PR #71) was already live. This follow-up records what that distinct snapshot verifies and which remaining diagnostics belong to other systems or have a navigation trade-off.
-
-### Findings
-
-- The attached snapshot URL is the mobile report ny10ywdw27; it was captured at 2026-10-18 08:14 GMT+5:30. It is not the js3jhb6qnu report ID in the URLs written in the request, so do not treat the attachment as the desktop result or as a matched rerun of the earlier 2026-10-17 report.
-- Mobile Lighthouse scores are Performance 87, Accessibility 100, Best Practices 100, and SEO 100. Lab metrics: FCP 2.0 s, LCP 3.5 s, TBT 0 ms, CLS 0, and Speed Index 4.3 s.
-- The report has insufficient URL-specific CrUX data. The separate origin-level 28-day data shows p75 LCP 3.7 s, INP 442 ms, and CLS 0.25 (Core Web Vitals assessment failed). These rolling origin metrics do not establish a post-release effect.
-- Remaining Lighthouse diagnostics include 586 ms forced-reflow time attributed to Astro ClientRouter, a 1,001–1,051 ms critical request chain including the Cloudflare beacon and /cdn-cgi/rum, and an estimated 10 KiB of legacy JavaScript from Cloudflare utility. These are diagnostics, not failed SEO/accessibility checks. The Cloudflare utility is outside the generated app bundle; removing it may give up analytics. Removing ClientRouter would change soft navigation to full-page loads and remove route transitions, so neither change is made without an explicit product decision.
-- PR #71 already removes the article-only ReaderTools bundle and comments Worker connection hints from the homepage, keeps them on article pages, and adds a build-time regression verifier. This snapshot is not a controlled before/after test; no causal score increase or Google ranking result is claimed.
-
-### Verification status
-
-- GitHub PR #71 is merged as production-source commit f1c7500c8c1f7c0aaf0dd76629c1a6c63eb71129. Its CI run 39090192157 and Cloudflare PR deployment 102e6bc4-5bcc-4bca-8308-7b9f52050d0c succeeded.
-- Production deployment 49a9b25a-ad76-46d8-8a9b-4c46174be58b built that source commit; all five stages succeeded. All 174 log entries, including container logs, were checked for warning, deprecation, error, fatal, failure, and exception markers; none matched.
-- The current homepage returns HTTP 200; the apex host redirects to the www host, and the robots and sitemap-index endpoints return HTTP 200. Live homepage HTML has the expected canonical, si-LK/x-default hreflang, si_LK Open Graph locale, and Sinhala description; it omits the ReaderTools root/bundle and comments Worker preconnect. The PR build verifier confirms article pages retain those reader/comment features.
-- The most recent production Pages deployment is documentation-only deployment 434f4af7-a176-45ab-a1ba-00e82b23ff4f from main commit 2e0ca757c6a5de5ea1e4bed55f06410674e1b63e; all five stages succeeded and all 174 returned log entries had no warning/error markers.
-
-### SEO and measurement boundary
-
-- No app source or Cloudflare analytics setting changed in this follow-up. Search ranking cannot be guaranteed. Use a new, matching mobile/desktop PageSpeed run and a later 28-day CrUX window before attributing a performance change to PR #71.
