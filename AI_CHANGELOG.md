@@ -44,7 +44,10 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - Local `yarn test`: PASS (8 tests). Local `yarn build`: PASS (50 static pages; PDF, featured-link, social metadata, critical CSS, and homepage-performance verifiers passed). `node scripts/verify-homepage-seo.mjs`: PASS. `git diff --check`: PASS.
 - The default Prettier check cannot resolve the Astro parser from the existing configuration. With the Astro plugin loaded explicitly, the same three files already fail the check at the pristine base commit; the added sections match Prettier output, and no unrelated formatting was applied.
-- Draft PR, GitHub checks, and Cloudflare preview: pending. Production is unchanged; the current successful main deployment is 366940a6-645e-48e6-97fb-9f53d2636414 on commit 6e95ade21b02b94ab5b125730bbb660df96ec177.
+- GitHub Actions CI run `39187074164` passed Astro type-checking, regression-test steps, the static production build, and pagination/homepage SEO verifiers for commit `f648c1c9e1e57dc62f3e7df44070a2dd3575c0cb`; the Cloudflare Pages check also passed.
+- Cloudflare preview deployment `d52ec353-b722-4f12-9ab6-fe2693aacc8e` built that same branch commit and completed all five stages successfully. All 174 returned deployment-log entries, including container logs, were checked; none contained warning, deprecation, error, fatal, failure, or exception markers. The deployment URL and stable branch-preview URL returned HTTP 200. Preview HTML retained the exact text H1 and decorative, `aria-hidden` SVG; title, description, canonical URL, `si-LK` hreflang, and `x-default` hreflang matched production.
+- The live homepage returned HTTP 200 and still serves the original H1 without the ornament. Production remains on successful Cloudflare deployment `366940a6-645e-48e6-97fb-9f53d2636414`, commit `6e95ade21b02b94ab5b125730bbb660df96ec177`; PR #77 remains open as a draft and is not merged. No production deployment was made.
+- SEO/GEO boundary: this change is visual-only around the live heading; no page metadata, canonical/hreflang, structured data, or content was changed. No search-ranking or AI citation outcome is claimed.
 
 ## 2026-10-18 — Restore the copy-protection notice styles
 
