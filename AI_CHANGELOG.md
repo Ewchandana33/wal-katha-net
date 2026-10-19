@@ -14,6 +14,21 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Use one archive file per quarter and append later entries from that quarter to it. At quarter rollover, create the next quarter file. Verify each dated entry appears exactly once in the active log or an archive.
 - If later evidence changes a conclusion, add a dated correction that names the superseded entry; retain the earlier note as historical context.
 
+## 2026-10-19 — Rebuild the homepage title in a premium black-and-gold layout
+
+### Request and changes
+
+- The user asked to remove the current title treatment and rebuild it in a premium style, with a seated adult woman at the far right of the title.
+- Replaced the centered ivory title and small gold divider with a responsive dark black/brown panel, fine gold edge lighting, bold warm-gold Sinhala text, and an original inline vector illustration of a fully clothed adult woman seated at the right. The heading remains live, selectable Sinhala text; the illustration is decorative and hidden from assistive technology. No image download or font request was added.
+- Kept the page title, description, canonical/hreflang, structured data, navigation logo, and post content unchanged.
+- Updated the homepage verifier to check the new right-side portrait layout, live H1, and responsive wrapping.
+
+### Verification status
+
+- Branch created: `design/homepage-title-premium-20261019`. Changes are prepared for review only; no merge or production deployment has been performed.
+- Automated build, type-check, SEO verifier, and visual mobile/desktop review are pending because no local build environment was run during this GitHub edit.
+- This is a visual-only change; no search ranking or traffic outcome is claimed.
+
 ## Status snapshot — 2026-10-19
 
 - Cloudflare Pages project wala-katha is connected to Ewchandana33/wal-katha-net on main and serves walakatha.net and www.walakatha.net. The latest production deployment is be27a7f1-3390-4249-a329-772985b723a1, targeting main commit a1183c38b510a6bada150514af64fd32783ce9cb (PR #78); the deployment reports success.
@@ -73,85 +88,7 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - PR #79 remains open as a draft; this change has not been merged or deployed to production.
 - This is a presentation-only change; no ranking or traffic result is claimed.
 
-## 2026-10-19 — Rebuild the homepage title in a premium black-and-gold layout
-
-### Request and changes
-
-- The user asked to remove the current title treatment and rebuild it in a premium style, with a seated adult woman at the far right of the title.
-- Replaced the centered ivory title and small gold divider with a responsive dark black/brown panel, fine gold edge lighting, bold warm-gold Sinhala text, and an original inline vector illustration of a fully clothed adult woman seated at the right. The heading remains live, selectable Sinhala text; the illustration is decorative and hidden from assistive technology. No image download or font request was added.
-- Kept the page title, description, canonical/hreflang, structured data, navigation logo, and post content unchanged.
-- Updated the homepage verifier to check the new right-side portrait layout, live H1, and responsive wrapping.
-
-### Verification status
-
-- Branch created: `design/homepage-title-premium-20261019`. Changes are prepared for review only; no merge or production deployment has been performed.
-- Automated build, type-check, SEO verifier, and visual mobile/desktop review are pending because no local build environment was run during this GitHub edit.
-- This is a visual-only change; no search ranking or traffic outcome is claimed.
-
-
-### Request
-
-- The user asked to style the existing homepage title like the supplied ornamental green reference, not to place the reference image or a logo in the page. Keep the live title text and navigation logo unchanged.
-
-### Changes
-
-- Keep the exact H1 as live, selectable Sinhala text and style it with a transparent background, a layered green metallic gradient/bevel, and an aria-hidden inline SVG vine-and-leaf ornament. No image asset or additional font download is used; the navigation logo, page title, metadata, canonical URLs, hreflang, and content remain unchanged.
-- Extend the homepage verifier to check the unchanged H1 text, real text content, decorative SVG accessibility, no image inside the title, transparent background, single-line title, and narrow-screen styling.
-
-### Verification status
-
-- Local `yarn test`: PASS (8 tests). Local `yarn build`: PASS (50 static pages; PDF, featured-link, social metadata, critical CSS, and homepage-performance verifiers passed). `node scripts/verify-homepage-seo.mjs`: PASS. `git diff --check`: PASS.
-- The default Prettier check cannot resolve the Astro parser from the existing configuration. With the Astro plugin loaded explicitly, the same three files already fail the check at the pristine base commit; the added sections match Prettier output, and no unrelated formatting was applied.
-- GitHub Actions CI run `39187074164` passed Astro type-checking, regression-test steps, the static production build, and pagination/homepage SEO verifiers for commit `f648c1c9e1e57dc62f3e7df44070a2dd3575c0cb`; the Cloudflare Pages check also passed.
-- Cloudflare preview deployment `d52ec353-b722-4f12-9ab6-fe2693aacc8e` built that same branch commit and completed all five stages successfully. All 174 returned deployment-log entries, including container logs, were checked; none contained warning, deprecation, error, fatal, failure, or exception markers. The deployment URL and stable branch-preview URL returned HTTP 200. Preview HTML retained the exact text H1 and decorative, `aria-hidden` SVG; title, description, canonical URL, `si-LK` hreflang, and `x-default` hreflang matched production.
-- PR #77 was squash-merged as `997d359fa5565c3faa4e800f16a4b649ff00f705`; `main` and Cloudflare production now target that commit. Production deployment `146f296d-41bb-4330-98b4-4d427e9f2b25` completed all five stages successfully. All 174 deployment-log entries, including container logs, were checked; none contained warning, deprecation, error, fatal, failure, or exception markers. The live homepage returned HTTP 200 and serves the exact H1 with its decorative, `aria-hidden` SVG; title, description, canonical URL, `si-LK` and `x-default` hreflang remain unchanged. No Search Console ranking or AI-citation impact is claimed.
-- SEO/GEO boundary: this change is visual-only around the live heading; no page metadata, canonical/hreflang, structured data, or content was changed. No search-ranking or AI citation outcome is claimed.
-
-## 2026-10-18 — Restore the copy-protection notice styles
-
-### Root cause
-
-- Commit `4988719ab06c769a2c7aa1abf409b1370f82503f` removed the global content-protection toast styles and text-selection/drag protections from `Base.astro`; the deferred JavaScript still blocks normal copy/context-menu attempts and schedules the notice to hide after 2.6 seconds.
-- The live page still serves the handler script, but the production stylesheets contain no toast selector, so the notice loses its centered popup presentation.
-
-### Changes
-
-- Restore the centered, initially hidden toast and its visible state, icon/text styling, reduced-motion behavior, and casual text-selection/image-drag protections. Editable fields and the explicitly allowed reader-tools root remain selectable.
-- Add `scripts/content-protection.test.mjs` to exercise blocked copy/context-menu events, editable-target exemptions, and timed dismissal; include it in `yarn test`.
-
-### Verification status
-
-- Baseline `yarn test`: PASS (5 tests). Updated `yarn test`: PASS (8 tests). `git diff --check`: PASS.
-- PR #76 is a draft on `fix/copy-protection-notice-20261018`; implementation commit `6fd197909c32dfcdcb6d3c8817468d81c3c9c2d4`. GitHub Actions CI run `39098866567` passed Astro type-check, `yarn test`, static build, and SEO verifiers. Auto-merge workflow run `39098866580` was skipped because the PR is a draft.
-- Cloudflare preview deployment `7469a8e2-333b-468c-a99f-9762a890c33f` completed all five stages successfully. Its preview URL returned HTTP 200; the built Base stylesheet contains the centered, hidden/shown toast rules, and the deployed deferred script returns HTTP 200 with the copy/context-menu handlers and 2.6-second timeout.
-- Production remains on main commit `38aff5fa5cddb2f6b86d64634248fa0c0ff40f06`, Cloudflare deployment `413a198e-40cf-477d-8f13-c1392c22cb7a`; no production deployment was made for this fix.
-
-### Scope and limitation
-
-- The change restores browser-side deterrents and the notice; it cannot guarantee that publicly served content or files cannot be saved through browser tools, direct URLs, or other means.
-
-## 2026-10-18 — Exclude Astro ClientRouter from the initial homepage load
-
-### Why
-
-- The attached mobile PageSpeed snapshot attributed 586 ms of homepage forced reflow to ClientRouter. The user approved a targeted fix after the previous entry deferred this decision to avoid disrupting article-reader lifecycle behavior.
-
-### Changes
-
-- Base.astro now renders ClientRouter only off the homepage; article and other non-home routes keep it. The homepage build verifier now fails if the router asset appears on the homepage or is missing from an article.
-- A fresh visit starting at the homepage uses native navigation; pages that load ClientRouter retain their SPA behavior. SEO markup, analytics, and Cloudflare settings are unchanged.
-
-### Verification trail
-
-- PR #74 auto-merged as main commit 9390a592345afbfefb0a2af56df24e0bc6f0a08b. GitHub type-check/build run 39094926581 and auto-merge run 39094926639 succeeded.
-- Cloudflare preview 97fc5e49-d205-4bda-8c97-7b1d9c32e69f and production 9878e271-74d0-44ef-b9cd-00a58fff947b each completed all five stages. Each deployment returned 174 log entries; no warning, deprecation, error, fatal, failure, or exception markers matched. Both builds produced 50 pages and the homepage-performance check passed.
-- Preview and live checks returned HTTP 200 for homepage and /blog/akkai-nangi-wal-katha/. Both confirm no ClientRouter asset on the homepage and ClientRouter plus data-rt-root on the article. Live robots.txt and sitemap-index.xml also returned 200.
-- No PageSpeed/Lighthouse run was available after PR #74. Generated and live HTML confirm the runtime is absent from a fresh homepage response, but no new score or measured 586 ms reduction is claimed; desktop result remains unverified.
-
-### SEO boundary
-
-- Canonical, hreflang, metadata, robots rules, sitemap, and content were unchanged. No Google ranking outcome is claimed.
-
+## 2026-10-19 — Style the homepage Sinhala title to match the supplied reference
 
 ### Request
 
