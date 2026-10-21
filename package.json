@@ -54,7 +54,7 @@
     "@types/react-dom": "19.2.3",
     "beasties": "^0.5.4",
     "pdfjs-dist": "5.4.149",
-    "prettier": "^3.8.3",
+    "prettier": "^3.9.10",
     "prettier-plugin-astro": "^1.1.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "sharp": "0.35.0",
