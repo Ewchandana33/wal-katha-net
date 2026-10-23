@@ -166,13 +166,13 @@ html, body {
   border: 1px solid rgba(16, 185, 129, 0.2) !important;
 }
 
-/* Compact, text-only Sinhala homepage title. */
+/* Reference-matched, selectable Sinhala homepage title. */
 .home-title-stage {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 0;
-  padding: clamp(0.35rem, 1vw, 0.65rem) 0.5rem 0.15rem;
+  padding: clamp(0.9rem, 2vw, 1.45rem) 0.5rem clamp(1.1rem, 2.4vw, 1.75rem);
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -181,20 +181,29 @@ html, body {
 }
 
 .home-title {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem clamp(0.45rem, 1vw, 0.8rem);
   margin: 0;
   padding: 0;
   background: transparent;
   border: 0;
   box-shadow: none;
-  line-height: 1.15;
+  font-family: "Noto Sans Sinhala", "Iskoola Pota", system-ui, sans-serif;
+  font-size: clamp(2rem, 4.3vw, 4.25rem);
+  font-weight: 800;
+  line-height: 1.25;
 }
 
 .home-title__text {
   display: inline-block;
   max-width: 100%;
   color: #fffdf7;
-  font-family: "Noto Sans Sinhala", "Iskoola Pota", system-ui, sans-serif;
-  font-size: clamp(1.15rem, 3.7vw, 2.5rem);
+  font-family: inherit;
+  font-size: inherit;
   font-weight: 800;
   letter-spacing: 0;
   line-height: 1.35;
@@ -204,15 +213,17 @@ html, body {
 }
 
 .home-title__gold {
-  color: #efc75e;
-  background-image: linear-gradient(180deg, #fff4b7 0%, #f5d56b 36%, #c78618 74%, #fff0a1 100%);
-  text-shadow: 0 1px 0 rgba(126, 82, 10, 0.7), 0 2px 3px rgba(0, 0, 0, 0.78), 0 0 10px rgba(180, 28, 30, 0.18);
+  color: #ffd45a;
+  background-image: linear-gradient(180deg, #fff8c8 0%, #ffe16a 20%, #ffb91b 49%, #bd7007 76%, #fff2a2 100%);
+  text-shadow: 0 1px 0 rgba(255, 248, 190, 0.65), 0 2px 3px rgba(0, 0, 0, 0.75);
+  filter: drop-shadow(0 2px 0 rgba(104, 35, 3, 0.95)) drop-shadow(0 0 7px rgba(255, 31, 55, 0.62));
 }
 
 .home-title__ivory {
   color: #fffdf7;
-  background-image: linear-gradient(180deg, #fffefb 0%, #f0f1f2 55%, #cbd1d8 100%);
-  text-shadow: 0 1px 0 rgba(118, 112, 104, 0.7), 0 2px 3px rgba(0, 0, 0, 0.8), 0 0 10px rgba(180, 28, 30, 0.15);
+  background-image: linear-gradient(180deg, #fffefa 0%, #f4f1ed 54%, #d8dce3 100%);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.62), 0 2px 3px rgba(0, 0, 0, 0.82);
+  filter: drop-shadow(0 2px 0 rgba(75, 53, 51, 0.78)) drop-shadow(0 0 5px rgba(255, 36, 58, 0.38));
 }
 
 @supports (background-clip: text) or (-webkit-background-clip: text) {
@@ -224,28 +235,51 @@ html, body {
   }
 }
 
+.home-title__badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0.03em 0.38em;
+  border: 2px solid #ff2347;
+  border-radius: 999px;
+  color: #ff3153;
+  font-family: Arial, sans-serif;
+  font-size: max(0.65rem, 0.42em);
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-shadow: 0 0 7px rgba(255, 28, 65, 0.58);
+  box-shadow: 0 0 6px rgba(255, 25, 60, 0.45), inset 0 0 5px rgba(255, 25, 60, 0.14);
+}
+
 .home-title__text::after {
   display: block;
-  width: clamp(5rem, 24vw, 15rem);
+  width: clamp(8rem, 42vw, 36rem);
   height: 2px;
-  margin: 0.22rem auto 0;
+  margin: 0.16em auto 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent 0%, rgba(116, 20, 24, 0.35) 12%, #a4141d 28%, #e1433b 43%, #ffd978 50%, #e1433b 57%, #a4141d 72%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(115, 16, 26, 0.35) 12%, #d81736 28%, #ff2947 43%, #ffd95e 50%, #ff2947 57%, #d81736 72%, transparent 100%);
   content: "";
-  box-shadow: 0 0 8px rgba(225, 67, 59, 0.38);
+  box-shadow: 0 0 9px rgba(255, 34, 62, 0.62);
 }
 
 @media (max-width: 480px) {
   .home-title-stage {
-    padding: 0.2rem 0.35rem 0.1rem;
+    padding: 0.65rem 0.35rem 1.1rem;
+  }
+
+  .home-title {
+    gap: 0.35rem 0.5rem;
+    font-size: clamp(1.2rem, 5.5vw, 1.75rem);
   }
 
   .home-title__text {
-    font-size: clamp(1rem, 5vw, 1.4rem);
-    line-height: 1.35;
+    line-height: 1.4;
   }
 
   .home-title__text::after {
-    margin-top: 0.18rem;
+    width: min(78vw, 22rem);
+    margin-top: 0.16em;
   }
 }
