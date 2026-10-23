@@ -24,7 +24,10 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Verification status
 
-- Build, regression checks, and the refreshed Cloudflare preview are pending for this commit. The change stays on draft PR #89; no merge or production deployment is performed.
+- Implementation commit `a125567a215875042aefc753bf61f7cca7898560` on draft PR #89 passed GitHub Actions CI run `39920047946`.
+- Cloudflare Pages preview deployment `332d6b5a-cfdd-41ca-9210-927191135742` completed all five stages successfully for that same commit. Preview: https://332d6b5a.wala-katha.pages.dev (branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev). The preview homepage returned HTTP 200; all 174/174 available deployment log records, including container logs, were inspected and none matched error, fatal, failure, exception, or warning markers.
+- Rendered HTML retains the Sinhala H1 `සිංහල වල් කතා සහ වැල් කතා` and contains no image/vector/canvas markup in the title region. Compiled CSS contains the red X and underline accents. Cloudflare Browser Rendering screenshots at 462×900 mobile and 1280×900 desktop confirmed the title, underline, and CSS silhouette layout.
+- The PR remains a draft; no merge or production deployment has been performed.
 
 ## 2026-10-23 — Tighten the homepage title layout and redraw its feminine silhouette
 
