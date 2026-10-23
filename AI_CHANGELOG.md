@@ -25,7 +25,10 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Verification status
 
-- Implementation, GitHub CI, Cloudflare preview deployment, and mobile/desktop screenshot checks are pending. Work remains on draft PR #89; no merge or production deployment has been performed.
+- Final visual commit `59ca86fa2dce115d4235bed4b8e2f08f1fee040b` on draft PR #89 passed GitHub Actions CI run `39922499590`.
+- Cloudflare Pages preview deployment `e89f24d1-b255-4655-8632-81c684536d57` completed all five stages successfully for that commit. Preview: https://e89f24d1.wala-katha.pages.dev. The homepage returned HTTP 200; all 174/174 available deployment-log records, including container logs, were inspected and none matched error, fatal, failure, exception, or warning markers.
+- Rendered HTML retains the exact Sinhala H1 `සිංහල වල් කතා සහ වැල් කතා` and has no figure/image/vector/canvas markup in the title region. Compiled title CSS has no silhouette or clip-path rules. Browser-rendered title-region screenshots at 462×900 mobile and 1280×900 desktop confirm centered warm-white Sinhala typography and the brighter teal-mint underline, with no decorative picture.
+- PR #89 remains a draft; no merge or production deployment has been performed.
 
 ## 2026-10-23 — Add the reference's red title accent
 
