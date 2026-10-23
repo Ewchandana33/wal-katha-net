@@ -24,7 +24,9 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Verification status
 
-- Implementation commit and CI/Cloudflare preview checks are pending. Record their exact outcomes here after the branch checks finish.
+- Implementation commit `b719ac0feadab16e69f7a614aac0772ddd8f242e` is in draft PR #89. GitHub Actions CI run `39898274324` completed successfully.
+- Cloudflare Pages preview deployment `dbedd595-8f71-41d5-8774-9a80dcfcd033` completed all five stages successfully for that commit. Preview URL: https://dbedd595.wala-katha.pages.dev; branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev.
+- Direct HTTP GET of the preview returned 200. The rendered title region kept the exact Sinhala H1, included the CSS-drawn figure, omitted “WAL KATHA”, and contained no img/svg/picture/canvas markup. The downloaded compiled CSS contains the figure selectors, red title rule, and the responsive 480px media rule.
 - PR #89 remains a draft; no merge or production deployment was performed.
 
 ## 2026-10-23 — Replace the boxed portrait with a text-only Sinhala title
