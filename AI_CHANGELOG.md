@@ -16,7 +16,20 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 2026-10-14 through 2026-10-23; 49 dated entries.
+- archive/AI_CHANGELOG-2026-Q4.md — 2026-10-14 through 2026-10-23; 50 dated entries.
+
+## 2026-10-23 — Use the exact reference artwork for the homepage title
+
+### Why and changes
+
+- The previous live-text/CSS styling preserved editable Sinhala text but could not guarantee the exact glyph shapes, metallic finish, glow, and badge in the supplied image. This correction uses the supplied reference itself for the visible title artwork.
+- Added public/images/home-title-reference.webp, a lossless 2048 × 280 crop of the supplied PNG (354,480 bytes). The visible letterforms, gold/red treatment, underline, and 18+ badge come directly from that reference.
+- Kept the homepage H1 and exact Sinhala wording as the artwork alt text and H1 accessible name. The image scales to the viewport while preserving its aspect ratio; no new dependency or unrelated page change.
+- This supersedes the earlier text-only visual approach in the same PR. Changes remain on draft PR #91; no merge or Production deployment.
+
+### Verification
+
+- Pending for this correction. GitHub CI, Cloudflare Preview, asset delivery, and the final commit/deployment will be recorded after they complete.
 
 ## 2026-10-23 — Match the homepage title to the gold/red reference
 
@@ -96,17 +109,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Cloudflare Pages preview deployment `332d6b5a-cfdd-41ca-9210-927191135742` completed all five stages successfully for that same commit. Preview: https://332d6b5a.wala-katha.pages.dev (branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev). The preview homepage returned HTTP 200; all 174/174 available deployment log records, including container logs, were inspected and none matched error, fatal, failure, exception, or warning markers.
 - Rendered HTML retains the Sinhala H1 `සිංහල වල් කතා සහ වැල් කතා` and contains no image/vector/canvas markup in the title region. Compiled CSS contains the red X and underline accents. Cloudflare Browser Rendering screenshots at 462×900 mobile and 1280×900 desktop confirmed the title, underline, and CSS silhouette layout.
 - The PR remains a draft; no merge or production deployment has been performed.
-
-## 2026-10-23 — Tighten the homepage title layout and redraw its feminine silhouette
-
-### Request and changes
-
-- Review of the supplied phone screenshot found the title stage reserved 8.5rem of mobile height while the figure itself reserved 128px; this pushed the featured story down and left unnecessary space.
-- Reduced the title stage, then browser screenshot review caught CSS grid auto-placement putting the H1 under the figure; explicitly anchored both to row 1 and increased the mobile figure to 110px for a clearer, more legible side-by-side layout.
-- Trimmed the title-to-slider gap and changed the neon red heading to restrained warm ivory on black.
-- Redrew the decorative white figure as a CSS-only silhouette with flowing hair, a defined waist/hips, and a fitted full-length shape. No photo, image file, inline SVG, canvas, font, or external asset is added. The live Sinhala H1 and SEO metadata stay unchanged.
-- Strengthened the homepage regression verifier for the no-image design, compact mobile spacing, and silhouette geometry.
-
-### Verification status
-
-- Implementation and preview verification are pending. This change is on the existing draft PR #89; no merge or production deployment has been performed.
