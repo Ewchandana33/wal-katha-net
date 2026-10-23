@@ -43,35 +43,28 @@ const titleStyles = readFileSync(
   "utf8",
 );
 const titleRegion = html.match(/<div class="home-title-stage[^"]*"[^>]*>([\s\S]*?)<\/div>/i)?.[1];
-assert.ok(titleRegion, "Homepage should render the open text-only title region");
-assert.match(titleRegion, /class="home-title__figure" aria-hidden="true"[\s\S]*class="home-title__figure-hair"[\s\S]*class="home-title__figure-shape"/i, "The CSS-drawn feminine silhouette should sit beside the title and be hidden from assistive technology");
-assert.doesNotMatch(titleRegion, /WAL KATHA/i, "The removed white subtitle should stay absent");
-assert.doesNotMatch(titleRegion, /<(?:img|svg|picture|canvas)\b/i, "Homepage title should not load or embed a picture or vector asset");
+assert.ok(titleRegion, "Homepage should render the title region");
+assert.match(titleRegion, /class="home-title__text"/i, "Homepage H1 should remain visible Sinhala text");
+assert.doesNotMatch(titleRegion, /home-title__figure|<(?:img|svg|picture|canvas)\b|WAL KATHA/i, "Homepage title should contain no decorative figure, image, vector, or subtitle");
 
 const titleStyleStart = titleStyles.indexOf(".home-title-stage {");
 const mobileTitleStyles = titleStyles.indexOf("@media (max-width: 480px)", titleStyleStart);
-assert.ok(titleStyleStart >= 0, "Open homepage title styles should exist");
+assert.ok(titleStyleStart >= 0, "Homepage title styles should exist");
 assert.ok(mobileTitleStyles > titleStyleStart, "Homepage mobile title styles should follow desktop rules");
 const homeTitleStyles = titleStyles.slice(titleStyleStart, mobileTitleStyles);
 const mobileTitleBlock = titleStyles.slice(mobileTitleStyles);
+assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*display:\s*flex/s, "Homepage title should use a clean single-column layout");
+assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*justify-content:\s*center/s, "Homepage title should be centered");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*background:\s*transparent/s, "Homepage title region should have no card background");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*border:\s*0/s, "Homepage title region should have no border");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*box-shadow:\s*none/s, "Homepage title region should have no card shadow");
-assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*min-height:\s*0/s, "Homepage title region should not reserve a tall empty block");
-assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#f3e8de/i, "Sinhala title should use a restrained warm-white color");
-assert.doesNotMatch(titleStyles, /home-title__portrait|home-title-shell/i, "Old portrait and boxed-title styles should be removed");
-assert.match(titleStyles, /\.home-title__figure-hair\s*\{/i, "The feminine silhouette should include a hair shape");
-assert.match(titleStyles, /\.home-title__figure-shape\s*\{/i, "The feminine silhouette should include a body shape");
-assert.match(titleStyles, /clip-path:\s*path\(/i, "The silhouette should use smooth CSS path geometry rather than an image asset");
-assert.match(homeTitleStyles, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+70px/i, "The title layout should reserve a compact side column for the silhouette");
-assert.match(homeTitleStyles, /\.home-title\s*\{[^}]*grid-row:\s*1/s, "The H1 should share a row with the side silhouette");
-assert.match(homeTitleStyles, /\.home-title__figure\s*\{[^}]*grid-row:\s*1/s, "The side silhouette should share a row with the H1");
-assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.15rem 0/s, "Mobile title padding should stay compact");
-assert.match(mobileTitleBlock, /\.home-title__figure\s*\{[^}]*height:\s*110px/s, "Mobile silhouette height should stay compact");
+assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#f2f7f6/i, "Sinhala title should use high-contrast warm-white text");
+assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Sinhala title size should scale responsively");
+assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*#01ad9f/i, "The live Sinhala title should have a restrained brand-teal underline");
+assert.doesNotMatch(titleStyles, /home-title__figure|clip-path:/i, "No CSS silhouette or graphic should remain in the title styles");
+assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.3rem 0\.4rem 0\.6rem/s, "Mobile title spacing should remain compact");
+assert.match(mobileTitleBlock, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Mobile Sinhala title should use responsive type size");
 assert.match(titleStyles, /@media\s*\(max-width:\s*480px\)/, "Homepage title should adapt on narrow mobile screens");
-
-assert.match(titleStyles, /\.home-title__figure::after\s*\{[^}]*#c32435/i, "The feminine silhouette should have a layered red X accent inspired by the supplied reference");
-assert.match(titleStyles, /\.home-title__text::after\s*\{[^}]*#fb4250/i, "The live Sinhala heading should have a restrained red underline accent");
 
 const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
 const descriptions = metaTags.filter((tag) => /\bname=["']description["']/i.test(tag));
@@ -102,5 +95,5 @@ const localeMeta = (html.match(/<meta\b[^>]*>/gi) || []).find((tag) => attribute
 assert.equal(attribute(localeMeta || "", "content"), "si_LK", "Homepage Open Graph locale should target Sinhala in Sri Lanka");
 
 console.log(
-  "[homepage-seo] Compact Sinhala-first title, CSS-drawn feminine side silhouette without image assets, mobile spacing, locale metadata, and description verified.",
+  "[homepage-seo] Centered text-only Sinhala title, responsive brand accent, locale metadata, and description verified.",
 );
