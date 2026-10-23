@@ -64,8 +64,10 @@ assert.match(titleStyles, /\.home-title__figure-hair\s*\{/i, "The feminine silho
 assert.match(titleStyles, /\.home-title__figure-shape\s*\{/i, "The feminine silhouette should include a body shape");
 assert.match(titleStyles, /clip-path:\s*path\(/i, "The silhouette should use smooth CSS path geometry rather than an image asset");
 assert.match(homeTitleStyles, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+70px/i, "The title layout should reserve a compact side column for the silhouette");
+assert.match(homeTitleStyles, /\.home-title\s*\{[^}]*grid-row:\s*1/s, "The H1 should share a row with the side silhouette");
+assert.match(homeTitleStyles, /\.home-title__figure\s*\{[^}]*grid-row:\s*1/s, "The side silhouette should share a row with the H1");
 assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.15rem 0/s, "Mobile title padding should stay compact");
-assert.match(mobileTitleBlock, /\.home-title__figure\s*\{[^}]*height:\s*94px/s, "Mobile silhouette height should stay compact");
+assert.match(mobileTitleBlock, /\.home-title__figure\s*\{[^}]*height:\s*110px/s, "Mobile silhouette height should stay compact");
 assert.match(titleStyles, /@media\s*\(max-width:\s*480px\)/, "Homepage title should adapt on narrow mobile screens");
 
 const metaTags = html.match(/<meta\b[^>]*>/gi) || [];

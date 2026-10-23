@@ -19,7 +19,8 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 ### Request and changes
 
 - Review of the supplied phone screenshot found the title stage reserved 8.5rem of mobile height while the figure itself reserved 128px; this pushed the featured story down and left unnecessary space.
-- Reduced the mobile title stage and figure to a compact ~94px, trimmed the title-to-slider gap, and changed the neon red heading to restrained warm ivory on black.
+- Reduced the title stage, then browser screenshot review caught CSS grid auto-placement putting the H1 under the figure; explicitly anchored both to row 1 and increased the mobile figure to 110px for a clearer, more legible side-by-side layout.
+- Trimmed the title-to-slider gap and changed the neon red heading to restrained warm ivory on black.
 - Redrew the decorative white figure as a CSS-only silhouette with flowing hair, a defined waist/hips, and a fitted full-length shape. No photo, image file, inline SVG, canvas, font, or external asset is added. The live Sinhala H1 and SEO metadata stay unchanged.
 - Strengthened the homepage regression verifier for the no-image design, compact mobile spacing, and silhouette geometry.
 
