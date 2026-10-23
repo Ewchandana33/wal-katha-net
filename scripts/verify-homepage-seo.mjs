@@ -44,8 +44,9 @@ const titleStyles = readFileSync(
 );
 const titleRegion = html.match(/<div class="home-title-stage[^"]*"[^>]*>([\s\S]*?)<\/div>/i)?.[1];
 assert.ok(titleRegion, "Homepage should render the open text-only title region");
+assert.match(titleRegion, /class="home-title__figure" aria-hidden="true"/i, "A decorative CSS-drawn adult feminine figure should accompany the title");
+assert.doesNotMatch(titleRegion, /WAL KATHA/i, "The removed white subtitle should stay absent");
 assert.doesNotMatch(titleRegion, /<(?:img|svg|picture|canvas)\b/i, "Homepage title should not contain an image or illustration");
-assert.match(titleRegion, /class="home-title__english" aria-hidden="true">WAL KATHA<\/span>/i, "The white subtitle should be decorative text, not a logo image");
 
 const titleStyleStart = titleStyles.indexOf(".home-title-stage {");
 const mobileTitleStyles = titleStyles.indexOf("@media (max-width: 480px)", titleStyleStart);
@@ -56,8 +57,8 @@ assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*background:\s*transpa
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*border:\s*0/s, "Homepage title region should have no border");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*box-shadow:\s*none/s, "Homepage title region should have no card shadow");
 assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#f13a59/i, "Sinhala title should use the vivid red reference color");
-assert.match(homeTitleStyles, /\.home-title__english\s*\{[^}]*color:\s*#f3eef0/i, "The secondary text should use a clear white tone");
-assert.doesNotMatch(titleStyles, /home-title__(?:portrait|figure)|home-title-shell/i, "Old portrait and boxed-title styles should be removed");
+assert.doesNotMatch(titleStyles, /home-title__portrait|home-title-shell/i, "Old portrait and boxed-title styles should be removed");
+assert.match(titleStyles, /\.home-title__figure\s*\{/i, "The feminine accent should be drawn with CSS");
 assert.match(titleStyles, /@media\s*\(max-width:\s*480px\)/, "Homepage title should adapt on narrow mobile screens");
 
 const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
@@ -89,5 +90,5 @@ const localeMeta = (html.match(/<meta\b[^>]*>/gi) || []).find((tag) => attribute
 assert.equal(attribute(localeMeta || "", "content"), "si_LK", "Homepage Open Graph locale should target Sinhala in Sri Lanka");
 
 console.log(
-  "[homepage-seo] Sinhala-first title, responsive live-text H1, image-free red/white typography, locale metadata, and description verified.",
+  "[homepage-seo] Sinhala-first title, CSS-drawn image-free accent, responsive live-text H1 without a subtitle, locale metadata, and description verified.",
 );

@@ -14,6 +14,19 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Use one archive file per quarter and append later entries from that quarter to it. At quarter rollover, create the next quarter file. Verify each dated entry appears exactly once in the active log or an archive.
 - If later evidence changes a conclusion, add a dated correction that names the superseded entry; retain the earlier note as historical context.
 
+## 2026-10-23 — Replace the title subtitle with a CSS-drawn feminine accent
+
+### Request and changes
+
+- Removed the small white “WAL KATHA” line and added a restrained red line-art feminine silhouette inspired by the supplied reference. The illustration is built from HTML spans and CSS borders/curves only; no picture, inline SVG, canvas, or external asset is used.
+- Kept the Sinhala H1 as live text, the open/no-card layout, existing metadata, and the responsive red title treatment.
+- Updated the homepage verifier to require the CSS ornament and no subtitle or image markup.
+
+### Verification status
+
+- Implementation commit and CI/Cloudflare preview checks are pending. Record their exact outcomes here after the branch checks finish.
+- PR #89 remains a draft; no merge or production deployment was performed.
+
 ## 2026-10-23 — Replace the boxed portrait with a text-only Sinhala title
 
 ### Request and changes
@@ -55,7 +68,7 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - PageSpeed status: the 2026-10-17 mobile baseline scored 79; the distinct 2026-10-18 mobile snapshot scored Performance 87 and SEO/Accessibility/Best Practices 100, with lab LCP 3.5 s, TBT 0 ms, CLS 0. It attributed 586 ms forced reflow to Astro ClientRouter; PR #74 now excludes that asset from fresh homepage HTML. No post-PR #74 PageSpeed run is available, so a new score or measured reduction is unverified; desktop remains unverified. Prior PSI API reruns were quota-blocked with 429.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 43 earlier dated entries from 2026-10-14 through 2026-10-18; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 46 earlier dated entries from 2026-10-14 through 2026-10-19; dated sections are retained verbatim.
 
 ## Recent entries
 
@@ -102,23 +115,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Final PR-head audit at `18f9984120f130da2fee8883e81ea1cba3242940`: GitHub Actions run `39200819703` passed the required Type-check and production-build check. Cloudflare preview deployment `33744822-03e4-48b3-ac7f-63c36b120c95` completed all five stages successfully; both `https://33744822.wala-katha.pages.dev` and `https://fix-homepage-sinhala-title-c.wala-katha.pages.dev` returned HTTP 200. Direct live checks found the preview H1, title, description, canonical URL, and `si-LK`/`x-default` hreflang equal to production; the bevel `data-title` source is absent from preview HTML. The Cloudflare logs API reports 174 total entries but returned 173 entries; all 173 returned entries were scanned and none matched warning, deprecation, error, fatal, failure, or exception markers. One entry was not returned and remains unverified. Production remained on commit `a1183c38b510a6bada150514af64fd32783ce9cb` (deployment `be27a7f1-3390-4249-a329-772985b723a1`); PR #79 was not merged or deployed to production.
 - PR #79 remains open as a draft; this change has not been merged or deployed to production.
 - This is a presentation-only change; no ranking or traffic result is claimed.
-
-## 2026-10-19 — Style the homepage Sinhala title to match the supplied reference
-
-### Request
-
-- The user asked to style the existing homepage title like the supplied ornamental green reference, not to place the reference image or a logo in the page. Keep the live title text and navigation logo unchanged.
-
-### Changes
-
-- Keep the exact H1 as live, selectable Sinhala text and style it with a transparent background, a layered green metallic gradient/bevel, and an aria-hidden inline SVG vine-and-leaf ornament. No image asset or additional font download is used; the navigation logo, page title, metadata, canonical URLs, hreflang, and content remain unchanged.
-- Extend the homepage verifier to check the unchanged H1 text, real text content, decorative SVG accessibility, no image inside the title, transparent background, single-line title, and narrow-screen styling.
-
-### Verification status
-
-- Local `yarn test`: PASS (8 tests). Local `yarn build`: PASS (50 static pages; PDF, featured-link, social metadata, critical CSS, and homepage-performance verifiers passed). `node scripts/verify-homepage-seo.mjs`: PASS. `git diff --check`: PASS.
-- The default Prettier check cannot resolve the Astro parser from the existing configuration. With the Astro plugin loaded explicitly, the same three files already fail the check at the pristine base commit; the added sections match Prettier output, and no unrelated formatting was applied.
-- GitHub Actions CI run `39187074164` passed Astro type-checking, regression-test steps, the static production build, and pagination/homepage SEO verifiers for commit `f648c1c9e1e57dc62f3e7df44070a2dd3575c0cb`; the Cloudflare Pages check also passed.
-- Cloudflare preview deployment `d52ec353-b722-4f12-9ab6-fe2693aacc8e` built that same branch commit and completed all five stages successfully. All 174 returned deployment-log entries, including container logs, were checked; none contained warning, deprecation, error, fatal, failure, or exception markers. The deployment URL and stable branch-preview URL returned HTTP 200. Preview HTML retained the exact text H1 and decorative, `aria-hidden` SVG; title, description, canonical URL, `si-LK` hreflang, and `x-default` hreflang matched production.
-- PR #77 was squash-merged as `997d359fa5565c3faa4e800f16a4b649ff00f705`; `main` and Cloudflare production now target that commit. Production deployment `146f296d-41bb-4330-98b4-4d427e9f2b25` completed all five stages successfully. All 174 deployment-log entries, including container logs, were checked; none contained warning, deprecation, error, fatal, failure, or exception markers. The live homepage returned HTTP 200 and serves the exact H1 with its decorative, `aria-hidden` SVG; title, description, canonical URL, `si-LK` and `x-default` hreflang remain unchanged. No Search Console ranking or AI-citation impact is claimed.
-- SEO/GEO boundary: this change is visual-only around the live heading; no page metadata, canonical/hreflang, structured data, or content was changed. No search-ranking or AI citation outcome is claimed.
