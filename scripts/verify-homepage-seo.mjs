@@ -70,6 +70,9 @@ assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.15rem 
 assert.match(mobileTitleBlock, /\.home-title__figure\s*\{[^}]*height:\s*110px/s, "Mobile silhouette height should stay compact");
 assert.match(titleStyles, /@media\s*\(max-width:\s*480px\)/, "Homepage title should adapt on narrow mobile screens");
 
+assert.match(titleStyles, /\.home-title__figure::after\s*\{[^}]*#c32435/i, "The feminine silhouette should have a layered red X accent inspired by the supplied reference");
+assert.match(titleStyles, /\.home-title__text::after\s*\{[^}]*#fb4250/i, "The live Sinhala heading should have a restrained red underline accent");
+
 const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
 const descriptions = metaTags.filter((tag) => /\bname=["']description["']/i.test(tag));
 assert.equal(descriptions.length, 1, `Expected one homepage description; found ${descriptions.length}`);

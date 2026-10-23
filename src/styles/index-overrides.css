@@ -179,6 +179,8 @@ html, body {
   border-radius: 0;
   box-shadow: none;
   text-align: center;
+  position: relative;
+  isolation: isolate;
 }
 
 .home-title {
@@ -201,14 +203,29 @@ html, body {
   width: 70px;
   height: 160px;
   margin: 0;
+  isolation: isolate;
+  z-index: 1;
 }
 
 .home-title__figure::before {
   position: absolute;
+  z-index: 1;
   inset: 16% 0 5%;
   background: radial-gradient(ellipse, rgba(177, 49, 65, 0.16), transparent 70%);
   content: "";
   filter: blur(10px);
+}
+
+.home-title__figure::after {
+  position: absolute;
+  z-index: 0;
+  inset: 8% -14% 4%;
+  background:
+    linear-gradient(135deg, transparent 41%, rgba(113, 8, 21, 0.98) 42%, #c32435 47%, #fb4250 50%, #810b19 55%, transparent 56%),
+    linear-gradient(45deg, transparent 41%, rgba(113, 8, 21, 0.98) 42%, #c32435 47%, #fb4250 50%, #810b19 55%, transparent 56%);
+  content: "";
+  filter: drop-shadow(0 0 6px rgba(205, 34, 51, 0.55));
+  opacity: 0.92;
 }
 
 .home-title__figure-hair,
@@ -224,13 +241,13 @@ html, body {
 }
 
 .home-title__figure-hair {
-  z-index: 0;
+  z-index: 2;
   clip-path: polygon(50% 2%, 62% 3%, 72% 8%, 78% 16%, 76% 23%, 70% 28%, 74% 36%, 77% 50%, 81% 62%, 90% 74%, 94% 85%, 89% 87%, 75% 74%, 68% 64%, 66% 48%, 62% 38%, 56% 32%, 46% 34%, 40% 41%, 38% 60%, 32% 72%, 20% 84%, 15% 81%, 25% 68%, 29% 51%, 30% 38%, 35% 29%, 40% 25%, 38% 20%, 36% 13%, 39% 6%);
   clip-path: path("M 44 4 C 33 4 28 13 30 23 C 31 30 34 35 39 39 C 33 42 31 49 30 58 L 28 76 C 27 87 22 97 17 105 C 15 109 18 113 22 110 C 28 105 34 97 37 88 C 40 78 40 67 40 56 C 41 48 46 44 50 49 L 52 67 C 53 78 56 88 62 97 L 72 109 C 76 113 79 110 76 105 L 68 87 C 65 77 64 67 64 57 C 64 48 59 42 52 39 C 57 34 59 28 59 22 C 59 12 53 4 44 4 Z");
 }
 
 .home-title__figure-shape {
-  z-index: 1;
+  z-index: 3;
   clip-path: polygon(46% 18%, 55% 19%, 62% 23%, 68% 31%, 65% 39%, 70% 46%, 77% 56%, 72% 62%, 66% 58%, 63% 51%, 64% 61%, 72% 69%, 68% 74%, 61% 71%, 66% 84%, 70% 92%, 83% 97%, 82% 100%, 61% 100%, 58% 96%, 53% 80%, 50% 72%, 46% 82%, 42% 97%, 38% 100%, 17% 100%, 16% 98%, 28% 93%, 31% 89%, 33% 75%, 27% 82%, 22% 87%, 18% 83%, 26% 73%, 34% 63%, 32% 55%, 28% 63%, 24% 67%, 20% 63%, 27% 48%, 31% 36%, 35% 25%);
   clip-path: path("M 40 37 C 34 38 30 42 29 48 L 23 64 C 21 69 25 72 28 68 L 35 55 L 34 69 C 34 75 31 79 27 83 L 22 88 C 19 91 22 96 26 94 L 34 88 C 35 96 33 101 30 108 L 24 124 C 22 129 25 132 29 129 L 37 116 L 37 134 C 37 141 32 150 32 158 L 31 180 C 31 186 28 190 23 192 L 14 194 C 11 196 13 199 17 199 L 34 199 C 38 198 39 194 40 188 L 45 158 L 48 143 L 52 158 L 56 190 C 57 195 58 198 62 199 L 78 199 C 82 198 81 196 78 194 L 70 191 C 65 189 63 185 63 180 L 62 158 C 62 149 57 141 57 134 L 57 116 L 65 129 C 68 132 72 129 70 124 L 65 108 C 62 100 59 95 58 88 L 65 94 C 69 96 72 92 68 88 L 61 81 C 57 77 55 73 55 68 L 54 55 L 61 68 C 64 72 68 69 66 65 L 58 48 C 56 42 51 38 46 37 Z");
   filter: drop-shadow(0 1px 4px rgba(255, 255, 255, 0.12)) drop-shadow(0 0 8px rgba(177, 49, 65, 0.18));
@@ -248,6 +265,17 @@ html, body {
   text-wrap: balance;
   overflow-wrap: anywhere;
   text-shadow: 0 0 14px rgba(177, 49, 65, 0.2);
+}
+
+.home-title__text::after {
+  display: block;
+  width: clamp(2.5rem, 7vw, 4rem);
+  height: 2px;
+  margin: 0.38rem auto 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #c32435 20%, #fb4250 50%, #c32435 80%, transparent);
+  content: "";
+  box-shadow: 0 0 10px rgba(205, 34, 51, 0.5);
 }
 
 @media (max-width: 480px) {

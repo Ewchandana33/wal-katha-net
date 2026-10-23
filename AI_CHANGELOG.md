@@ -14,6 +14,18 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Use one archive file per quarter and append later entries from that quarter to it. At quarter rollover, create the next quarter file. Verify each dated entry appears exactly once in the active log or an archive.
 - If later evidence changes a conclusion, add a dated correction that names the superseded entry; retain the earlier note as historical context.
 
+## 2026-10-23 — Add the reference's red title accent
+
+### Request and changes
+
+- The current preview had the live Sinhala heading and white CSS silhouette aligned, but the black-and-red reference was not yet reflected in the title treatment.
+- Add a dimensional red X behind the existing figure and a restrained red rule beneath the live heading using CSS only. Keep the Sinhala H1, SEO metadata, responsive layout, and no-image design unchanged.
+- Extend the homepage verifier to check both accents.
+
+### Verification status
+
+- Build, regression checks, and the refreshed Cloudflare preview are pending for this commit. The change stays on draft PR #89; no merge or production deployment is performed.
+
 ## 2026-10-23 — Tighten the homepage title layout and redraw its feminine silhouette
 
 ### Request and changes
