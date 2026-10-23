@@ -37,6 +37,14 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - A direct HTTP GET of the latest preview returned 200. All 174 available deployment-log records, including container logs, were checked; none matched error, failed, failure, warning, warn, fatal, or exception markers.
 - Cloudflare still lists Production on `main` at commit `e6128b7d72b5f00e5f28f9cc323576396d5a9f25`. PR #89 remains a draft and unmerged; no production deployment was made.
 
+### Production rollout correction (2026-10-23)
+
+- Correction to the preview-time status above: after the user approved release, PR #89 was marked ready and squash-merged by `github-actions[bot]` as commit `6648977aea400a5e38e1227d928d1724c53d90b0`. This supersedes the earlier draft/unreleased status.
+- Cloudflare Pages Production deployment `b6e2ea19-2bfe-4c57-83bc-426df10ef3f1` for that exact `main` commit completed all five stages successfully.
+- `https://walakatha.net/` redirected to `https://www.walakatha.net/`; both returned HTTP 200. The live page retained the exact Sinhala H1 `සිංහල වල් කතා සහ වැල් කතා`, the teal accent CSS, and no `img`, `figure`, `svg`, `picture`, or `canvas` elements in the title region.
+- All 174 available Production deployment-log records, including container logs, were checked; none matched error, failure, warning, fatal, or exception markers.
+- GitHub Actions CI run `39932966097` passed on the approved PR head `7dc9964796726f8696f159b5f5a80e954839ec27`; the required Cloudflare Pages check passed on the merge commit. No site code changed in this documentation correction.
+
 ## 2026-10-23 — Add the reference's red title accent
 
 ### Request and changes
