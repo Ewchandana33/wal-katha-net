@@ -2,7 +2,7 @@
 
 Historical entries moved from AI_CHANGELOG.md on 2026-10-15, 2026-10-16, and 2026-10-18 during active-log retention rotations. All dated sections below retain their original wording and chronological order. Read AI_CHANGELOG.md first for active instructions and the latest status; archived statuses may have been superseded by later evidence.
 
-Coverage: 2026-10-14 through 2026-10-18; 43 dated entries.
+Coverage: 2026-10-14 through 2026-10-18; 45 dated entries.
 
 
 ## 2026-10-14 — Complete PR #15 image-variant CI verification
@@ -926,3 +926,48 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 ### SEO and measurement boundary
 
 - No app source or Cloudflare analytics setting changed in this follow-up. Search ranking cannot be guaranteed. Use a new, matching mobile/desktop PageSpeed run and a later 28-day CrUX window before attributing a performance change to PR #71.
+
+## 2026-10-18 — Exclude Astro ClientRouter from the initial homepage load
+
+### Why
+
+- The attached mobile PageSpeed snapshot attributed 586 ms of homepage forced reflow to ClientRouter. The user approved a targeted fix after the previous entry deferred this decision to avoid disrupting article-reader lifecycle behavior.
+
+### Changes
+
+- Base.astro now renders ClientRouter only off the homepage; article and other non-home routes keep it. The homepage build verifier now fails if the router asset appears on the homepage or is missing from an article.
+- A fresh visit starting at the homepage uses native navigation; pages that load ClientRouter retain their SPA behavior. SEO markup, analytics, and Cloudflare settings are unchanged.
+
+### Verification trail
+
+- PR #74 auto-merged as main commit 9390a592345afbfefb0a2af56df24e0bc6f0a08b. GitHub type-check/build run 39094926581 and auto-merge run 39094926639 succeeded.
+- Cloudflare preview 97fc5e49-d205-4bda-8c97-7b1d9c32e69f and production 9878e271-74d0-44ef-b9cd-00a58fff947b each completed all five stages. Each deployment returned 174 log entries; no warning, deprecation, error, fatal, failure, or exception markers matched. Both builds produced 50 pages and the homepage-performance check passed.
+- Preview and live checks returned HTTP 200 for homepage and /blog/akkai-nangi-wal-katha/. Both confirm no ClientRouter asset on the homepage and ClientRouter plus data-rt-root on the article. Live robots.txt and sitemap-index.xml also returned 200.
+- No PageSpeed/Lighthouse run was available after PR #74. Generated and live HTML confirm the runtime is absent from a fresh homepage response, but no new score or measured 586 ms reduction is claimed; desktop result remains unverified.
+
+### SEO boundary
+
+- Canonical, hreflang, metadata, robots rules, sitemap, and content were unchanged. No Google ranking outcome is claimed.
+
+## 2026-10-18 — Restore the copy-protection notice styles
+
+### Root cause
+
+- Commit `4988719ab06c769a2c7aa1abf409b1370f82503f` removed the global content-protection toast styles and text-selection/drag protections from `Base.astro`; the deferred JavaScript still blocks normal copy/context-menu attempts and schedules the notice to hide after 2.6 seconds.
+- The live page still serves the handler script, but the production stylesheets contain no toast selector, so the notice loses its centered popup presentation.
+
+### Changes
+
+- Restore the centered, initially hidden toast and its visible state, icon/text styling, reduced-motion behavior, and casual text-selection/image-drag protections. Editable fields and the explicitly allowed reader-tools root remain selectable.
+- Add `scripts/content-protection.test.mjs` to exercise blocked copy/context-menu events, editable-target exemptions, and timed dismissal; include it in `yarn test`.
+
+### Verification status
+
+- Baseline `yarn test`: PASS (5 tests). Updated `yarn test`: PASS (8 tests). `git diff --check`: PASS.
+- PR #76 is a draft on `fix/copy-protection-notice-20261018`; implementation commit `6fd197909c32dfcdcb6d3c8817468d81c3c9c2d4`. GitHub Actions CI run `39098866567` passed Astro type-check, `yarn test`, static build, and SEO verifiers. Auto-merge workflow run `39098866580` was skipped because the PR is a draft.
+- Cloudflare preview deployment `7469a8e2-333b-468c-a99f-9762a890c33f` completed all five stages successfully. Its preview URL returned HTTP 200; the built Base stylesheet contains the centered, hidden/shown toast rules, and the deployed deferred script returns HTTP 200 with the copy/context-menu handlers and 2.6-second timeout.
+- Production remains on main commit `38aff5fa5cddb2f6b86d64634248fa0c0ff40f06`, Cloudflare deployment `413a198e-40cf-477d-8f13-c1392c22cb7a`; no production deployment was made for this fix.
+
+### Scope and limitation
+
+- The change restores browser-side deterrents and the notice; it cannot guarantee that publicly served content or files cannot be saved through browser tools, direct URLs, or other means.

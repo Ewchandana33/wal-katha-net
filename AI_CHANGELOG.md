@@ -14,6 +14,19 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Use one archive file per quarter and append later entries from that quarter to it. At quarter rollover, create the next quarter file. Verify each dated entry appears exactly once in the active log or an archive.
 - If later evidence changes a conclusion, add a dated correction that names the superseded entry; retain the earlier note as historical context.
 
+## 2026-10-23 — Replace the boxed portrait with a text-only Sinhala title
+
+### Request and changes
+
+- Replaced the framed homepage title and inline SVG portrait with an open, image-free layout inspired by the supplied black, red, and white reference.
+- The existing Sinhala H1 remains live selectable text; the red title, small white “WAL KATHA” line, and fine accent are CSS typography only. No external image or font request is added, and metadata and page content remain unchanged.
+- Updated the homepage verifier to require no image/vector in the title, no card background/border/shadow, and responsive title styling.
+
+### Verification status
+
+- Baseline: `main` commit `e6128b7d72b5f00e5f28f9cc323576396d5a9f25`; Cloudflare production deployment `0b63a573-715a-419d-9784-0d1622261892` completed successfully on 2026-10-21.
+- GitHub checks and the new Cloudflare preview are pending. No merge or production deployment has been performed.
+
 ## 2026-10-19 — Rebuild the homepage title in a premium black-and-gold layout
 
 ### Request and changes
@@ -107,48 +120,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Cloudflare preview deployment `d52ec353-b722-4f12-9ab6-fe2693aacc8e` built that same branch commit and completed all five stages successfully. All 174 returned deployment-log entries, including container logs, were checked; none contained warning, deprecation, error, fatal, failure, or exception markers. The deployment URL and stable branch-preview URL returned HTTP 200. Preview HTML retained the exact text H1 and decorative, `aria-hidden` SVG; title, description, canonical URL, `si-LK` hreflang, and `x-default` hreflang matched production.
 - PR #77 was squash-merged as `997d359fa5565c3faa4e800f16a4b649ff00f705`; `main` and Cloudflare production now target that commit. Production deployment `146f296d-41bb-4330-98b4-4d427e9f2b25` completed all five stages successfully. All 174 deployment-log entries, including container logs, were checked; none contained warning, deprecation, error, fatal, failure, or exception markers. The live homepage returned HTTP 200 and serves the exact H1 with its decorative, `aria-hidden` SVG; title, description, canonical URL, `si-LK` and `x-default` hreflang remain unchanged. No Search Console ranking or AI-citation impact is claimed.
 - SEO/GEO boundary: this change is visual-only around the live heading; no page metadata, canonical/hreflang, structured data, or content was changed. No search-ranking or AI citation outcome is claimed.
-
-## 2026-10-18 — Restore the copy-protection notice styles
-
-### Root cause
-
-- Commit `4988719ab06c769a2c7aa1abf409b1370f82503f` removed the global content-protection toast styles and text-selection/drag protections from `Base.astro`; the deferred JavaScript still blocks normal copy/context-menu attempts and schedules the notice to hide after 2.6 seconds.
-- The live page still serves the handler script, but the production stylesheets contain no toast selector, so the notice loses its centered popup presentation.
-
-### Changes
-
-- Restore the centered, initially hidden toast and its visible state, icon/text styling, reduced-motion behavior, and casual text-selection/image-drag protections. Editable fields and the explicitly allowed reader-tools root remain selectable.
-- Add `scripts/content-protection.test.mjs` to exercise blocked copy/context-menu events, editable-target exemptions, and timed dismissal; include it in `yarn test`.
-
-### Verification status
-
-- Baseline `yarn test`: PASS (5 tests). Updated `yarn test`: PASS (8 tests). `git diff --check`: PASS.
-- PR #76 is a draft on `fix/copy-protection-notice-20261018`; implementation commit `6fd197909c32dfcdcb6d3c8817468d81c3c9c2d4`. GitHub Actions CI run `39098866567` passed Astro type-check, `yarn test`, static build, and SEO verifiers. Auto-merge workflow run `39098866580` was skipped because the PR is a draft.
-- Cloudflare preview deployment `7469a8e2-333b-468c-a99f-9762a890c33f` completed all five stages successfully. Its preview URL returned HTTP 200; the built Base stylesheet contains the centered, hidden/shown toast rules, and the deployed deferred script returns HTTP 200 with the copy/context-menu handlers and 2.6-second timeout.
-- Production remains on main commit `38aff5fa5cddb2f6b86d64634248fa0c0ff40f06`, Cloudflare deployment `413a198e-40cf-477d-8f13-c1392c22cb7a`; no production deployment was made for this fix.
-
-### Scope and limitation
-
-- The change restores browser-side deterrents and the notice; it cannot guarantee that publicly served content or files cannot be saved through browser tools, direct URLs, or other means.
-
-## 2026-10-18 — Exclude Astro ClientRouter from the initial homepage load
-
-### Why
-
-- The attached mobile PageSpeed snapshot attributed 586 ms of homepage forced reflow to ClientRouter. The user approved a targeted fix after the previous entry deferred this decision to avoid disrupting article-reader lifecycle behavior.
-
-### Changes
-
-- Base.astro now renders ClientRouter only off the homepage; article and other non-home routes keep it. The homepage build verifier now fails if the router asset appears on the homepage or is missing from an article.
-- A fresh visit starting at the homepage uses native navigation; pages that load ClientRouter retain their SPA behavior. SEO markup, analytics, and Cloudflare settings are unchanged.
-
-### Verification trail
-
-- PR #74 auto-merged as main commit 9390a592345afbfefb0a2af56df24e0bc6f0a08b. GitHub type-check/build run 39094926581 and auto-merge run 39094926639 succeeded.
-- Cloudflare preview 97fc5e49-d205-4bda-8c97-7b1d9c32e69f and production 9878e271-74d0-44ef-b9cd-00a58fff947b each completed all five stages. Each deployment returned 174 log entries; no warning, deprecation, error, fatal, failure, or exception markers matched. Both builds produced 50 pages and the homepage-performance check passed.
-- Preview and live checks returned HTTP 200 for homepage and /blog/akkai-nangi-wal-katha/. Both confirm no ClientRouter asset on the homepage and ClientRouter plus data-rt-root on the article. Live robots.txt and sitemap-index.xml also returned 200.
-- No PageSpeed/Lighthouse run was available after PR #74. Generated and live HTML confirm the runtime is absent from a fresh homepage response, but no new score or measured 586 ms reduction is claimed; desktop result remains unverified.
-
-### SEO boundary
-
-- Canonical, hreflang, metadata, robots rules, sitemap, and content were unchanged. No Google ranking outcome is claimed.

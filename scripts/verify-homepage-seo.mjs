@@ -42,17 +42,22 @@ const titleStyles = readFileSync(
   resolve(process.cwd(), "src/styles/index-overrides.css"),
   "utf8",
 );
-const titleStyleStart = titleStyles.indexOf(".home-title-shell {");
-const mobileTitleStyles = titleStyles.indexOf("@media (max-width: 480px)");
-assert.ok(titleStyleStart >= 0, "Premium homepage title styles should exist");
+const titleRegion = html.match(/<div class="home-title-stage[^"]*"[^>]*>([\s\S]*?)<\/div>/i)?.[1];
+assert.ok(titleRegion, "Homepage should render the open text-only title region");
+assert.doesNotMatch(titleRegion, /<(?:img|svg|picture|canvas)\b/i, "Homepage title should not contain an image or illustration");
+assert.match(titleRegion, /class="home-title__english" aria-hidden="true">WAL KATHA<\/span>/i, "The white subtitle should be decorative text, not a logo image");
+
+const titleStyleStart = titleStyles.indexOf(".home-title-stage {");
+const mobileTitleStyles = titleStyles.indexOf("@media (max-width: 480px)", titleStyleStart);
+assert.ok(titleStyleStart >= 0, "Open homepage title styles should exist");
 assert.ok(mobileTitleStyles > titleStyleStart, "Homepage mobile title styles should follow desktop rules");
 const homeTitleStyles = titleStyles.slice(titleStyleStart, mobileTitleStyles);
-assert.match(homeTitleStyles, /grid-template-columns:[^;]*clamp\(5\.25rem/i, "Title layout should reserve space for the portrait at the far right");
-assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#fff0c7/i, "Homepage title should use high-contrast warm gold text");
-assert.match(homeTitleStyles, /\.home-title__portrait\s*\{/, "Homepage title should include the decorative portrait area");
-assert.match(homeTitleStyles, /\.home-title-shell\s*\{[^}]*background:[\s\S]*linear-gradient/s, "Homepage title should use a premium dark layered background");
-assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*overflow-wrap:\s*anywhere/s, "Homepage title should wrap safely on narrow screens");
-assert.doesNotMatch(titleStyles, /\.home-title::(?:before|after)/i, "Previous centered divider ornaments should be removed");
+assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*background:\s*transparent/s, "Homepage title region should have no card background");
+assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*border:\s*0/s, "Homepage title region should have no border");
+assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*box-shadow:\s*none/s, "Homepage title region should have no card shadow");
+assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#f13a59/i, "Sinhala title should use the vivid red reference color");
+assert.match(homeTitleStyles, /\.home-title__english\s*\{[^}]*color:\s*#f3eef0/i, "The secondary text should use a clear white tone");
+assert.doesNotMatch(titleStyles, /home-title__(?:portrait|figure)|home-title-shell/i, "Old portrait and boxed-title styles should be removed");
 assert.match(titleStyles, /@media\s*\(max-width:\s*480px\)/, "Homepage title should adapt on narrow mobile screens");
 
 const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
@@ -84,5 +89,5 @@ const localeMeta = (html.match(/<meta\b[^>]*>/gi) || []).find((tag) => attribute
 assert.equal(attribute(localeMeta || "", "content"), "si_LK", "Homepage Open Graph locale should target Sinhala in Sri Lanka");
 
 console.log(
-  "[homepage-seo] Sinhala-first title, responsive live-text H1, gold accent, locale metadata, and description verified.",
+  "[homepage-seo] Sinhala-first title, responsive live-text H1, image-free red/white typography, locale metadata, and description verified.",
 );
