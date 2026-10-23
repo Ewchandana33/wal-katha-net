@@ -24,7 +24,9 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Verification status
 
-- Implementation commit and its CI/Cloudflare preview checks are pending; record exact results when complete.
+- Implementation commit `d2cc6a2d104849b64f10e8c68a86f625e76cbf9f` is in draft PR #89. GitHub Actions CI run `39899734051` completed successfully.
+- Cloudflare Pages preview deployment `906e66ec-5649-43d5-9d1d-eb342e5e1a64` completed all five stages successfully for that commit. Preview URL: https://906e66ec.wala-katha.pages.dev; branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev.
+- Direct HTTP GET of the preview returned 200. The rendered title kept the exact Sinhala H1, included the solid white CSS silhouette beside it, omitted “WAL KATHA”, and contained no img/svg/picture/canvas markup in the title region. The downloaded compiled CSS contains the white gradient silhouette, CSS path clip, right-side title column, and responsive 480px rule.
 - PR #89 remains a draft; no merge or production deployment was performed.
 
 ## 2026-10-23 — Replace the title subtitle with a CSS-drawn feminine accent
