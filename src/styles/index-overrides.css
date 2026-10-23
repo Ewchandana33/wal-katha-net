@@ -250,7 +250,7 @@ html, body {
 
 .home-title__text::after {
   display: block;
-  width: clamp(8rem, 42vw, 36rem);
+  width: clamp(8rem, 52vw, 36rem);
   height: 2px;
   margin: 0.16em auto 0;
   border-radius: 999px;
