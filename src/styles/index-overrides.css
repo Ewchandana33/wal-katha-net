@@ -197,7 +197,7 @@ html, body {
   max-width: 100%;
   color: #fffdf7;
   font-family: "Noto Sans Sinhala", "Iskoola Pota", system-ui, sans-serif;
-  font-size: clamp(2rem, 4.3vw, 4.25rem);
+  font-size: clamp(2rem, 4.3vw, 3.25rem);
   font-weight: 800;
   letter-spacing: 0;
   line-height: 1.35;

@@ -76,7 +76,7 @@ assert.match(homeTitleStyles, /\.home-title__ivory\s*\{[^}]*color:\s*#fffdf7/i, 
 assert.match(homeTitleStyles, /\.home-title__ivory\s*\{[^}]*background-image:\s*linear-gradient/i, "Ivory title phrase should use a subtle silver gradient");
 assert.match(homeTitleStyles, /\.home-title__badge\s*\{[^}]*border:\s*2px solid #ff2347/i, "18+ badge should use a compact red neon outline");
 assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*filter:\s*drop-shadow\(/s, "Gold title should render layered depth and glow");
-assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Sinhala title size should scale responsively");
+assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(2rem,\s*4\.3vw,\s*3\.25rem\)/s, "Desktop Sinhala title size should stay within its single-line scale");
 assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*width:\s*clamp\(8rem,\s*52vw,\s*36rem\)/s, "Desktop title underline should match the wider reference proportion");
 assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*background:\s*linear-gradient\([^;]*#ff2947[^;]*#ffd95e/s, "The title should have a fine red underline with a centered gold highlight");
 assert.doesNotMatch(titleStyles, /home-title__figure|clip-path:/i, "No CSS silhouette or graphic should remain in the title styles");
