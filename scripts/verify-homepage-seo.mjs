@@ -45,6 +45,10 @@ const titleStyles = readFileSync(
 const titleRegion = html.match(/<div class="home-title-stage[^"]*"[^>]*>([\s\S]*?)<\/div>/i)?.[1];
 assert.ok(titleRegion, "Homepage should render the title region");
 assert.match(titleRegion, /class="home-title__text"/i, "Homepage H1 should remain visible Sinhala text");
+assert.match(titleRegion, /class="home-title__gold"/i, "First Sinhala title phrase should be gold");
+assert.match(titleRegion, /class="home-title__ivory"/i, "Second Sinhala title phrase should be ivory");
+assert.ok(titleRegion.indexOf("home-title__gold") < titleRegion.indexOf("home-title__ivory"), "Gold phrase should precede the ivory phrase");
+assert.doesNotMatch(html, /class="home-title-stage[^"]*\bmb-2\b/i, "The title stage should not leave a bottom margin gap");
 assert.doesNotMatch(titleRegion, /home-title__figure|<(?:img|svg|picture|canvas)\b|WAL KATHA/i, "Homepage title should contain no decorative figure, image, vector, or subtitle");
 
 const titleStyleStart = titleStyles.indexOf(".home-title-stage {");
@@ -58,12 +62,15 @@ assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*justify-content:\s*ce
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*background:\s*transparent/s, "Homepage title region should have no card background");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*border:\s*0/s, "Homepage title region should have no border");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*box-shadow:\s*none/s, "Homepage title region should have no card shadow");
-assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#f2f7f6/i, "Sinhala title should use high-contrast warm-white text");
+assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*color:\s*#efc75e/i, "Gold title phrase should retain a readable fallback color");
+assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*background-image:\s*linear-gradient/i, "Gold title phrase should use a metallic gradient");
+assert.match(homeTitleStyles, /\.home-title__ivory\s*\{[^}]*color:\s*#fffdf7/i, "Ivory title phrase should retain a readable fallback color");
+assert.match(homeTitleStyles, /\.home-title__ivory\s*\{[^}]*background-image:\s*linear-gradient/i, "Ivory title phrase should use a subtle silver gradient");
 assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Sinhala title size should scale responsively");
-assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*#01ad9f/i, "The live Sinhala title should have a restrained brand-teal underline");
-assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*#c3fff9/i, "Underline should have a visible mint highlight against black");
+assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*background:\s*linear-gradient\([^;]*#e1433b[^;]*#ffd978/s, "The title should have a fine red underline with a centered gold highlight");
 assert.doesNotMatch(titleStyles, /home-title__figure|clip-path:/i, "No CSS silhouette or graphic should remain in the title styles");
-assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.3rem 0\.4rem 0\.6rem/s, "Mobile title spacing should remain compact");
+assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*padding:\s*clamp\(/s, "Desktop title stage should use compact spacing");
+assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.2rem 0\.35rem 0\.1rem/s, "Mobile title spacing should remain compact");
 assert.match(mobileTitleBlock, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Mobile Sinhala title should use responsive type size");
 assert.match(titleStyles, /@media\s*\(max-width:\s*480px\)/, "Homepage title should adapt on narrow mobile screens");
 
@@ -96,5 +103,5 @@ const localeMeta = (html.match(/<meta\b[^>]*>/gi) || []).find((tag) => attribute
 assert.equal(attribute(localeMeta || "", "content"), "si_LK", "Homepage Open Graph locale should target Sinhala in Sri Lanka");
 
 console.log(
-  "[homepage-seo] Centered text-only Sinhala title, responsive brand accent, locale metadata, and description verified.",
+  "[homepage-seo] Centered gold-and-ivory Sinhala title, compact red accent, locale metadata, and description verified.",
 );
