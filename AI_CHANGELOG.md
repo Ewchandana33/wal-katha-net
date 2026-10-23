@@ -30,6 +30,13 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Rendered HTML retains the exact Sinhala H1 `සිංහල වල් කතා සහ වැල් කතා` and has no figure/image/vector/canvas markup in the title region. Compiled title CSS has no silhouette or clip-path rules. Browser-rendered title-region screenshots at 462×900 mobile and 1280×900 desktop confirm centered warm-white Sinhala typography and the brighter teal-mint underline, with no decorative picture.
 - PR #89 remains a draft; no merge or production deployment has been performed.
 
+### Latest documentation-only head verification
+
+- The final visual implementation remains `59ca86fa2dce115d4235bed4b8e2f08f1fee040b`; the latest PR head `15e97f8f4ad77786b938e8819edc595fa0bc88aa` changes only this changelog. GitHub Actions CI run `39923064467` completed successfully; every step in the Type-check and production build job passed.
+- Cloudflare Pages preview deployment `2378bd5f-015f-4a06-b3bc-ea4b7ab229c5` for the latest head completed all five stages successfully. Preview: https://2378bd5f.wala-katha.pages.dev; branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev.
+- A direct HTTP GET of the latest preview returned 200. All 174 available deployment-log records, including container logs, were checked; none matched error, failed, failure, warning, warn, fatal, or exception markers.
+- Cloudflare still lists Production on `main` at commit `e6128b7d72b5f00e5f28f9cc323576396d5a9f25`. PR #89 remains a draft and unmerged; no production deployment was made.
+
 ## 2026-10-23 — Add the reference's red title accent
 
 ### Request and changes
