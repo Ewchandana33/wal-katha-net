@@ -14,6 +14,19 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Use one archive file per quarter and append later entries from that quarter to it. At quarter rollover, create the next quarter file. Verify each dated entry appears exactly once in the active log or an archive.
 - If later evidence changes a conclusion, add a dated correction that names the superseded entry; retain the earlier note as historical context.
 
+## 2026-10-23 — Replace the abstract title ornament with a white side silhouette
+
+### Request and changes
+
+- Replaced the ambiguous red line-art ornament with a clear, solid white full-body feminine silhouette positioned beside the live Sinhala title, inspired by the supplied black-background reference.
+- Draw the silhouette with CSS clip-path geometry and a polygon fallback; no picture, SVG, canvas, font, or external asset is added.
+- Keep the subtitle removed, the H1 and SEO metadata unchanged, and the layout responsive. Extend the verifier to check the white CSS silhouette and side-by-side layout.
+
+### Verification status
+
+- Implementation commit and its CI/Cloudflare preview checks are pending; record exact results when complete.
+- PR #89 remains a draft; no merge or production deployment was performed.
+
 ## 2026-10-23 — Replace the title subtitle with a CSS-drawn feminine accent
 
 ### Request and changes
@@ -70,7 +83,7 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - PageSpeed status: the 2026-10-17 mobile baseline scored 79; the distinct 2026-10-18 mobile snapshot scored Performance 87 and SEO/Accessibility/Best Practices 100, with lab LCP 3.5 s, TBT 0 ms, CLS 0. It attributed 586 ms forced reflow to Astro ClientRouter; PR #74 now excludes that asset from fresh homepage HTML. No post-PR #74 PageSpeed run is available, so a new score or measured reduction is unverified; desktop remains unverified. Prior PSI API reruns were quota-blocked with 429.
 ## Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 46 earlier dated entries from 2026-10-14 through 2026-10-19; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 47 earlier dated entries from 2026-10-14 through 2026-10-19; dated sections are retained verbatim.
 
 ## Recent entries
 
@@ -92,28 +105,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - After the change: yarn test passed (8/8); yarn check passed; yarn build passed (50 pages, including PDF, featured-link, social metadata, critical CSS, and homepage-performance checks); node scripts/verify-homepage-seo.mjs and node scripts/ai-changelog.test.mjs passed; git diff --check passed. The generated homepage contains no title SVG, and compiled CSS contains the ivory/gold title styles.
 - Draft PR #82 is open on branch `fix/homepage-title-gold-20261019`. Initial implementation commit `a9f1e060e8af84323182e2342bbf4b2338249bc0` passed the Type-check and production build check (run 39239296763, job 118015932982). Cloudflare Pages check and preview deployment `2619e587-44cd-44bd-94bf-5e9bb3323c22` succeeded; PR preview: https://2619e587.wala-katha.pages.dev; branch preview: https://fix-homepage-title-gold-2026.wala-katha.pages.dev. Existing draft PR #81 was left unchanged. No production deployment was started.
 - Scope is presentation-only; H1 text, SEO metadata, navigation, and other homepage content remain unchanged. No ranking or traffic outcome is claimed.
-
-## 2026-10-19 — Improve readability of the homepage Sinhala title
-
-### Cause
-
-- The supplied mobile screenshot shows the live homepage title as small and hard to read. PR #77 already added the green bevel and vine ornament, so this is a refinement of the deployed treatment rather than a duplicate implementation.
-- The title's layered pseudo-text strokes and `white-space: nowrap` make the small-screen heading busier and less adaptable.
-
-### Changes
-
-- Keep the exact Sinhala H1 text, accessible inline SVG leaves, navigation logo, and all page metadata unchanged.
-- Remove the stacked bevel text and heavy shadows; use high-contrast warm-white text, a restrained emerald halo/rule, subdued leaves, and balanced wrapping at narrow widths.
-- Do not load the repository's 1.18 MB Sinhala TTF as a new homepage asset; this visual correction adds no font or image request.
-- Update the homepage verifier to enforce responsive wrapping and the simpler, high-contrast text treatment.
-
-### Verification status
-
-- Baseline at `a1183c38b510a6bada150514af64fd32783ce9cb`: `yarn test` passed (8/8), `yarn check` and `yarn build` passed; the build generated 50 pages.
-- After the change: `yarn test` passed (8/8), `yarn check` passed, `yarn build` passed (50 pages and existing content/PDF/link/metadata/performance checks), `node scripts/verify-homepage-seo.mjs` passed, and `git diff --check` passed. Existing dependency-resolution and Node deprecation warnings also appeared in the baseline; no lockfile or dependency was changed.
-- GitHub Actions CI run `39200122901` (run 122) completed successfully for commit `c75c2f477a90c88bbf51d40613c6c23bbeece5ec`; the required “Type-check and production build” check passed.
-- Cloudflare preview deployment `f6cca663-fe36-4584-a49d-c211b035290e` for that commit completed successfully. Both `https://f6cca663.wala-katha.pages.dev` and the stable branch preview `https://fix-homepage-sinhala-title-c.wala-katha.pages.dev` returned HTTP 200. All 174 deployment-log records, including container logs, were checked; none matched warning, deprecation, error, fatal, failure, or exception markers.
-- The live preview HTML was compared with production: the H1 text, title, description, canonical URL, and `si-LK`/`x-default` hreflang values are unchanged. The preview serves a live-text H1 with an accessible decorative SVG, no `data-title` bevel source, and the new title color in its compiled CSS. The production homepage also returned HTTP 200.
-- Final PR-head audit at `18f9984120f130da2fee8883e81ea1cba3242940`: GitHub Actions run `39200819703` passed the required Type-check and production-build check. Cloudflare preview deployment `33744822-03e4-48b3-ac7f-63c36b120c95` completed all five stages successfully; both `https://33744822.wala-katha.pages.dev` and `https://fix-homepage-sinhala-title-c.wala-katha.pages.dev` returned HTTP 200. Direct live checks found the preview H1, title, description, canonical URL, and `si-LK`/`x-default` hreflang equal to production; the bevel `data-title` source is absent from preview HTML. The Cloudflare logs API reports 174 total entries but returned 173 entries; all 173 returned entries were scanned and none matched warning, deprecation, error, fatal, failure, or exception markers. One entry was not returned and remains unverified. Production remained on commit `a1183c38b510a6bada150514af64fd32783ce9cb` (deployment `be27a7f1-3390-4249-a329-772985b723a1`); PR #79 was not merged or deployed to production.
-- PR #79 remains open as a draft; this change has not been merged or deployed to production.
-- This is a presentation-only change; no ranking or traffic result is claimed.
