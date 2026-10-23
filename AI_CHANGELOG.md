@@ -16,7 +16,7 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 2026-10-14 through 2026-10-23; 48 dated entries.
+- archive/AI_CHANGELOG-2026-Q4.md — 2026-10-14 through 2026-10-23; 49 dated entries.
 
 ## 2026-10-23 — Match the homepage title to the gold/red reference
 
@@ -24,11 +24,15 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - Correct the title styling that looked too dim and sat too close to the content below.
 - Preserve the exact selectable Sinhala H1 and existing font; brighten the metallic gold and ivory gradients, add restrained crimson edge glow and depth, restore the outlined 18+ badge, lengthen the red underline with a centered gold highlight, and add controlled space below the title.
-- Keep the layout responsive and update the title-specific verifier. No title image, dependency, unrelated page change, merge, or Production release.
+- Keep the layout responsive and update the title-specific verifier. On mobile, keep the 18+ badge in the title's inline text flow so it moves to a new line only when space is insufficient. No title image, dependency, unrelated page change, merge, or Production release.
 
 ### Verification
 
-- Implementation checks and Preview deployment are pending for the new PR commit.
+- Initial implementation commit cc85c96465fe18f4e4f91570191c8b91e1983e54 on draft PR #91 passed GitHub Actions run 39965144654 and its Cloudflare Pages check; its commit-matched Preview deployment 8fe7037e-fb26-4e70-86df-53ff72a91616 completed successfully.
+- Responsive follow-up commit dede67b6e593ab5bb32dfb20e1f89799ac95cb20 passed GitHub Actions run 39966486651 (Type-check and production build) and the Cloudflare Pages check. Preview deployment bef6ab1e-0741-40cf-9fde-28cf25601297 completed its deploy stage successfully for that exact commit. Preview: https://bef6ab1e.wala-katha.pages.dev.
+- The final Preview returned HTTP 200. All 174 available deployment-log records, including container logs, were checked; none matched error, failure, warning, fatal, or exception markers.
+- Local headless Chromium measurements at 320, 360, 390, 430, 768, and 1024px found no horizontal overflow. The 18+ badge stayed visible in the viewport, did not overlap the title, and shared its final text line; the title used two lines only at 320 and 360px and one line at 390px and wider. The screenshot remained behind the site's existing age-confirmation overlay; the review did not bypass it.
+- PR #91 remains a draft; auto-merge was skipped. No merge or Production deployment occurred.
 
 
 ## 2026-10-23 — Redesign the compact Sinhala homepage title
