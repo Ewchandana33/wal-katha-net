@@ -20,6 +20,7 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - The user rejected the red X and silhouette treatment and asked to remove the pictures, styling the Sinhala title itself instead.
 - Remove all figure markup, CSS silhouette geometry, and red X layers. Center the existing H1 and style it with clear warm-white type, a subtle site-brand teal glow, and a fine teal underline. Keep the H1, SEO metadata, and page content unchanged; add no image or external asset.
+- The first mobile screenshot confirmed the text-only direction but showed the teal underline was too muted; brighten it for clear contrast while keeping the accent restrained.
 - Update the homepage verifier to require a responsive text-only title and prohibit title figures or image/vector markup. This correction supersedes the previous entry's design direction; its verification remains historical.
 
 ### Verification status

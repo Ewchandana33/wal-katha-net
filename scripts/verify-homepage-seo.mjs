@@ -61,6 +61,7 @@ assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*box-shadow:\s*none/s,
 assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#f2f7f6/i, "Sinhala title should use high-contrast warm-white text");
 assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Sinhala title size should scale responsively");
 assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*#01ad9f/i, "The live Sinhala title should have a restrained brand-teal underline");
+assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*#c3fff9/i, "Underline should have a visible mint highlight against black");
 assert.doesNotMatch(titleStyles, /home-title__figure|clip-path:/i, "No CSS silhouette or graphic should remain in the title styles");
 assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.3rem 0\.4rem 0\.6rem/s, "Mobile title spacing should remain compact");
 assert.match(mobileTitleBlock, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Mobile Sinhala title should use responsive type size");
