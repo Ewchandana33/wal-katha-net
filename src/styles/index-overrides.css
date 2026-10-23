@@ -181,29 +181,23 @@ html, body {
 }
 
 .home-title {
-  display: flex;
   width: 100%;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.35rem clamp(0.45rem, 1vw, 0.8rem);
+  max-width: 100%;
   margin: 0;
   padding: 0;
   background: transparent;
   border: 0;
   box-shadow: none;
-  font-family: "Noto Sans Sinhala", "Iskoola Pota", system-ui, sans-serif;
-  font-size: clamp(2rem, 4.3vw, 4.25rem);
-  font-weight: 800;
-  line-height: 1.25;
+  line-height: 1.15;
+  text-align: center;
 }
 
 .home-title__text {
   display: inline-block;
   max-width: 100%;
   color: #fffdf7;
-  font-family: inherit;
-  font-size: inherit;
+  font-family: "Noto Sans Sinhala", "Iskoola Pota", system-ui, sans-serif;
+  font-size: clamp(2rem, 4.3vw, 4.25rem);
   font-weight: 800;
   letter-spacing: 0;
   line-height: 1.35;
@@ -237,9 +231,9 @@ html, body {
 
 .home-title__badge {
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
+  margin-left: 0.12em;
   padding: 0.03em 0.38em;
   border: 2px solid #ff2347;
   border-radius: 999px;
@@ -248,6 +242,7 @@ html, body {
   font-size: max(0.65rem, 0.42em);
   font-weight: 800;
   line-height: 1.2;
+  vertical-align: 0.18em;
   white-space: nowrap;
   text-shadow: 0 0 7px rgba(255, 28, 65, 0.58);
   box-shadow: 0 0 6px rgba(255, 25, 60, 0.45), inset 0 0 5px rgba(255, 25, 60, 0.14);
@@ -269,17 +264,13 @@ html, body {
     padding: 0.65rem 0.35rem 1.1rem;
   }
 
-  .home-title {
-    gap: 0.35rem 0.5rem;
-    font-size: clamp(1.2rem, 5.5vw, 1.75rem);
-  }
-
   .home-title__text {
+    font-size: clamp(1.18rem, 4.9vw, 1.65rem);
     line-height: 1.4;
   }
 
   .home-title__text::after {
-    width: min(78vw, 22rem);
+    width: min(78%, 22rem);
     margin-top: 0.16em;
   }
 }

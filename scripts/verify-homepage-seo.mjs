@@ -76,12 +76,12 @@ assert.match(homeTitleStyles, /\.home-title__ivory\s*\{[^}]*color:\s*#fffdf7/i, 
 assert.match(homeTitleStyles, /\.home-title__ivory\s*\{[^}]*background-image:\s*linear-gradient/i, "Ivory title phrase should use a subtle silver gradient");
 assert.match(homeTitleStyles, /\.home-title__badge\s*\{[^}]*border:\s*2px solid #ff2347/i, "18+ badge should use a compact red neon outline");
 assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*filter:\s*drop-shadow\(/s, "Gold title should render layered depth and glow");
-assert.match(homeTitleStyles, /\.home-title\s*\{[^}]*font-size:\s*clamp\(/s, "Sinhala title size should scale responsively");
+assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Sinhala title size should scale responsively");
 assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*background:\s*linear-gradient\([^;]*#ff2947[^;]*#ffd95e/s, "The title should have a fine red underline with a centered gold highlight");
 assert.doesNotMatch(titleStyles, /home-title__figure|clip-path:/i, "No CSS silhouette or graphic should remain in the title styles");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*padding:\s*clamp\(/s, "Desktop title stage should use compact spacing");
 assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.65rem 0\.35rem 1\.1rem/s, "Mobile title spacing should remain compact");
-assert.match(mobileTitleBlock, /\.home-title\s*\{[^}]*font-size:\s*clamp\(/s, "Mobile Sinhala title should use responsive type size");
+assert.match(mobileTitleBlock, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Mobile Sinhala title should use responsive type size");
 assert.match(titleStyles, /@media\s*\(max-width:\s*480px\)/, "Homepage title should adapt on narrow mobile screens");
 
 const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
