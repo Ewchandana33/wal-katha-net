@@ -166,15 +166,14 @@ html, body {
   border: 1px solid rgba(16, 185, 129, 0.2) !important;
 }
 
-/* White CSS-only full-body silhouette beside the live Sinhala title. */
+/* Compact open title with a custom CSS-only feminine silhouette. */
 .home-title-stage {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 88px;
-  grid-template-rows: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) 70px;
   align-items: center;
-  column-gap: clamp(0.5rem, 2vw, 1.5rem);
-  min-height: 14rem;
-  padding: 0.8rem 0.3rem 0.7rem;
+  column-gap: clamp(0.25rem, 1vw, 0.75rem);
+  min-height: 0;
+  padding: 0.35rem 0.15rem;
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -184,92 +183,90 @@ html, body {
 
 .home-title {
   grid-column: 1;
-  grid-row: 1;
   margin: 0;
   padding: 0;
   background: transparent;
   border: 0;
   box-shadow: none;
-  line-height: 1.45;
+  line-height: 1.3;
 }
 
 .home-title__figure {
   position: relative;
   display: block;
   grid-column: 2;
-  grid-row: 1;
   justify-self: end;
-  width: 88px;
-  height: 200px;
+  width: 70px;
+  height: 160px;
   margin: 0;
 }
 
 .home-title__figure::before {
   position: absolute;
-  inset: 8% 2%;
-  background: radial-gradient(ellipse, rgba(241, 58, 89, 0.18), transparent 70%);
+  inset: 16% 0 5%;
+  background: radial-gradient(ellipse, rgba(177, 49, 65, 0.16), transparent 70%);
   content: "";
-  filter: blur(12px);
+  filter: blur(10px);
 }
 
+.home-title__figure-hair,
 .home-title__figure-shape {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 1;
   width: 88px;
   height: 200px;
-  background: linear-gradient(145deg, #ffffff 0%, #f3f0f1 72%, #d8d0d3 100%);
-  clip-path: polygon(50% 1%, 59% 4%, 67% 10%, 66% 17%, 60% 21%, 61% 24%, 72% 26%, 78% 33%, 87% 44%, 83% 48%, 78% 44%, 73% 37%, 74% 45%, 81% 50%, 78% 54%, 71% 50%, 68% 46%, 68% 53%, 74% 61%, 72% 65%, 67% 62%, 64% 58%, 65% 70%, 70% 89%, 72% 95%, 83% 98%, 82% 100%, 62% 100%, 60% 97%, 55% 79%, 51% 69%, 46% 80%, 43% 97%, 39% 100%, 17% 100%, 18% 98%, 29% 94%, 31% 90%, 32% 73%, 37% 57%, 30% 67%, 27% 71%, 22% 66%, 35% 47%, 29% 43%, 22% 51%, 18% 48%, 19% 43%, 33% 27%, 39% 25%, 37% 20%, 33% 14%, 35% 7%, 42% 2%);
-  clip-path: path("M 45 3 C 54 2 61 9 60 18 C 60 25 56 31 51 34 L 52 39 C 59 40 64 45 67 52 L 76 72 C 78 77 75 81 71 80 L 63 65 L 64 76 L 70 83 C 73 87 72 92 69 94 C 66 96 63 93 61 90 L 56 82 L 56 100 C 61 112 65 126 66 140 L 69 180 C 69 186 72 190 77 193 L 84 194 C 87 196 85 199 81 199 L 63 199 C 60 198 60 194 61 191 L 56 160 L 51 139 L 45 161 L 41 189 C 40 194 40 197 36 199 L 18 199 C 15 198 15 197 18 196 L 26 193 C 30 191 32 187 32 181 L 34 145 C 35 132 37 118 41 106 L 33 116 L 27 128 C 25 132 21 132 19 129 C 17 126 19 122 21 118 L 33 94 C 35 90 36 85 35 80 L 32 65 L 26 79 C 24 83 20 83 18 80 C 16 78 17 74 19 71 L 31 52 C 34 45 38 41 44 39 L 43 34 C 37 31 33 25 33 18 C 33 10 38 5 45 3 Z");
-  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.15)) drop-shadow(0 0 11px rgba(241, 58, 89, 0.2));
+  background: linear-gradient(145deg, #ffffff 0%, #f4efeb 72%, #d8ced0 100%);
+  transform: scale(0.8);
+  transform-origin: top left;
+}
+
+.home-title__figure-hair {
+  z-index: 0;
+  clip-path: polygon(50% 2%, 62% 3%, 72% 8%, 78% 16%, 76% 23%, 70% 28%, 74% 36%, 77% 50%, 81% 62%, 90% 74%, 94% 85%, 89% 87%, 75% 74%, 68% 64%, 66% 48%, 62% 38%, 56% 32%, 46% 34%, 40% 41%, 38% 60%, 32% 72%, 20% 84%, 15% 81%, 25% 68%, 29% 51%, 30% 38%, 35% 29%, 40% 25%, 38% 20%, 36% 13%, 39% 6%);
+  clip-path: path("M 44 4 C 33 4 28 13 30 23 C 31 30 34 35 39 39 C 33 42 31 49 30 58 L 28 76 C 27 87 22 97 17 105 C 15 109 18 113 22 110 C 28 105 34 97 37 88 C 40 78 40 67 40 56 C 41 48 46 44 50 49 L 52 67 C 53 78 56 88 62 97 L 72 109 C 76 113 79 110 76 105 L 68 87 C 65 77 64 67 64 57 C 64 48 59 42 52 39 C 57 34 59 28 59 22 C 59 12 53 4 44 4 Z");
+}
+
+.home-title__figure-shape {
+  z-index: 1;
+  clip-path: polygon(46% 18%, 55% 19%, 62% 23%, 68% 31%, 65% 39%, 70% 46%, 77% 56%, 72% 62%, 66% 58%, 63% 51%, 64% 61%, 72% 69%, 68% 74%, 61% 71%, 66% 84%, 70% 92%, 83% 97%, 82% 100%, 61% 100%, 58% 96%, 53% 80%, 50% 72%, 46% 82%, 42% 97%, 38% 100%, 17% 100%, 16% 98%, 28% 93%, 31% 89%, 33% 75%, 27% 82%, 22% 87%, 18% 83%, 26% 73%, 34% 63%, 32% 55%, 28% 63%, 24% 67%, 20% 63%, 27% 48%, 31% 36%, 35% 25%);
+  clip-path: path("M 40 37 C 34 38 30 42 29 48 L 23 64 C 21 69 25 72 28 68 L 35 55 L 34 69 C 34 75 31 79 27 83 L 22 88 C 19 91 22 96 26 94 L 34 88 C 35 96 33 101 30 108 L 24 124 C 22 129 25 132 29 129 L 37 116 L 37 134 C 37 141 32 150 32 158 L 31 180 C 31 186 28 190 23 192 L 14 194 C 11 196 13 199 17 199 L 34 199 C 38 198 39 194 40 188 L 45 158 L 48 143 L 52 158 L 56 190 C 57 195 58 198 62 199 L 78 199 C 82 198 81 196 78 194 L 70 191 C 65 189 63 185 63 180 L 62 158 C 62 149 57 141 57 134 L 57 116 L 65 129 C 68 132 72 129 70 124 L 65 108 C 62 100 59 95 58 88 L 65 94 C 69 96 72 92 68 88 L 61 81 C 57 77 55 73 55 68 L 54 55 L 61 68 C 64 72 68 69 66 65 L 58 48 C 56 42 51 38 46 37 Z");
+  filter: drop-shadow(0 1px 4px rgba(255, 255, 255, 0.12)) drop-shadow(0 0 8px rgba(177, 49, 65, 0.18));
 }
 
 .home-title__text {
   display: block;
   max-width: 100%;
-  color: #f13a59;
+  color: #f3e8de;
   font-family: "Noto Sans Sinhala", "Iskoola Pota", system-ui, sans-serif;
-  font-size: clamp(1.35rem, 4.9vw, 3.25rem);
-  font-weight: 900;
+  font-size: clamp(1.35rem, 3.2vw, 2.6rem);
+  font-weight: 800;
   letter-spacing: 0;
-  line-height: 1.55;
+  line-height: 1.35;
   text-wrap: balance;
   overflow-wrap: anywhere;
-  text-shadow: 0 1px 0 #7a0d20, 0 2px 0 #540817, 0 0 18px rgba(241, 58, 89, 0.34);
-}
-
-.home-title-stage::after {
-  grid-column: 1;
-  grid-row: 2;
-  justify-self: center;
-  width: clamp(2.4rem, 8vw, 4rem);
-  height: 1px;
-  margin-top: 0.55rem;
-  background: linear-gradient(90deg, transparent, rgba(241, 58, 89, 0.84), transparent);
-  content: "";
+  text-shadow: 0 0 14px rgba(177, 49, 65, 0.2);
 }
 
 @media (max-width: 480px) {
   .home-title-stage {
-    grid-template-columns: minmax(0, 1fr) 56px;
+    grid-template-columns: minmax(0, 1fr) 50px;
     column-gap: 0.25rem;
-    min-height: 8.5rem;
-    padding: 0.5rem 0.1rem 0.55rem;
+    padding: 0.15rem 0;
   }
 
   .home-title__figure {
-    width: 56px;
-    height: 128px;
+    width: 50px;
+    height: 94px;
   }
 
+  .home-title__figure-hair,
   .home-title__figure-shape {
-    transform: scale(0.636);
-    transform-origin: top left;
+    transform: scale(0.47);
   }
 
   .home-title__text {
-    font-size: clamp(1.05rem, 5.2vw, 1.5rem);
-    line-height: 1.65;
+    font-size: clamp(1.02rem, 5vw, 1.4rem);
+    line-height: 1.3;
   }
 }

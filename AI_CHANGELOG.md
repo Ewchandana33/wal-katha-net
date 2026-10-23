@@ -14,6 +14,19 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Use one archive file per quarter and append later entries from that quarter to it. At quarter rollover, create the next quarter file. Verify each dated entry appears exactly once in the active log or an archive.
 - If later evidence changes a conclusion, add a dated correction that names the superseded entry; retain the earlier note as historical context.
 
+## 2026-10-23 — Tighten the homepage title layout and redraw its feminine silhouette
+
+### Request and changes
+
+- Review of the supplied phone screenshot found the title stage reserved 8.5rem of mobile height while the figure itself reserved 128px; this pushed the featured story down and left unnecessary space.
+- Reduced the mobile title stage and figure to a compact ~94px, trimmed the title-to-slider gap, and changed the neon red heading to restrained warm ivory on black.
+- Redrew the decorative white figure as a CSS-only silhouette with flowing hair, a defined waist/hips, and a fitted full-length shape. No photo, image file, inline SVG, canvas, font, or external asset is added. The live Sinhala H1 and SEO metadata stay unchanged.
+- Strengthened the homepage regression verifier for the no-image design, compact mobile spacing, and silhouette geometry.
+
+### Verification status
+
+- Implementation and preview verification are pending. This change is on the existing draft PR #89; no merge or production deployment has been performed.
+
 ## 2026-10-23 — Replace the abstract title ornament with a white side silhouette
 
 ### Request and changes
