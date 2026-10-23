@@ -25,7 +25,9 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 ### Verification status
 
 - Baseline: `main` commit `e6128b7d72b5f00e5f28f9cc323576396d5a9f25`; Cloudflare production deployment `0b63a573-715a-419d-9784-0d1622261892` completed successfully on 2026-10-21.
-- GitHub checks and the new Cloudflare preview are pending. No merge or production deployment has been performed.
+- Feature commit `c29b93bce834b14171c6deb65fecd6f754bdacfd` is in draft PR #89. GitHub Actions CI run `39894201131` succeeded; auto-merge run `39894201205` was skipped because the PR is draft.
+- Cloudflare Pages preview deployment `42dd8d50-3abe-4e69-a6f3-1ec7c0f7f632` completed all five stages successfully. The preview root returned HTTP 200 and showed the unchanged Sinhala H1 plus the white WAL KATHA line, with no image/vector markup in the title region.
+- Preview URL: https://42dd8d50.wala-katha.pages.dev (branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev). No merge or production deployment has been performed.
 
 ## 2026-10-19 — Rebuild the homepage title in a premium black-and-gold layout
 
