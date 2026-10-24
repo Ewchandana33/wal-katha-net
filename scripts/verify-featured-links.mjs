@@ -3,6 +3,8 @@ import path from "node:path";
 
 const distDirectory = path.resolve("dist");
 const homePagePath = path.join(distDirectory, "index.html");
+const standaloneFeatureRoute = "/online-wal-katha-audio-pdf/";
+const standaloneFeatureImage = "/images/pages/online-wal-katha-audio-pdf.webp";
 
 if (!existsSync(homePagePath)) {
   console.error("[featured-links] FAIL: dist/index.html was not generated.");
@@ -20,6 +22,13 @@ const hasClass = (tag, className) => {
   const classAttribute = tag.match(/\bclass="([^"]*)"/i)?.[1] ?? "";
   return classAttribute.split(/\s+/).includes(className);
 };
+
+const featuredLinkElements = [...homePage.matchAll(/<a\b[^>]*>/gi)]
+  .filter((match) => hasClass(match[0], "slide-link"))
+  .map((match) => {
+    const closingTag = homePage.indexOf("</a>", match.index);
+    return closingTag < 0 ? match[0] : homePage.slice(match.index, closingTag + 4);
+  });
 
 if (featuredLinks.length === 0) {
   failures.push("No featured slider links were found on the generated homepage.");
@@ -82,8 +91,11 @@ for (const [index, anchor] of featuredLinks.entries()) {
     continue;
   }
 
-  if (!target.pathname.startsWith("/blog/") || !target.pathname.endsWith("/")) {
-    failures.push(`Slider link ${index + 1} is not a canonical blog route: ${href}`);
+  const isStandaloneFeature = target.pathname === standaloneFeatureRoute;
+  if (isStandaloneFeature && index !== 0) {
+    failures.push("The standalone online/audio/PDF page must be the first slider slide.");
+  } else if (!isStandaloneFeature && (!target.pathname.startsWith("/blog/") || !target.pathname.endsWith("/"))) {
+    failures.push(`Slider link ${index + 1} is not a canonical blog or approved standalone route: ${href}`);
     continue;
   }
 
@@ -94,6 +106,40 @@ for (const [index, anchor] of featuredLinks.entries()) {
   }
 }
 
+const standaloneIndexes = featuredLinks.flatMap((anchor, index) => {
+  const href = anchor.match(/\bhref="([^"]+)"/i)?.[1];
+  if (!href) return [];
+  try {
+    return new URL(href, "https://www.walakatha.net").pathname === standaloneFeatureRoute ? [index] : [];
+  } catch {
+    return [];
+  }
+});
+if (standaloneIndexes.length !== 1 || standaloneIndexes[0] !== 0) {
+  failures.push("Exactly one standalone feature link must appear as the first slider slide.");
+}
+
+const h1Position = homePage.indexOf('id="speakable-home-heading"');
+const sliderPosition = homePage.indexOf('id="astro-featured-slider"');
+if (h1Position < 0 || sliderPosition < 0 || h1Position > sliderPosition) {
+  failures.push("The homepage slider must render below the Sinhala title.");
+}
+
+const firstSlide = featuredLinkElements[0] ?? "";
+const firstImageSrc = firstSlide.match(/<img\b[^>]*\bsrc="([^"]+)"/i)?.[1];
+const firstImagePath = firstImageSrc ? new URL(firstImageSrc, "https://www.walakatha.net").pathname : "";
+if (firstImagePath !== standaloneFeatureImage) {
+  failures.push("The first slider image must be the existing standalone-page banner.");
+}
+const mobileImageSrc = firstSlide.match(/<source\b[^>]*\bsrcset="([^"]+)"/i)?.[1];
+const mobileImagePath = mobileImageSrc ? new URL(mobileImageSrc, "https://www.walakatha.net").pathname : "";
+if (mobileImagePath !== standaloneFeatureImage) {
+  failures.push("The first slide must use the existing banner at mobile widths too.");
+}
+if (!existsSync(path.resolve(distDirectory, "images/pages/online-wal-katha-audio-pdf.webp"))) {
+  failures.push("The first slide's standalone-page banner asset is missing from the build output.");
+}
+
 if (failures.length > 0) {
   console.error("[featured-links] FAIL: homepage slider targets must resolve to generated pages.");
   for (const failure of failures) console.error(`- ${failure}`);
@@ -101,5 +147,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `[featured-links] PASS: ${featuredLinks.length} slider links resolve to generated pages; panels, dots, and widths align.`
+  `[featured-links] PASS: ${featuredLinks.length} slider links (one standalone feature page and ${featuredLinks.length - 1} story pages) resolve to generated pages; the feature banner is first and panels, dots, and widths align.`
 );
