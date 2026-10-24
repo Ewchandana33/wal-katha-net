@@ -80,6 +80,11 @@ assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(2
 assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*width:\s*clamp\(8rem,\s*52vw,\s*36rem\)/s, "Desktop title underline should match the wider reference proportion");
 assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*background:\s*linear-gradient\([^;]*#ff2947[^;]*#ffd95e/s, "The title should have a fine red underline with a centered gold highlight");
 assert.doesNotMatch(titleStyles, /home-title__figure|clip-path:/i, "No CSS silhouette or graphic should remain in the title styles");
+assert.doesNotMatch(
+  homeTitleStyles + mobileTitleBlock,
+  /\burl\s*\(/i,
+  "Homepage title styles should not load image assets",
+);
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*padding:\s*clamp\(/s, "Desktop title stage should use compact spacing");
 assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.65rem 0\.35rem 1\.1rem/s, "Mobile title spacing should remain compact");
 assert.match(mobileTitleBlock, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Mobile Sinhala title should use responsive type size");
