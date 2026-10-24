@@ -16,9 +16,24 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 57 earlier dated entries from 2026-10-14 through 2026-10-24; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 58 earlier dated entries from 2026-10-14 through 2026-10-24; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-25 — Preserve other slider images when fitting the supplied banner
+
+### Correction
+
+- Corrects and supersedes the 16:9 first-slide frame described in the 2026-10-24 entry, “Replace first homepage slider banner with supplied artwork.” The user’s screenshot showed an extra dark band on a neighboring True Story slide.
+- Comparing Preview commit 51a5b1e and Production commit 354a3a in Chromium showed the new 16:9 first frame raised the shared mobile track to 239px at a 461px viewport, while story frames stayed 213.5px. The image-box crop behavior for those story slides was unchanged, but the track-height increase left extra space and shifted the page. At desktop, that first frame was 523.81px compared with the existing shared story frame of 311.33px.
+- Restored the original shared 16/8, 21/8, and 24/8 responsive frame for all slides. The supplied banner still uses object-contain with its 700x392 mobile and 1200x673 desktop WebPs, over a blurred copy of itself to fill the remaining frame area. This keeps the full artwork visible without crop or black side bars and restores other slides to the original height/frames. Story slides retain their existing object-cover behavior.
+
+### Verification
+
+- Code fix commit 41c48385ece1c8f71fda8b77ada7e863954599b1 on draft PR #96 passed GitHub Actions CI run 40121133569, including Astro type-check, configured tests, static build, and SEO checks.
+- Cloudflare Pages Preview deployment 08da2250-e161-4dd6-9321-7d31488af98d for that exact commit completed queue, initialize, clone, build, and deploy successfully. The homepage returned HTTP 200; both banner variants returned HTTP 200 at 1200x673 desktop (68,082 bytes) and 700x392 mobile (40,334 bytes). Preview: https://08da2250.wala-katha.pages.dev.
+- Chromium comparison at 461x1024 showed Preview and Production both at 220px track height, with all four slide frames at 427x213.5px; the updated mobile banner loaded at 700x392 with object-fit: contain. At 1280x900 both tracks were 360px and each slide frame was 934x311.33px; the desktop banner loaded at 1200x673. The browser screenshot remained behind the site's age-confirmation overlay; it was not bypassed.
+- PR #96 remains a draft. No merge or Production deployment occurred.
 
 ## 2026-10-24 — Replace first homepage slider banner with supplied artwork
 
@@ -99,19 +114,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Commit `4b16e2baffb1365621592cb7c5cdb9c90194b87a` on draft PR #91 passed GitHub Actions CI run `40059714365`, including the Type-check and production-build check. Cloudflare Pages Preview deployment `c80a2543-8194-4046-8c89-d0f6aa5286ab` completed queued, initialize, clone, build, and deploy stages successfully: https://c80a2543.wala-katha.pages.dev.
 - The deployed homepage returned HTTP 200; its H1 and accessible label render `සිංහල වැල් කතා සහ වැල් කතා`, the title region contains no image/vector markup, and the page does not reference `home-title-reference.webp`. Cloudflare returned 174/174 deployment-log entries; none matched warning, error, failure, fatal, or exception markers.
 - PR #91 remains open as a draft against `main`; no merge or Production deployment was performed.
-
-## 2026-10-23 — Use the exact reference artwork for the homepage title
-
-### Why and changes
-
-- The previous live-text/CSS styling preserved editable Sinhala text but could not guarantee the exact glyph shapes, metallic finish, glow, and badge in the supplied image. This correction uses the supplied reference itself for the visible title artwork.
-- Added public/images/home-title-reference.webp, a lossless 2048 × 280 crop of the supplied PNG (354,480 bytes). The visible letterforms, gold/red treatment, underline, and 18+ badge come directly from that reference.
-- Kept the homepage H1 and exact Sinhala wording as the artwork alt text and H1 accessible name. The image scales to the viewport while preserving its aspect ratio; no new dependency or unrelated page change.
-- This supersedes the earlier text-only visual approach in the same PR. Changes remain on draft PR #91; no merge or Production deployment.
-
-### Verification
-
-- Implementation commit `ff6103e8fb6bb821cbd946c32299b7ce34d9563f`: [GitHub CI run 40002024810](https://github.com/Ewchandana33/wal-katha-net/actions/runs/40002024810) completed successfully. Astro type-check, middleware and changelog tests, production build, and homepage SEO verification all passed.
-- Cloudflare Pages Preview deployment `3df784a5-b508-4c43-bbd6-32034f15279a` (`https://3df784a5.wala-katha.pages.dev`) completed successfully; queued, initialize, clone, build, and deploy stages all passed. The rendered homepage and title asset both returned HTTP 200; the asset served as `image/webp` at 354,480 bytes, and its deployed H1/alt text matches the Sinhala title.
-- Deployment logs returned 173 of 174 entries; no warning/error/failure/fatal/exception markers were found in the returned entries. One log entry was unavailable, so this check is limited to the 173 returned.
-- These checks cover the image/code commit above. A documentation-only changelog follow-up will receive its own CI/Preview checks before the PR summary is refreshed.
