@@ -207,9 +207,9 @@ html, body {
 }
 
 .home-title__gold {
-  color: #ffd45a;
-  background-image: linear-gradient(180deg, #fff8c8 0%, #ffe16a 20%, #ffb91b 49%, #bd7007 76%, #fff2a2 100%);
-  text-shadow: 0 1px 0 rgba(255, 248, 190, 0.65), 0 2px 3px rgba(0, 0, 0, 0.75);
+  color: #d8a22b;
+  background-image: linear-gradient(180deg, #f0cf75 0%, #dba328 19%, #bd7915 46%, #80470b 73%, #c9881b 89%, #ecc568 100%);
+  text-shadow: 0 1px 0 rgba(245, 210, 128, 0.48), 0 2px 3px rgba(0, 0, 0, 0.75);
   filter: drop-shadow(0 2px 0 rgba(104, 35, 3, 0.95)) drop-shadow(0 0 7px rgba(255, 31, 55, 0.62));
 }
 

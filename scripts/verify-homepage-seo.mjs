@@ -70,7 +70,8 @@ assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*justify-content:\s*ce
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*background:\s*transparent/s, "Homepage title region should have no card background");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*border:\s*0/s, "Homepage title region should have no border");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*box-shadow:\s*none/s, "Homepage title region should have no card shadow");
-assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*color:\s*#ffd45a/i, "Gold title phrase should retain a readable fallback color");
+assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*color:\s*#d8a22b/i, "Gold title phrase should retain a readable rich-gold fallback color");
+assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*background-image:\s*linear-gradient\([^;]*#dba328[^;]*#bd7915/s, "Gold title phrase should use warm amber metallic gradient stops");
 assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*background-image:\s*linear-gradient/i, "Gold title phrase should use a metallic gradient");
 assert.match(homeTitleStyles, /\.home-title__ivory\s*\{[^}]*color:\s*#fffdf7/i, "Ivory title phrase should retain a readable fallback color");
 assert.match(homeTitleStyles, /\.home-title__ivory\s*\{[^}]*background-image:\s*linear-gradient/i, "Ivory title phrase should use a subtle silver gradient");

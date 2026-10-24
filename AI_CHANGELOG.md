@@ -125,3 +125,11 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - `https://walakatha.net/` redirected to `https://www.walakatha.net/`; both returned HTTP 200. The live page retained the exact Sinhala H1 `සිංහල වල් කතා සහ වැල් කතා`, the teal accent CSS, and no `img`, `figure`, `svg`, `picture`, or `canvas` elements in the title region.
 - All 174 available Production deployment-log records, including container logs, were checked; none matched error, failure, warning, fatal, or exception markers.
 - GitHub Actions CI run `39932966097` passed on the approved PR head `7dc9964796726f8696f159b5f5a80e954839ec27`; the required Cloudflare Pages check passed on the merge commit. No site code changed in this documentation correction.
+
+## 2026-10-24 — Deepen the homepage title gold tone
+
+### Request and changes
+
+- Updated the first Sinhala title phrase on draft PR #91 from yellow-leaning highlights to a richer gold/amber metallic gradient and a matching deep-gold fallback. The wording, layout, ivory phrase, red underline, 18+ badge, and text-only implementation remain unchanged.
+- Updated the homepage verifier to check the new gold fallback and amber gradient stops.
+- Verification is pending for this implementation commit; record the completed CI and Cloudflare Preview identifiers after they finish.
