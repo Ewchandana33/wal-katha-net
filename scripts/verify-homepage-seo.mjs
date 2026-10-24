@@ -21,12 +21,19 @@ assert.equal(decodeHtml(title.trim()), expectedTitle, "Homepage title should lea
 
 const headings = [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)];
 assert.equal(headings.length, 1, `Expected one homepage H1; found ${headings.length}`);
-const headingText = decodeHtml(headings[0][1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim());
+const headingText = decodeHtml(
+  headings[0][1]
+    .replace(/<span\b[^>]*class="home-title__badge"[^>]*>[\s\S]*?<\/span>/i, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim(),
+);
 assert.equal(
   headingText,
   expectedH1,
   "Homepage H1 should match the Sinhala-first page topic",
 );
+assert.equal(attribute(headings[0][0], "aria-label"), expectedH1, "Heading accessibility label should preserve the exact Sinhala title");
 assert.match(
   headings[0][1],
   /<span\b[^>]*class="home-title__text"[^>]*>/i,
@@ -45,6 +52,11 @@ const titleStyles = readFileSync(
 const titleRegion = html.match(/<div class="home-title-stage[^"]*"[^>]*>([\s\S]*?)<\/div>/i)?.[1];
 assert.ok(titleRegion, "Homepage should render the title region");
 assert.match(titleRegion, /class="home-title__text"/i, "Homepage H1 should remain visible Sinhala text");
+assert.match(titleRegion, /class="home-title__gold"/i, "First Sinhala title phrase should be gold");
+assert.match(titleRegion, /class="home-title__ivory"/i, "Second Sinhala title phrase should be ivory");
+assert.match(titleRegion, /<span\b[^>]*class="home-title__badge"[^>]*aria-hidden="true"[^>]*>18\+<\/span>/i, "Reference age badge should remain visible and decorative");
+assert.ok(titleRegion.indexOf("home-title__gold") < titleRegion.indexOf("home-title__ivory"), "Gold phrase should precede the ivory phrase");
+assert.doesNotMatch(html, /class="home-title-stage[^"]*\bmb-2\b/i, "The title stage should not leave a bottom margin gap");
 assert.doesNotMatch(titleRegion, /home-title__figure|<(?:img|svg|picture|canvas)\b|WAL KATHA/i, "Homepage title should contain no decorative figure, image, vector, or subtitle");
 
 const titleStyleStart = titleStyles.indexOf(".home-title-stage {");
@@ -58,12 +70,22 @@ assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*justify-content:\s*ce
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*background:\s*transparent/s, "Homepage title region should have no card background");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*border:\s*0/s, "Homepage title region should have no border");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*box-shadow:\s*none/s, "Homepage title region should have no card shadow");
-assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*color:\s*#f2f7f6/i, "Sinhala title should use high-contrast warm-white text");
-assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Sinhala title size should scale responsively");
-assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*#01ad9f/i, "The live Sinhala title should have a restrained brand-teal underline");
-assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*#c3fff9/i, "Underline should have a visible mint highlight against black");
+assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*color:\s*#d8a22b/i, "Gold title phrase should retain a readable rich-gold fallback color");
+assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*text-shadow:\s*none/i, "Gold title should have no surrounding text shadow");
+assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*filter:\s*none/i, "Gold title should have no blur or drop-shadow filter");
+assert.doesNotMatch(homeTitleStyles, /\.home-title__gold\s*\{[^}]*background-image\s*:/i, "Gold title should use one solid color instead of a gradient");
+assert.doesNotMatch(homeTitleStyles, /\.home-title__gold\s*,\s*\.home-title__ivory/i, "Solid gold text should not be made transparent by the ivory text-gradient rule");
+assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(2rem,\s*4\.3vw,\s*3\.25rem\)/s, "Desktop Sinhala title size should stay within its single-line scale");
+assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*width:\s*clamp\(8rem,\s*52vw,\s*36rem\)/s, "Desktop title underline should match the wider reference proportion");
+assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*background:\s*linear-gradient\([^;]*#ff2947[^;]*#ffd95e/s, "The title should have a fine red underline with a centered gold highlight");
 assert.doesNotMatch(titleStyles, /home-title__figure|clip-path:/i, "No CSS silhouette or graphic should remain in the title styles");
-assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.3rem 0\.4rem 0\.6rem/s, "Mobile title spacing should remain compact");
+assert.doesNotMatch(
+  homeTitleStyles + mobileTitleBlock,
+  /\burl\s*\(/i,
+  "Homepage title styles should not load image assets",
+);
+assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*padding:\s*clamp\(/s, "Desktop title stage should use compact spacing");
+assert.match(mobileTitleBlock, /\.home-title-stage\s*\{[^}]*padding:\s*0\.65rem 0\.35rem 1\.1rem/s, "Mobile title spacing should remain compact");
 assert.match(mobileTitleBlock, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(/s, "Mobile Sinhala title should use responsive type size");
 assert.match(titleStyles, /@media\s*\(max-width:\s*480px\)/, "Homepage title should adapt on narrow mobile screens");
 
@@ -96,5 +118,5 @@ const localeMeta = (html.match(/<meta\b[^>]*>/gi) || []).find((tag) => attribute
 assert.equal(attribute(localeMeta || "", "content"), "si_LK", "Homepage Open Graph locale should target Sinhala in Sri Lanka");
 
 console.log(
-  "[homepage-seo] Centered text-only Sinhala title, responsive brand accent, locale metadata, and description verified.",
+  "[homepage-seo] Centered gold-and-ivory Sinhala title, outlined 18+ badge, red-gold underline, locale metadata, and description verified.",
 );

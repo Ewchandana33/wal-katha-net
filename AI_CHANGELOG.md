@@ -14,6 +14,87 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Use one archive file per quarter and append later entries from that quarter to it. At quarter rollover, create the next quarter file. Verify each dated entry appears exactly once in the active log or an archive.
 - If later evidence changes a conclusion, add a dated correction that names the superseded entry; retain the earlier note as historical context.
 
+### Archive index
+
+- archive/AI_CHANGELOG-2026-Q4.md — 2026-10-14 through 2026-10-23; 51 dated entries.
+
+## 2026-10-24 — Correction: render the Sinhala homepage title as text
+
+### Request and changes
+
+- The user explicitly requested a text-only title matching the supplied reference. The latest change on draft PR #91 had replaced the live Sinhala title with a WebP image, contrary to that requirement.
+- Restored the selectable H1 text `සිංහල වැල් කතා සහ වැල් කතා`, with gold and ivory metallic gradients, restrained red glow, the red underline with centered gold highlight, and the outlined 18+ badge. Kept the accessible H1 label and responsive sizing.
+- Removed `public/images/home-title-reference.webp` and restored the homepage verifier checks for visible live text, no title image/vector markup, and no CSS `url(...)` references in the title styles (CSS gradients remain allowed). No unrelated page content or dependencies changed.
+- This supersedes the 2026-10-23 entry “Use the exact reference artwork for the homepage title”; that entry remains as historical context, not the current design requirement.
+- PR #91 remains a draft. No merge or Production deployment.
+
+### Verification
+
+- `yarn test`: 8 passed, 0 failed. Additional CI unit tests (`gsc-ctr-followup`, `alt-text-policy`, `post-files`, and `ai-changelog`): 12 passed, 0 failed.
+- `git diff --check` and `node --check scripts/verify-homepage-seo.mjs` passed.
+- GitHub Actions run `40056061033` passed for code commit `c6a7b18570701456ae4ac6fdfe734b9e79bf2a75`, including Astro type-check, tests, production build, and the homepage verifier.
+- Cloudflare Pages Preview deployment `bb8f13e5-0c03-4cb9-b3b7-d526afaa6ee3` completed all five stages successfully for that exact commit: https://bb8f13e5.wala-katha.pages.dev. The homepage returned HTTP 200; the H1 renders the exact Sinhala wording as live text, the title region has no image/vector/canvas markup, and the compiled CSS contains the gold/ivory gradients, red glow/underline, and 18+ badge.
+- Cloudflare returned 174/174 deployment-log entries; none matched warning, error, failed, failure, fatal, or exception markers.
+- Local verification: `yarn test` 8/8 passed; the four additional CI unit-test files 12/12 passed; `git diff --check` and `node --check scripts/verify-homepage-seo.mjs` passed. A local Astro build was not completed because the workspace restarted during dependency installation; the successful GitHub CI run supplies the full build/type-check evidence.
+- PR #91 remains a draft on `main`; auto-merge was skipped. No merge or Production deployment.
+
+
+### Text-only title regression follow-up (2026-10-24)
+
+- Tightened `scripts/verify-homepage-seo.mjs` to reject `url(...)` references in homepage title CSS while allowing CSS gradients; no page markup, styling, or runtime behavior changed.
+- Commit `4b16e2baffb1365621592cb7c5cdb9c90194b87a` on draft PR #91 passed GitHub Actions CI run `40059714365`, including the Type-check and production-build check. Cloudflare Pages Preview deployment `c80a2543-8194-4046-8c89-d0f6aa5286ab` completed queued, initialize, clone, build, and deploy stages successfully: https://c80a2543.wala-katha.pages.dev.
+- The deployed homepage returned HTTP 200; its H1 and accessible label render `සිංහල වැල් කතා සහ වැල් කතා`, the title region contains no image/vector markup, and the page does not reference `home-title-reference.webp`. Cloudflare returned 174/174 deployment-log entries; none matched warning, error, failure, fatal, or exception markers.
+- PR #91 remains open as a draft against `main`; no merge or Production deployment was performed.
+
+## 2026-10-23 — Use the exact reference artwork for the homepage title
+
+### Why and changes
+
+- The previous live-text/CSS styling preserved editable Sinhala text but could not guarantee the exact glyph shapes, metallic finish, glow, and badge in the supplied image. This correction uses the supplied reference itself for the visible title artwork.
+- Added public/images/home-title-reference.webp, a lossless 2048 × 280 crop of the supplied PNG (354,480 bytes). The visible letterforms, gold/red treatment, underline, and 18+ badge come directly from that reference.
+- Kept the homepage H1 and exact Sinhala wording as the artwork alt text and H1 accessible name. The image scales to the viewport while preserving its aspect ratio; no new dependency or unrelated page change.
+- This supersedes the earlier text-only visual approach in the same PR. Changes remain on draft PR #91; no merge or Production deployment.
+
+### Verification
+
+- Implementation commit `ff6103e8fb6bb821cbd946c32299b7ce34d9563f`: [GitHub CI run 40002024810](https://github.com/Ewchandana33/wal-katha-net/actions/runs/40002024810) completed successfully. Astro type-check, middleware and changelog tests, production build, and homepage SEO verification all passed.
+- Cloudflare Pages Preview deployment `3df784a5-b508-4c43-bbd6-32034f15279a` (`https://3df784a5.wala-katha.pages.dev`) completed successfully; queued, initialize, clone, build, and deploy stages all passed. The rendered homepage and title asset both returned HTTP 200; the asset served as `image/webp` at 354,480 bytes, and its deployed H1/alt text matches the Sinhala title.
+- Deployment logs returned 173 of 174 entries; no warning/error/failure/fatal/exception markers were found in the returned entries. One log entry was unavailable, so this check is limited to the 173 returned.
+- These checks cover the image/code commit above. A documentation-only changelog follow-up will receive its own CI/Preview checks before the PR summary is refreshed.
+
+## 2026-10-23 — Match the homepage title to the gold/red reference
+
+### Request and changes
+
+- Correct the title styling that looked too dim and sat too close to the content below.
+- Match the supplied title's exact selectable Sinhala wording (`සිංහල වැල් කතා සහ වැල් කතා`) and existing font; brighten the metallic gold and ivory gradients, add restrained crimson edge glow and depth, restore the outlined 18+ badge, lengthen the desktop red underline to 52vw to match the 1024px reference, cap desktop type at 3.25rem to keep it single-line on wide screens, retain the centered gold highlight, and add controlled space below the title.
+- Keep the layout responsive and update the title-specific verifier. On mobile, keep the 18+ badge in the title's inline text flow so it moves to a new line only when space is insufficient. No title image, dependency, unrelated page change, merge, or Production release.
+
+### Verification
+
+- Initial implementation commit cc85c96465fe18f4e4f91570191c8b91e1983e54 on draft PR #91 passed GitHub Actions run 39965144654 and its Cloudflare Pages check; its commit-matched Preview deployment 8fe7037e-fb26-4e70-86df-53ff72a91616 completed successfully.
+- Responsive follow-up commit dede67b6e593ab5bb32dfb20e1f89799ac95cb20 passed GitHub Actions run 39966486651 (Type-check and production build) and the Cloudflare Pages check. Preview deployment bef6ab1e-0741-40cf-9fde-28cf25601297 completed its deploy stage successfully for that exact commit. Preview: https://bef6ab1e.wala-katha.pages.dev.
+- The final Preview returned HTTP 200. All 174 available deployment-log records, including container logs, were checked; none matched error, failure, warning, fatal, or exception markers.
+- Local headless Chromium measurements at 320, 360, 390, 430, 768, and 1024px found no horizontal overflow. The 18+ badge stayed visible in the viewport, did not overlap the title, and shared its final text line; the title used two lines only at 320 and 360px and one line at 390px and wider. The screenshot remained behind the site's existing age-confirmation overlay; the review did not bypass it.
+- PR #91 remains a draft; auto-merge was skipped. No merge or Production deployment occurred.
+
+
+## 2026-10-23 — Redesign the compact Sinhala homepage title
+
+### Request and changes
+
+- Followed the supplied black-background reference and request to eliminate unnecessary empty space below the homepage title.
+- Kept the exact live H1 text, styled its first phrase gold and its second phrase ivory/silver, and added a restrained red glow with a thin red rule and centered gold highlight. Tightened title-stage spacing while retaining the existing Sinhala-compatible font; added no image, badge, dependency, or unrelated page/content change.
+- Updated the title-specific SEO verifier. Rotated the active changelog to its five-entry limit, preserving the oldest complete entry in archive/AI_CHANGELOG-2026-Q4.md.
+
+### Verification
+
+- Draft PR #91 implementation commit d11f2860bbd7e3d86cd5d1d2eb27ea220386f139 passed GitHub Actions CI run 39950994488 (including the build and homepage verifier); the Cloudflare Pages check passed.
+- Cloudflare Pages preview deployment f66cd7ab-3b4f-4733-86b3-cc22bfcb1b52 completed its build and deploy stages successfully for that commit. Preview: https://f66cd7ab.wala-katha.pages.dev.
+- The preview returned HTTP 200. Local headless Chromium screenshots at 320, 360, 390, 430, 768, 1024, and 1280 pixels showed the H1 centered, with no clipping or overlap and no unnecessary block of space below it.
+- The Cloudflare Browser Rendering API returned HTTP 429 for a multi-viewport request; local Chromium screenshots were used for the viewport review instead.
+- PR #91 remains a draft; its auto-merge workflow was skipped. No merge or Production deployment occurred.
+
 ## 2026-10-23 — Correction: make the Sinhala title typography-only
 
 ### Request and changes
@@ -45,61 +126,35 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - All 174 available Production deployment-log records, including container logs, were checked; none matched error, failure, warning, fatal, or exception markers.
 - GitHub Actions CI run `39932966097` passed on the approved PR head `7dc9964796726f8696f159b5f5a80e954839ec27`; the required Cloudflare Pages check passed on the merge commit. No site code changed in this documentation correction.
 
-## 2026-10-23 — Add the reference's red title accent
+## 2026-10-24 — Deepen the homepage title gold tone
 
 ### Request and changes
 
-- The current preview had the live Sinhala heading and white CSS silhouette aligned, but the black-and-red reference was not yet reflected in the title treatment.
-- Add a dimensional red X behind the existing figure and a restrained red rule beneath the live heading using CSS only. Keep the Sinhala H1, SEO metadata, responsive layout, and no-image design unchanged.
-- Extend the homepage verifier to check both accents.
+- Updated the first Sinhala title phrase on draft PR #91 from yellow-leaning highlights to a richer gold/amber metallic gradient and a matching deep-gold fallback. The wording, layout, ivory phrase, red underline, 18+ badge, and text-only implementation remain unchanged.
+- Updated the homepage verifier to check the new gold fallback and amber gradient stops.
+- Implementation commit `5325b32b04ca2c3a21abec88e14f648d08d351dc` passed GitHub Actions CI run `40060672320`; the Type-check and production-build check and Cloudflare Pages check both succeeded. The auto-merge workflow was skipped.
+- Cloudflare Pages Preview deployment `6d47b9f2-ff36-465b-b025-25692fe7cc89` completed all five stages successfully for that exact commit: https://6d47b9f2.wala-katha.pages.dev.
+- Direct Preview rendering returned HTTP 200 with the exact selectable Sinhala H1. Compiled title CSS contains the new fallback `#d8a22b` and warm gold/amber gradient stops `#dba328` and `#bd7915`; no title markup or layout changed.
+- Cloudflare returned 174/174 deployment-log records, including container logs; none matched warning, error, failed, failure, fatal, or exception markers. PR #91 remains a draft; no merge or Production deployment occurred.
 
-### Verification status
-
-- Implementation commit `a125567a215875042aefc753bf61f7cca7898560` on draft PR #89 passed GitHub Actions CI run `39920047946`.
-- Cloudflare Pages preview deployment `332d6b5a-cfdd-41ca-9210-927191135742` completed all five stages successfully for that same commit. Preview: https://332d6b5a.wala-katha.pages.dev (branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev). The preview homepage returned HTTP 200; all 174/174 available deployment log records, including container logs, were inspected and none matched error, fatal, failure, exception, or warning markers.
-- Rendered HTML retains the Sinhala H1 `සිංහල වල් කතා සහ වැල් කතා` and contains no image/vector/canvas markup in the title region. Compiled CSS contains the red X and underline accents. Cloudflare Browser Rendering screenshots at 462×900 mobile and 1280×900 desktop confirmed the title, underline, and CSS silhouette layout.
-- The PR remains a draft; no merge or production deployment has been performed.
-
-## 2026-10-23 — Tighten the homepage title layout and redraw its feminine silhouette
+## 2026-10-24 — Remove the gold title glow
 
 ### Request and changes
 
-- Review of the supplied phone screenshot found the title stage reserved 8.5rem of mobile height while the figure itself reserved 128px; this pushed the featured story down and left unnecessary space.
-- Reduced the title stage, then browser screenshot review caught CSS grid auto-placement putting the H1 under the figure; explicitly anchored both to row 1 and increased the mobile figure to 110px for a clearer, more legible side-by-side layout.
-- Trimmed the title-to-slider gap and changed the neon red heading to restrained warm ivory on black.
-- Redrew the decorative white figure as a CSS-only silhouette with flowing hair, a defined waist/hips, and a fitted full-length shape. No photo, image file, inline SVG, canvas, font, or external asset is added. The live Sinhala H1 and SEO metadata stay unchanged.
-- Strengthened the homepage regression verifier for the no-image design, compact mobile spacing, and silhouette geometry.
+- Replaced the first Sinhala title phrase's gold gradient and colored glow with one solid `#d8a22b`; removed text-shadow and drop-shadow. Kept background clipping limited to the ivory phrase so modern browsers display the gold as a solid color.
+- Updated the homepage verifier to require solid gold and no gold text shadow, blur/filter, gradient, or transparent fill. Wording, title layout, ivory styling, underline, badge, and text-only markup are unchanged.
+- Implementation commit `d3547eb876b20fce20734a0d18912b14c9eb9735` passed GitHub Actions CI run `40062367180`; the Type-check and production-build check and Cloudflare Pages check succeeded. The auto-merge workflow was skipped.
+- Cloudflare Pages Preview deployment `96c01242-6e2d-4fc9-87a7-44c1ba697887` completed all five stages successfully for that exact commit: https://96c01242.wala-katha.pages.dev.
+- Direct Preview rendering returned HTTP 200 with the exact selectable Sinhala H1. Compiled gold CSS is `.home-title__gold{color:#d8a22b;text-shadow:none;filter:none}`; the gold phrase has no gradient, colored shadow, or drop-shadow, and the title region has no image markup or image reference.
+- Cloudflare returned 174/174 deployment-log records, including container logs; none matched warning, error, failed, failure, fatal, or exception markers. PR #91 remains a draft; no merge or Production deployment occurred.
 
-### Verification status
-
-- Implementation and preview verification are pending. This change is on the existing draft PR #89; no merge or production deployment has been performed.
-
-## 2026-10-23 — Replace the abstract title ornament with a white side silhouette
+## 2026-10-24 — Correct the Sinhala homepage title spelling
 
 ### Request and changes
 
-- Replaced the ambiguous red line-art ornament with a clear, solid white full-body feminine silhouette positioned beside the live Sinhala title, inspired by the supplied black-background reference.
-- Draw the silhouette with CSS clip-path geometry and a polygon fallback; no picture, SVG, canvas, font, or external asset is added.
-- Keep the subtitle removed, the H1 and SEO metadata unchanged, and the layout responsive. Extend the verifier to check the white CSS silhouette and side-by-side layout.
-
-### Verification status
-
-- Implementation commit `d2cc6a2d104849b64f10e8c68a86f625e76cbf9f` is in draft PR #89. GitHub Actions CI run `39899734051` completed successfully.
-- Cloudflare Pages preview deployment `906e66ec-5649-43d5-9d1d-eb342e5e1a64` completed all five stages successfully for that commit. Preview URL: https://906e66ec.wala-katha.pages.dev; branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev.
-- Direct HTTP GET of the preview returned 200. The rendered title kept the exact Sinhala H1, included the solid white CSS silhouette beside it, omitted “WAL KATHA”, and contained no img/svg/picture/canvas markup in the title region. The downloaded compiled CSS contains the white gradient silhouette, CSS path clip, right-side title column, and responsive 480px rule.
-- PR #89 remains a draft; no merge or production deployment was performed.
-
-## 2026-10-23 — Replace the title subtitle with a CSS-drawn feminine accent
-
-### Request and changes
-
-- Removed the small white “WAL KATHA” line and added a restrained red line-art feminine silhouette inspired by the supplied reference. The illustration is built from HTML spans and CSS borders/curves only; no picture, inline SVG, canvas, or external asset is used.
-- Kept the Sinhala H1 as live text, the open/no-card layout, existing metadata, and the responsive red title treatment.
-- Updated the homepage verifier to require the CSS ornament and no subtitle or image markup.
-
-### Verification status
-
-- Implementation commit `b719ac0feadab16e69f7a614aac0772ddd8f242e` is in draft PR #89. GitHub Actions CI run `39898274324` completed successfully.
-- Cloudflare Pages preview deployment `dbedd595-8f71-41d5-8774-9a80dcfcd033` completed all five stages successfully for that commit. Preview URL: https://dbedd595.wala-katha.pages.dev; branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev.
-- Direct HTTP GET of the preview returned 200. The rendered title region kept the exact Sinhala H1, included the CSS-drawn figure, omitted “WAL KATHA”, and contained no img/svg/picture/canvas markup. The downloaded compiled CSS contains the figure selectors, red title rule, and the responsive 480px media rule.
-- PR #89 remains a draft; no merge or production deployment was performed.
+- Corrected the visible gold H1 phrase from `සිංහල වැල් කතා` to `සිංහල වල් කතා`, making the full selectable H1 and accessible label exactly `සිංහල වල් කතා සහ වැල් කතා`. The pointing emoji was not added to the title. Gold styling, ivory phrase, underline, badge, and layout remain unchanged.
+- Updated the homepage verifier to require the corrected exact H1.
+- Implementation commit `eac083a92b5161799cfe5811db8d588bd114f6aa` passed GitHub Actions CI run `40063106510`; Type-check and production build and Cloudflare Pages checks succeeded. The auto-merge workflow was skipped.
+- Cloudflare Pages Preview deployment `41261a03-4756-47c2-ba8e-cae2cc4c5a97` completed all five stages successfully for that exact commit: https://41261a03.wala-katha.pages.dev.
+- Direct Preview rendering returned HTTP 200 with the exact H1 and accessible label `සිංහල වල් කතා සහ වැල් කතා`; the gold styling remains solid `#d8a22b` with no shadow, blur, or gradient. The title contains no image markup or image reference.
+- Cloudflare returned 174/174 deployment-log records, including container logs; none matched warning, error, failed, failure, fatal, or exception markers. PR #91 remains a draft; no merge or Production deployment occurred.

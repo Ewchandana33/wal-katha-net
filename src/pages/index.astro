@@ -82,7 +82,9 @@ const organizationSameAs = (social?.main || [])
 const homeTitle = "සිංහල වැල් කතා කියවන්න | Wal Katha";
 const homeDescription =
   "සිංහල වැල් කතා කියවීමට Wal Katha එකතුව බලන්න. කාණ්ඩ අනුව පිරික්සා හෝ සෙවුමෙන් ඔබ කැමති කතාව තෝරාගෙන නොමිලේ කියවන්න. ඔබට ගැළපෙන කතාව මෙතැනින් සොයාගන්න.";
-const homeH1 = "සිංහල වල් කතා සහ වැල් කතා";
+const homeH1Gold = "සිංහල වල් කතා";
+const homeH1Ivory = "සහ වැල් කතා";
+const homeH1 = [homeH1Gold, homeH1Ivory].join(" ");
 
 // BRAND ENTITY FIX. Organization "name" previously reused homeTitle, i.e.
 // a page title ("Wal Katha - Sinhala Wal Katha & Wela Katha") rather than
@@ -198,9 +200,13 @@ const homePageSchema = {
   <div class="section pt-4 pb-12 min-h-screen bg-[#050505] text-slate-200 antialiased">
     <div class="container">
 
-      <div class="home-title-stage mb-2">
-        <h1 id="speakable-home-heading" class="home-title">
-          <span class="home-title__text">{homeH1}</span>
+      <div class="home-title-stage">
+        <h1 id="speakable-home-heading" class="home-title" aria-label={homeH1}>
+          <span class="home-title__text">
+            <span class="home-title__gold">{homeH1Gold}</span>{" "}
+            <span class="home-title__ivory">{homeH1Ivory}</span>{" "}
+            <span class="home-title__badge" aria-hidden="true">18+</span>
+          </span>
         </h1>
       </div>
 

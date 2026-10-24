@@ -166,13 +166,13 @@ html, body {
   border: 1px solid rgba(16, 185, 129, 0.2) !important;
 }
 
-/* Compact open title with a custom CSS-only feminine silhouette. */
+/* Reference-matched, selectable Sinhala homepage title. */
 .home-title-stage {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 0;
-  padding: clamp(0.45rem, 1.25vw, 0.8rem) 0.5rem 0.75rem;
+  padding: clamp(0.9rem, 2vw, 1.45rem) 0.5rem clamp(1.1rem, 2.4vw, 1.75rem);
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -181,50 +181,94 @@ html, body {
 }
 
 .home-title {
+  width: 100%;
+  max-width: 100%;
   margin: 0;
   padding: 0;
   background: transparent;
   border: 0;
   box-shadow: none;
-  line-height: 1.35;
+  line-height: 1.15;
+  text-align: center;
 }
 
 .home-title__text {
   display: inline-block;
   max-width: 100%;
-  color: #f2f7f6;
+  color: #fffdf7;
   font-family: "Noto Sans Sinhala", "Iskoola Pota", system-ui, sans-serif;
-  font-size: clamp(1.3rem, 3.6vw, 2.5rem);
+  font-size: clamp(2rem, 4.3vw, 3.25rem);
   font-weight: 800;
   letter-spacing: 0;
-  line-height: 1.45;
+  line-height: 1.35;
   text-wrap: balance;
-  overflow-wrap: anywhere;
-  text-shadow: 0 0 16px rgba(1, 173, 159, 0.2);
+  overflow-wrap: normal;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.8);
+}
+
+.home-title__gold {
+  color: #d8a22b;
+  text-shadow: none;
+  filter: none;
+}
+
+.home-title__ivory {
+  color: #fffdf7;
+  background-image: linear-gradient(180deg, #fffefa 0%, #f4f1ed 54%, #d8dce3 100%);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.62), 0 2px 3px rgba(0, 0, 0, 0.82);
+  filter: drop-shadow(0 2px 0 rgba(75, 53, 51, 0.78)) drop-shadow(0 0 5px rgba(255, 36, 58, 0.38));
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .home-title__ivory {
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.home-title__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.12em;
+  padding: 0.03em 0.38em;
+  border: 2px solid #ff2347;
+  border-radius: 999px;
+  color: #ff3153;
+  font-family: Arial, sans-serif;
+  font-size: max(0.65rem, 0.42em);
+  font-weight: 800;
+  line-height: 1.2;
+  vertical-align: 0.18em;
+  white-space: nowrap;
+  text-shadow: 0 0 7px rgba(255, 28, 65, 0.58);
+  box-shadow: 0 0 6px rgba(255, 25, 60, 0.45), inset 0 0 5px rgba(255, 25, 60, 0.14);
 }
 
 .home-title__text::after {
   display: block;
-  width: clamp(3.5rem, 8vw, 4.75rem);
-  height: 3px;
-  margin: 0.45rem auto 0;
+  width: clamp(8rem, 52vw, 36rem);
+  height: 2px;
+  margin: 0.16em auto 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent, #01ad9f 16%, #c3fff9 50%, #01ad9f 84%, transparent);
+  background: linear-gradient(90deg, transparent 0%, rgba(115, 16, 26, 0.35) 12%, #d81736 28%, #ff2947 43%, #ffd95e 50%, #ff2947 57%, #d81736 72%, transparent 100%);
   content: "";
-  box-shadow: 0 0 16px rgba(1, 173, 159, 0.5);
+  box-shadow: 0 0 9px rgba(255, 34, 62, 0.62);
 }
 
 @media (max-width: 480px) {
   .home-title-stage {
-    padding: 0.3rem 0.4rem 0.6rem;
+    padding: 0.65rem 0.35rem 1.1rem;
   }
 
   .home-title__text {
-    font-size: clamp(1.15rem, 5vw, 1.45rem);
-    line-height: 1.45;
+    font-size: clamp(1.18rem, 4.9vw, 1.65rem);
+    line-height: 1.4;
   }
 
   .home-title__text::after {
-    margin-top: 0.38rem;
+    width: min(78%, 22rem);
+    margin-top: 0.16em;
   }
 }
