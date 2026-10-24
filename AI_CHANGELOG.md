@@ -143,4 +143,7 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - Replaced the first Sinhala title phrase's gold gradient and colored glow with one solid `#d8a22b`; removed text-shadow and drop-shadow. Kept background clipping limited to the ivory phrase so modern browsers display the gold as a solid color.
 - Updated the homepage verifier to require solid gold and no gold text shadow, blur/filter, gradient, or transparent fill. Wording, title layout, ivory styling, underline, badge, and text-only markup are unchanged.
-- Verification is pending for this implementation commit; record the completed CI and Cloudflare Preview identifiers after they finish.
+- Implementation commit `d3547eb876b20fce20734a0d18912b14c9eb9735` passed GitHub Actions CI run `40062367180`; the Type-check and production-build check and Cloudflare Pages check succeeded. The auto-merge workflow was skipped.
+- Cloudflare Pages Preview deployment `96c01242-6e2d-4fc9-87a7-44c1ba697887` completed all five stages successfully for that exact commit: https://96c01242.wala-katha.pages.dev.
+- Direct Preview rendering returned HTTP 200 with the exact selectable Sinhala H1. Compiled gold CSS is `.home-title__gold{color:#d8a22b;text-shadow:none;filter:none}`; the gold phrase has no gradient, colored shadow, or drop-shadow, and the title region has no image markup or image reference.
+- Cloudflare returned 174/174 deployment-log records, including container logs; none matched warning, error, failed, failure, fatal, or exception markers. PR #91 remains a draft; no merge or Production deployment occurred.
