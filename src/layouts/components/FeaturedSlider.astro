@@ -150,7 +150,7 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
           <div
             class={`relative w-full ${
               slide.preserveAspectRatio
-                ? "aspect-[700/356] md:aspect-[24/8]"
+                ? "aspect-[700/356] md:aspect-[1200/610]"
                 : "aspect-[16/8] sm:aspect-[21/8] md:aspect-[24/8]"
             } bg-[#010203] overflow-hidden`}
           >
@@ -166,11 +166,11 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
                 Aspect Ratio Test" failure on homepage): the source
                 dimensions for each slide are now declared individually.
                 Existing story-slide masters remain 1200x400 and match
-                md:aspect-[24/8]. The dedicated homepage banner uses a
-                1200x610 desktop WebP and 700x356 mobile WebP. Below the
-                md breakpoint, its frame now matches the 700x356 mobile
-                asset so the complete artwork fills the width without dark
-                side gutters; desktop keeps the shared 24:8 slider frame.
+                md:aspect-[1200/610]. The dedicated homepage banner uses
+                a 1200x610 desktop WebP and 700x356 mobile WebP. Its frame
+                matches the active image variant at every width, so the
+                complete artwork fills the banner without cropping or dark
+                side gutters; other story slides retain the shared 24:8 frame.
 
                 NOTE: slide.image / slide.mobileImage now carry a
                 "?v=<hash>" cache-busting query string (see
