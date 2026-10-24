@@ -4,7 +4,8 @@ import path from "node:path";
 const distDirectory = path.resolve("dist");
 const homePagePath = path.join(distDirectory, "index.html");
 const standaloneFeatureRoute = "/online-wal-katha-audio-pdf/";
-const standaloneFeatureImage = "/images/pages/online-wal-katha-audio-pdf.webp";
+const standaloneFeatureDesktopImage = "/images/slider/online-wal-katha-audio-pdf.webp";
+const standaloneFeatureMobileImage = "/images/slider/online-wal-katha-audio-pdf-mobile.webp";
 
 if (!existsSync(homePagePath)) {
   console.error("[featured-links] FAIL: dist/index.html was not generated.");
@@ -128,16 +129,19 @@ if (h1Position < 0 || sliderPosition < 0 || h1Position > sliderPosition) {
 const firstSlide = featuredLinkElements[0] ?? "";
 const firstImageSrc = firstSlide.match(/<img\b[^>]*\bsrc="([^"]+)"/i)?.[1];
 const firstImagePath = firstImageSrc ? new URL(firstImageSrc, "https://www.walakatha.net").pathname : "";
-if (firstImagePath !== standaloneFeatureImage) {
-  failures.push("The first slider image must be the existing standalone-page banner.");
+if (firstImagePath !== standaloneFeatureDesktopImage) {
+  failures.push("The first slider image must use the dedicated homepage banner desktop asset.");
 }
 const mobileImageSrc = firstSlide.match(/<source\b[^>]*\bsrcset="([^"]+)"/i)?.[1];
 const mobileImagePath = mobileImageSrc ? new URL(mobileImageSrc, "https://www.walakatha.net").pathname : "";
-if (mobileImagePath !== standaloneFeatureImage) {
-  failures.push("The first slide must use the existing banner at mobile widths too.");
+if (mobileImagePath !== standaloneFeatureMobileImage) {
+  failures.push("The first slide must use the dedicated homepage banner mobile asset.");
 }
-if (!existsSync(path.resolve(distDirectory, "images/pages/online-wal-katha-audio-pdf.webp"))) {
-  failures.push("The first slide's standalone-page banner asset is missing from the build output.");
+if (!existsSync(path.resolve(distDirectory, "images/slider/online-wal-katha-audio-pdf.webp"))) {
+  failures.push("The first slide's desktop banner asset is missing from the build output.");
+}
+if (!existsSync(path.resolve(distDirectory, "images/slider/online-wal-katha-audio-pdf-mobile.webp"))) {
+  failures.push("The first slide's mobile banner asset is missing from the build output.");
 }
 
 if (failures.length > 0) {
