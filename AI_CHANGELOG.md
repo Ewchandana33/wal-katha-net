@@ -147,3 +147,11 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Cloudflare Pages Preview deployment `96c01242-6e2d-4fc9-87a7-44c1ba697887` completed all five stages successfully for that exact commit: https://96c01242.wala-katha.pages.dev.
 - Direct Preview rendering returned HTTP 200 with the exact selectable Sinhala H1. Compiled gold CSS is `.home-title__gold{color:#d8a22b;text-shadow:none;filter:none}`; the gold phrase has no gradient, colored shadow, or drop-shadow, and the title region has no image markup or image reference.
 - Cloudflare returned 174/174 deployment-log records, including container logs; none matched warning, error, failed, failure, fatal, or exception markers. PR #91 remains a draft; no merge or Production deployment occurred.
+
+## 2026-10-24 — Correct the Sinhala homepage title spelling
+
+### Request and changes
+
+- Corrected the visible gold H1 phrase from `සිංහල වැල් කතා` to `සිංහල වල් කතා`, making the full selectable H1 and accessible label exactly `සිංහල වල් කතා සහ වැල් කතා`. The pointing emoji was not added to the title. Gold styling, ivory phrase, underline, badge, and layout remain unchanged.
+- Updated the homepage verifier to require the corrected exact H1.
+- Verification is pending for this implementation commit; record the completed CI and Cloudflare Preview identifiers after they finish.

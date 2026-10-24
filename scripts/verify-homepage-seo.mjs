@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 const html = readFileSync(resolve(process.cwd(), "dist/index.html"), "utf8");
 const expectedTitle = "සිංහල වැල් කතා කියවන්න | Wal Katha";
 const expectedDescription = "සිංහල වැල් කතා කියවීමට Wal Katha එකතුව බලන්න. කාණ්ඩ අනුව පිරික්සා හෝ සෙවුමෙන් ඔබ කැමති කතාව තෝරාගෙන නොමිලේ කියවන්න. ඔබට ගැළපෙන කතාව මෙතැනින් සොයාගන්න.";
-const expectedH1 = "සිංහල වැල් කතා සහ වැල් කතා";
+const expectedH1 = "සිංහල වල් කතා සහ වැල් කතා";
 
 const decodeHtml = (value) =>
   value
