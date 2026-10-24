@@ -39,13 +39,13 @@ const demoSlides: FeaturedSlide[] = [
   {
     id: "online-wal-katha-audio-pdf",
     title: "සිංහල වල් කතා Online කියවීම, Audio සහ PDF",
-    image: "/images/pages/online-wal-katha-audio-pdf.webp",
-    mobileImage: "/images/pages/online-wal-katha-audio-pdf.webp",
+    image: "/images/slider/online-wal-katha-audio-pdf.webp",
+    mobileImage: "/images/slider/online-wal-katha-audio-pdf-mobile.webp",
     href: "/online-wal-katha-audio-pdf/",
     category: "",
     preserveAspectRatio: true,
-    width: 1672,
-    height: 940,
+    width: 1200,
+    height: 610,
   },
   {
     id: "methsala-akka-wal-katha",
@@ -160,9 +160,9 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
                 Aspect Ratio Test" failure on homepage): the source
                 dimensions for each slide are now declared individually.
                 Existing story-slide masters remain 1200x400 and match
-                md:aspect-[24/8]. The standalone-page banner keeps its
-                original 1672x940 ratio with object-contain so its text
-                and 18+ badge are not cropped.
+                md:aspect-[24/8]. The dedicated homepage banner uses a
+                1200x610 desktop WebP and 700x356 mobile WebP;
+                object-contain preserves its full artwork and embedded text.
 
                 NOTE: slide.image / slide.mobileImage now carry a
                 "?v=<hash>" cache-busting query string (see
