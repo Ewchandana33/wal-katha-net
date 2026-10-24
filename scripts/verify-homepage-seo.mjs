@@ -71,12 +71,10 @@ assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*background:\s*transpa
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*border:\s*0/s, "Homepage title region should have no border");
 assert.match(homeTitleStyles, /\.home-title-stage\s*\{[^}]*box-shadow:\s*none/s, "Homepage title region should have no card shadow");
 assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*color:\s*#d8a22b/i, "Gold title phrase should retain a readable rich-gold fallback color");
-assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*background-image:\s*linear-gradient\([^;]*#dba328[^;]*#bd7915/s, "Gold title phrase should use warm amber metallic gradient stops");
-assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*background-image:\s*linear-gradient/i, "Gold title phrase should use a metallic gradient");
-assert.match(homeTitleStyles, /\.home-title__ivory\s*\{[^}]*color:\s*#fffdf7/i, "Ivory title phrase should retain a readable fallback color");
-assert.match(homeTitleStyles, /\.home-title__ivory\s*\{[^}]*background-image:\s*linear-gradient/i, "Ivory title phrase should use a subtle silver gradient");
-assert.match(homeTitleStyles, /\.home-title__badge\s*\{[^}]*border:\s*2px solid #ff2347/i, "18+ badge should use a compact red neon outline");
-assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*filter:\s*drop-shadow\(/s, "Gold title should render layered depth and glow");
+assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*text-shadow:\s*none/i, "Gold title should have no surrounding text shadow");
+assert.match(homeTitleStyles, /\.home-title__gold\s*\{[^}]*filter:\s*none/i, "Gold title should have no blur or drop-shadow filter");
+assert.doesNotMatch(homeTitleStyles, /\.home-title__gold\s*\{[^}]*background-image\s*:/i, "Gold title should use one solid color instead of a gradient");
+assert.doesNotMatch(homeTitleStyles, /\.home-title__gold\s*,\s*\.home-title__ivory/i, "Solid gold text should not be made transparent by the ivory text-gradient rule");
 assert.match(homeTitleStyles, /\.home-title__text\s*\{[^}]*font-size:\s*clamp\(2rem,\s*4\.3vw,\s*3\.25rem\)/s, "Desktop Sinhala title size should stay within its single-line scale");
 assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*width:\s*clamp\(8rem,\s*52vw,\s*36rem\)/s, "Desktop title underline should match the wider reference proportion");
 assert.match(homeTitleStyles, /\.home-title__text::after\s*\{[^}]*background:\s*linear-gradient\([^;]*#ff2947[^;]*#ffd95e/s, "The title should have a fine red underline with a centered gold highlight");

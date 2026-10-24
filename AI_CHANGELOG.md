@@ -136,3 +136,11 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Cloudflare Pages Preview deployment `6d47b9f2-ff36-465b-b025-25692fe7cc89` completed all five stages successfully for that exact commit: https://6d47b9f2.wala-katha.pages.dev.
 - Direct Preview rendering returned HTTP 200 with the exact selectable Sinhala H1. Compiled title CSS contains the new fallback `#d8a22b` and warm gold/amber gradient stops `#dba328` and `#bd7915`; no title markup or layout changed.
 - Cloudflare returned 174/174 deployment-log records, including container logs; none matched warning, error, failed, failure, fatal, or exception markers. PR #91 remains a draft; no merge or Production deployment occurred.
+
+## 2026-10-24 — Remove the gold title glow
+
+### Request and changes
+
+- Replaced the first Sinhala title phrase's gold gradient and colored glow with one solid `#d8a22b`; removed text-shadow and drop-shadow. Kept background clipping limited to the ivory phrase so modern browsers display the gold as a solid color.
+- Updated the homepage verifier to require solid gold and no gold text shadow, blur/filter, gradient, or transparent fill. Wording, title layout, ivory styling, underline, badge, and text-only markup are unchanged.
+- Verification is pending for this implementation commit; record the completed CI and Cloudflare Preview identifiers after they finish.
