@@ -16,7 +16,23 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 2026-10-14 through 2026-10-23; 50 dated entries.
+- archive/AI_CHANGELOG-2026-Q4.md — 2026-10-14 through 2026-10-23; 51 dated entries.
+
+## 2026-10-24 — Correction: render the Sinhala homepage title as text
+
+### Request and changes
+
+- The user explicitly requested a text-only title matching the supplied reference. The latest change on draft PR #91 had replaced the live Sinhala title with a WebP image, contrary to that requirement.
+- Restored the selectable H1 text `සිංහල වැල් කතා සහ වැල් කතා`, with gold and ivory metallic gradients, restrained red glow, the red underline with centered gold highlight, and the outlined 18+ badge. Kept the accessible H1 label and responsive sizing.
+- Removed `public/images/home-title-reference.webp` and restored the homepage verifier checks for visible live text and no title image/vector markup. No unrelated page content or dependencies changed.
+- This supersedes the 2026-10-23 entry “Use the exact reference artwork for the homepage title”; that entry remains as historical context, not the current design requirement.
+- PR #91 remains a draft. No merge or Production deployment.
+
+### Verification
+
+- `yarn test`: 8 passed, 0 failed. Additional CI unit tests (`gsc-ctr-followup`, `alt-text-policy`, `post-files`, and `ai-changelog`): 12 passed, 0 failed.
+- `git diff --check` and `node --check scripts/verify-homepage-seo.mjs` passed.
+- Astro type-check, production build, generated-page verification, and Cloudflare Preview checks are pending for the updated PR head. The temporary workspace restarted during the lockfile dependency install, so those full checks will be taken from GitHub CI and the real Pages Preview instead of claiming a local build.
 
 ## 2026-10-23 — Use the exact reference artwork for the homepage title
 
@@ -97,18 +113,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - `https://walakatha.net/` redirected to `https://www.walakatha.net/`; both returned HTTP 200. The live page retained the exact Sinhala H1 `සිංහල වල් කතා සහ වැල් කතා`, the teal accent CSS, and no `img`, `figure`, `svg`, `picture`, or `canvas` elements in the title region.
 - All 174 available Production deployment-log records, including container logs, were checked; none matched error, failure, warning, fatal, or exception markers.
 - GitHub Actions CI run `39932966097` passed on the approved PR head `7dc9964796726f8696f159b5f5a80e954839ec27`; the required Cloudflare Pages check passed on the merge commit. No site code changed in this documentation correction.
-
-## 2026-10-23 — Add the reference's red title accent
-
-### Request and changes
-
-- The current preview had the live Sinhala heading and white CSS silhouette aligned, but the black-and-red reference was not yet reflected in the title treatment.
-- Add a dimensional red X behind the existing figure and a restrained red rule beneath the live heading using CSS only. Keep the Sinhala H1, SEO metadata, responsive layout, and no-image design unchanged.
-- Extend the homepage verifier to check both accents.
-
-### Verification status
-
-- Implementation commit `a125567a215875042aefc753bf61f7cca7898560` on draft PR #89 passed GitHub Actions CI run `39920047946`.
-- Cloudflare Pages preview deployment `332d6b5a-cfdd-41ca-9210-927191135742` completed all five stages successfully for that same commit. Preview: https://332d6b5a.wala-katha.pages.dev (branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev). The preview homepage returned HTTP 200; all 174/174 available deployment log records, including container logs, were inspected and none matched error, fatal, failure, exception, or warning markers.
-- Rendered HTML retains the Sinhala H1 `සිංහල වල් කතා සහ වැල් කතා` and contains no image/vector/canvas markup in the title region. Compiled CSS contains the red X and underline accents. Cloudflare Browser Rendering screenshots at 462×900 mobile and 1280×900 desktop confirmed the title, underline, and CSS silhouette layout.
-- The PR remains a draft; no merge or production deployment has been performed.
