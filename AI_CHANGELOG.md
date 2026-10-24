@@ -154,4 +154,7 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - Corrected the visible gold H1 phrase from `සිංහල වැල් කතා` to `සිංහල වල් කතා`, making the full selectable H1 and accessible label exactly `සිංහල වල් කතා සහ වැල් කතා`. The pointing emoji was not added to the title. Gold styling, ivory phrase, underline, badge, and layout remain unchanged.
 - Updated the homepage verifier to require the corrected exact H1.
-- Verification is pending for this implementation commit; record the completed CI and Cloudflare Preview identifiers after they finish.
+- Implementation commit `eac083a92b5161799cfe5811db8d588bd114f6aa` passed GitHub Actions CI run `40063106510`; Type-check and production build and Cloudflare Pages checks succeeded. The auto-merge workflow was skipped.
+- Cloudflare Pages Preview deployment `41261a03-4756-47c2-ba8e-cae2cc4c5a97` completed all five stages successfully for that exact commit: https://41261a03.wala-katha.pages.dev.
+- Direct Preview rendering returned HTTP 200 with the exact H1 and accessible label `සිංහල වල් කතා සහ වැල් කතා`; the gold styling remains solid `#d8a22b` with no shadow, blur, or gradient. The title contains no image markup or image reference.
+- Cloudflare returned 174/174 deployment-log records, including container logs; none matched warning, error, failed, failure, fatal, or exception markers. PR #91 remains a draft; no merge or Production deployment occurred.
