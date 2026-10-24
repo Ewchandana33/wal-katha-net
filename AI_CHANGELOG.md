@@ -32,7 +32,11 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - `yarn test`: 8 passed, 0 failed. Additional CI unit tests (`gsc-ctr-followup`, `alt-text-policy`, `post-files`, and `ai-changelog`): 12 passed, 0 failed.
 - `git diff --check` and `node --check scripts/verify-homepage-seo.mjs` passed.
-- Astro type-check, production build, generated-page verification, and Cloudflare Preview checks are pending for the updated PR head. The temporary workspace restarted during the lockfile dependency install, so those full checks will be taken from GitHub CI and the real Pages Preview instead of claiming a local build.
+- GitHub Actions run `40056061033` passed for code commit `c6a7b18570701456ae4ac6fdfe734b9e79bf2a75`, including Astro type-check, tests, production build, and the homepage verifier.
+- Cloudflare Pages Preview deployment `bb8f13e5-0c03-4cb9-b3b7-d526afaa6ee3` completed all five stages successfully for that exact commit: https://bb8f13e5.wala-katha.pages.dev. The homepage returned HTTP 200; the H1 renders the exact Sinhala wording as live text, the title region has no image/vector/canvas markup, and the compiled CSS contains the gold/ivory gradients, red glow/underline, and 18+ badge.
+- Cloudflare returned 174/174 deployment-log entries; none matched warning, error, failed, failure, fatal, or exception markers.
+- Local verification: `yarn test` 8/8 passed; the four additional CI unit-test files 12/12 passed; `git diff --check` and `node --check scripts/verify-homepage-seo.mjs` passed. A local Astro build was not completed because the workspace restarted during dependency installation; the successful GitHub CI run supplies the full build/type-check evidence.
+- PR #91 remains a draft on `main`; auto-merge was skipped. No merge or Production deployment.
 
 ## 2026-10-23 — Use the exact reference artwork for the homepage title
 
