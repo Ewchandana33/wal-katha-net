@@ -45,7 +45,7 @@ const demoSlides: FeaturedSlide[] = [
     category: "",
     preserveAspectRatio: true,
     width: 1200,
-    height: 610,
+    height: 673,
   },
   {
     id: "methsala-akka-wal-katha",
@@ -150,7 +150,7 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
           <div
             class={`relative w-full ${
               slide.preserveAspectRatio
-                ? "aspect-[700/356] md:aspect-[1200/610]"
+                ? "aspect-[700/392] md:aspect-[1200/673]"
                 : "aspect-[16/8] sm:aspect-[21/8] md:aspect-[24/8]"
             } bg-[#010203] overflow-hidden`}
           >
@@ -165,12 +165,12 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
                 2026-08 ASPECT-RATIO FIX (SEO Site Checkup "Image
                 Aspect Ratio Test" failure on homepage): the source
                 dimensions for each slide are now declared individually.
-                Existing story-slide masters remain 1200x400 and match
-                md:aspect-[1200/610]. The dedicated homepage banner uses
-                a 1200x610 desktop WebP and 700x356 mobile WebP. Its frame
-                matches the active image variant at every width, so the
-                complete artwork fills the banner without cropping or dark
-                side gutters; other story slides retain the shared 24:8 frame.
+                Existing story-slide masters remain 1200x400 and retain
+                the shared md:aspect-[24/8] frame. The homepage banner uses
+                1200x673 desktop and 700x392 mobile WebP variants of the
+                supplied 3264x1830 artwork. Its frame matches each variant,
+                keeping the complete image visible without cropping or black
+                side gutters; other story slides retain their shared frame.
 
                 NOTE: slide.image / slide.mobileImage now carry a
                 "?v=<hash>" cache-busting query string (see
