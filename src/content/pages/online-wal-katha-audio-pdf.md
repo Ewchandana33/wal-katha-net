@@ -2,14 +2,11 @@
 title: "දැන් Wal Katha වෙතින් වල් කතා Online කියවන්න, අහන්න සහ PDF ලෙස Download කරගන්න!"
 meta_title: "සිංහල වල් කතා Online කියවන්න, අහන්න සහ PDF Download කරන්න | Wal Katha"
 description: "Wal Katha වෙතින් සිංහල වල් කතා Online කියවන්න, Audio ලෙස අහන්න සහ PDF ලෙස Download කරගන්න. ඔබ කැමති කතා පහසුවෙන් රසවිඳින්න අදම පිවිසෙන්න."
-date: 2026-10-24
-image: "/images/posts/online-wal-katha-audio-pdf.webp"
-image_alt: "18+ ලාංඡනය, රතු පසුබිම සහ Online, Audio, PDF පහසුකම් පෙන්වන ප්‍රචාරක බැනරය"
+image: "/images/pages/online-wal-katha-audio-pdf.webp"
 draft: false
-authors: ["Wal Katha"]
-tags: ["sinhala-wal-katha", "online-katha", "audio-katha", "pdf-download"]
-categories: ["wal-katha"]
 ---
+
+![18+ ලාංඡනය, රතු පසුබිම සහ Online, Audio, PDF පහසුකම් පෙන්වන ප්‍රචාරක බැනරය](/images/pages/online-wal-katha-audio-pdf.webp)
 
 ඔබ කැමති සිංහල වල් කතා දැන් තවත් පහසුවෙන් රසවිඳින්න පුළුවන්! ❤️
 
