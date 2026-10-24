@@ -147,7 +147,13 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
           aria-hidden={index !== 0 ? "true" : undefined}
           tabindex={index !== 0 ? -1 : 0}
         >
-          <div class="relative w-full aspect-[16/8] sm:aspect-[21/8] md:aspect-[24/8] bg-[#010203] overflow-hidden">
+          <div
+            class={`relative w-full ${
+              slide.preserveAspectRatio
+                ? "aspect-[700/356] md:aspect-[24/8]"
+                : "aspect-[16/8] sm:aspect-[21/8] md:aspect-[24/8]"
+            } bg-[#010203] overflow-hidden`}
+          >
             {/* <picture> + <source media> - serves the lightweight
                 ~700w "-mobile.webp" variant to any viewport at or
                 below 767px (matches Tailwind's md breakpoint used
@@ -161,8 +167,10 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
                 dimensions for each slide are now declared individually.
                 Existing story-slide masters remain 1200x400 and match
                 md:aspect-[24/8]. The dedicated homepage banner uses a
-                1200x610 desktop WebP and 700x356 mobile WebP;
-                object-contain preserves its full artwork and embedded text.
+                1200x610 desktop WebP and 700x356 mobile WebP. Below the
+                md breakpoint, its frame now matches the 700x356 mobile
+                asset so the complete artwork fills the width without dark
+                side gutters; desktop keeps the shared 24:8 slider frame.
 
                 NOTE: slide.image / slide.mobileImage now carry a
                 "?v=<hash>" cache-busting query string (see
