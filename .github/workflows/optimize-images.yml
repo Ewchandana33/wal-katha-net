@@ -7,18 +7,22 @@ name: Smart Optimize Images (JPG/PNG to WebP + Frontmatter Auto-Update)
 # to every commit's checks list, and ran in parallel with Cloudflare
 # Pages builds for no reason.
 #
-# PERMANENT FIX: A "paths" filter scopes the push trigger to only fire
-# when a commit actually touches an image file or this workflow itself.
-# This is self-healing/future-proof: any new image dropped into any of
-# these folders, or any new root-level jpg/png added later, is
-# automatically covered by the glob patterns below.
+# PERMANENT FIX: scope pushes to source JPG/JPEG/PNG files or this
+# workflow itself. Generated WebP files do not cause a redundant run.
+# New supported source images in these folders are covered by these globs.
 on:
   push:
     branches: [main]
     paths:
-      - "public/images/posts/**"
-      - "public/images/slider/**"
-      - "public/images/authors/**"
+      - "public/images/posts/**/*.jpg"
+      - "public/images/posts/**/*.jpeg"
+      - "public/images/posts/**/*.png"
+      - "public/images/slider/**/*.jpg"
+      - "public/images/slider/**/*.jpeg"
+      - "public/images/slider/**/*.png"
+      - "public/images/authors/**/*.jpg"
+      - "public/images/authors/**/*.jpeg"
+      - "public/images/authors/**/*.png"
       - "public/images/*.jpg"
       - "public/images/*.jpeg"
       - "public/images/*.png"
@@ -26,22 +30,35 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: optimize-images-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   optimize:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Require main as the trusted source branch
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Run the optimizer from main so its output is based on the protected production source."
+            exit 1
+          fi
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
       - name: Install Sharp in temp folder
         run: |
           mkdir -p /tmp/sharp-tool
           cd /tmp/sharp-tool
           npm init -y
-          npm install sharp
+          npm install --no-audit --no-fund sharp@0.35.0
       - name: Smart Optimize + Auto-Update Frontmatter
         run: |
           node --input-type=module << 'EOF'
@@ -733,10 +750,11 @@ jobs:
           console.log(`Force-verified (content refreshed, filename unchanged): ${forceVerifySet.size}`);
           console.log(JSON.stringify(convertedMap, null, 2));
           EOF
-      - name: Commit optimized images + hash sidecars + updated frontmatter
+      - name: Commit optimized assets on the runner
+        id: commit
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/images/*.webp || true
           git add public/images/authors/*.webp || true
           git add public/images/slider/*.webp || true
@@ -744,10 +762,6 @@ jobs:
           git add public/images/favicon.webp || true
           git add public/images/og-image.webp || true
           git add public/images/app-icon.webp || true
-          # 🎯 commit the .hash sidecar files (tiny text files that
-          # power the universal content-change detection above). These
-          # live alongside their source images and must be tracked so
-          # the NEXT workflow run can compare against them.
           git add public/images/*.hash || true
           git add public/images/authors/*.hash || true
           git add public/images/slider/*.hash || true
@@ -759,5 +773,40 @@ jobs:
           git add src/content/contact/*.md || true
           git add src/content/pages/*.md || true
           git add src/config/config.json || true
-          git diff --staged --quiet || git commit -m "Auto: slider desktop quality-tuned (PageSpeed 'Improve image delivery' fix) + encoder-version hash binding + frontmatter/config/manifest sync"
-          git push
+          if git diff --staged --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No optimized assets or metadata changes to propose."
+            exit 0
+          fi
+          git commit -m "perf(images): optimize assets and synchronize metadata"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push to an isolated review branch
+        if: steps.commit.outputs.has_changes == 'true'
+        id: branch
+        env:
+          IMAGE_BRANCH: bot/optimize-images-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          git push origin "HEAD:refs/heads/$IMAGE_BRANCH"
+          echo "name=$IMAGE_BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Open a draft PR and dispatch CI for its exact head
+        if: steps.commit.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          cat > /tmp/image-optimization-pr.md <<'EOF'
+          ## Automated image optimization
+
+          This draft PR was generated from the protected main branch. Review image quality, metadata, and URLs before making it ready.
+
+          - Optimized image assets and hash sidecars are proposed for review.
+          - Related frontmatter, manifest, and configuration changes are included when needed.
+          - The workflow does not write to main and does not enable auto-merge.
+          EOF
+          PR_URL=$(gh pr create --draft --head "$IMAGE_BRANCH" --base main \
+            --title "perf(images): optimize asset delivery" \
+            --body-file /tmp/image-optimization-pr.md)
+          gh workflow run ci.yml --ref "$IMAGE_BRANCH"
+          echo "Created review-only PR: $PR_URL"

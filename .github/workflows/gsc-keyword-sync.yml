@@ -15,7 +15,7 @@ name: Sync GSC Keywords
 #
 # main ආරක්ෂිත branch එකක් බැවින් direct push නොකරයි. Updates
 # automation branch එකකට commit කර PR එකක් ලෙස ඉදිරිපත් කරයි.
-# Required CI/Cloudflare checks pass වූ පසුව පමණක් GitHub auto-merge කරයි.
+# Required CI/Cloudflare checks පසු manual review සඳහා PR එක තබයි; auto-merge නැත.
 #
 # සටහන: GITHUB_TOKEN එකෙන් කරන push එකක් වෙනත් workflow එකක්
 # trigger කරන්නේ නෑ (GitHub Actions නීතියක්). ඒ නිසා මේක දිවුවාට
@@ -116,5 +116,4 @@ jobs:
           # protected-main rules; Cloudflare Pages independently publishes its preview.
           gh workflow run ci.yml --ref "$BRANCH"
           echo "Dispatched required CI for $BRANCH."
-          gh pr merge "$PR_NUMBER" --auto --squash
-          echo "Queued PR #$PR_NUMBER for auto-merge after required checks."
+          echo "PR #$PR_NUMBER is ready for human review; no auto-merge is queued."
