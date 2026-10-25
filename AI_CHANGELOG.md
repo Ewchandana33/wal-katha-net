@@ -33,7 +33,9 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 ### Verification status
 
 - Before the change, confirmed the live PR Preview and Production both returned HTTP 200 for the invalid 61,414-byte desktop asset; `file` identified it only as generic data. The source JPEG and its optimizer sidecar were verified, and the replacement candidate decoded as 1200×610 WebP.
-- CI and Cloudflare Preview validation for the new commit are pending and will be recorded after those checks complete.
+- GitHub Actions CI run #221 (`40191654568`) passed for implementation commit `501cd93670f0a03446bc829c024a7a885ebe679b`: type-check, tests, Astro production build, responsive Chromium at all 11 widths, SEO verifiers, and Cloudflare Preview route/noindex/age-gate checks. The new browser assertions verified the expected desktop/mobile source selection and natural dimensions after `img.decode()`.
+- Cloudflare Pages Preview deployment `9d76bda6-37d4-4d3a-a45d-84f4bb83e7a3` completed all five stages successfully for that exact commit: https://9d76bda6.wala-katha.pages.dev. All 175 returned deployment-log records, including container logs, were checked; no warning, error, failure, fatal, or exception markers were found.
+- The live Preview homepage references desktop `online-wal-katha-audio-pdf.webp?v=79a153f3a8`; its response decoded as 1200×610 WebP (62,794 bytes) and the version matches its SHA-256 prefix. The unchanged mobile URL decoded as 700×356 WebP (35,694 bytes). Cloudflare still identifies Production deployment `c0a0d04d-6c08-403c-aa78-806b009049c8` on `main` commit `39ed65f0cb7818379a260a97eabcee768485acf3`; no merge or Production deployment was performed.
 
 ## 2026-10-25 — Remove black gutters from the homepage featured banner
 
