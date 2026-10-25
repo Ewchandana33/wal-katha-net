@@ -51,15 +51,21 @@
     gap: 4px;
   }
 
-  /* Container side padding trimmed slightly so cards get a
-     touch more usable width on very narrow devices */
+  /* Keep page-frame padding aligned with the grid's 2rem row gutter.
+     This prevents full-width rows from bleeding past narrow viewports. */
   .container {
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
 
-  /* Post grid gutter tightened slightly on very narrow screens */
-  .row.gx-2 {
-    --bs-gutter-x: 0.5rem;
+  /* CSS Grid post list keeps a compact gap on narrow phone screens. */
+  .post-grid {
+    column-gap: 0.5rem;
+  }
+}
+
+@media (min-width: 2400px) {
+  .post-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
