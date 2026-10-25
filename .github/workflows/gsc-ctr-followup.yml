@@ -59,7 +59,7 @@ jobs:
 
           The report is recorded in AI_CHANGELOG.md only after URL Inspection confirms a post-release indexed crawl, the 7-day recrawl grace period and full 28-day comparison window are satisfied, Search Console data is past its configured lag, and the minimum global sample is met.
 
-          This is observational reporting, not an automatic metadata rewrite or ranking guarantee. The PR remains subject to required CI and Cloudflare Pages preview checks.
+          This is observational reporting, not an automatic metadata rewrite or ranking guarantee. CI and Cloudflare Pages preview run before a person decides whether to merge.
           EOF
           EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty' || true)
           if [ -n "$EXISTING" ]; then
@@ -73,5 +73,4 @@ jobs:
           fi
           # This workflow_dispatch event runs CI on the precise PR branch head.
           gh workflow run ci.yml --ref "$BRANCH"
-          gh pr merge "$PR_NUMBER" --auto --squash
-          echo "Queued PR #$PR_NUMBER for auto-merge only after required CI and preview checks."
+          echo "PR #$PR_NUMBER is ready for human review; no auto-merge is queued."
