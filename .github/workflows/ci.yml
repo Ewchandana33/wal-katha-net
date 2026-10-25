@@ -62,19 +62,10 @@ jobs:
 
       - name: Verify homepage SEO output
         run: node scripts/verify-homepage-seo.mjs
-  cloudflare-preview-smoke:
-    name: Cloudflare Preview smoke test
-    if: >-
-      github.event_name == 'pull_request' ||
-      (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main')
-    needs: verify
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v5
-
-      - name: Find the successful Preview URL from the Cloudflare check
+      - name: Locate the successful Cloudflare Preview check
+        if: >-
+          github.event_name == 'pull_request' ||
+          (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main')
         id: preview
         uses: actions/github-script@v7
         with:
@@ -112,6 +103,7 @@ jobs:
             throw new Error('Cloudflare Pages Preview did not finish within 10 minutes for ' + headSha + '.');
 
       - name: Verify Preview routes, noindex, and the age gate
+        if: steps.preview.outputs.url != ''
         run: node scripts/verify-cloudflare-preview.mjs
         env:
           PREVIEW_URL: ${{ steps.preview.outputs.url }}
