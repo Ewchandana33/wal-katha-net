@@ -163,6 +163,8 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
                 md:aspect-[24/8]. The dedicated homepage banner uses a
                 1200x610 desktop WebP and 700x356 mobile WebP;
                 object-contain preserves its full artwork and embedded text.
+                Its shared wider frame is filled by a blurred cover copy; keep
+                that layer bright enough to replace the black side gutters.
 
                 NOTE: slide.image / slide.mobileImage now carry a
                 "?v=<hash>" cache-busting query string (see
@@ -173,7 +175,7 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
             {slide.preserveAspectRatio && (
               <div
                 aria-hidden="true"
-                class="pointer-events-none absolute inset-0 scale-110 bg-cover bg-center opacity-40 blur-2xl brightness-50"
+                class="slider-banner-backdrop pointer-events-none absolute inset-0 scale-110 bg-cover bg-center opacity-80 blur-2xl"
                 style={`background-image: url("${slide.image}")`}
               ></div>
             )}
