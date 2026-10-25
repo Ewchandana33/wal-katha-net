@@ -20,6 +20,19 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ## Recent entries
 
+## 2026-10-25 — Make the homepage banner fill its frame
+
+### Request and change
+
+- Follow-up to “Remove black gutters from the homepage featured banner”: the brighter blurred backdrop still left the original artwork visually inset on the supplied mobile screenshot.
+- Change only the first featured image from `object-contain` to a top-aligned `object-cover`. This removes the side gutters while keeping the embedded Sinhala heading, 18+ badge, and PDF/audio icons in view; it crops some lower bedding. Other slides, assets, routes, and frame dimensions remain unchanged.
+- Update the responsive Chromium assertions to require the cover fit, top crop, working image decode, and equal slide heights at all 11 viewport widths.
+
+### Verification status
+
+- Local checks: `git diff --check`, `node --check scripts/verify-responsive-layout.mjs`, and `yarn check` passed; `yarn test` passed (8/8). The local `yarn build` timed out during static route generation; full build and preview checks are pending GitHub Actions and Cloudflare Pages.
+- Changes are isolated from `main`; no Production deployment or source image replacement.
+
 ## 2026-10-25 — Repair the homepage banner desktop WebP
 
 ### Correction and root cause

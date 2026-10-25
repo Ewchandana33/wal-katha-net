@@ -30,7 +30,7 @@ type FeaturedSlide = {
   mobileImage: string;
   category: string;
   href?: string;
-  preserveAspectRatio?: boolean;
+  bannerFill?: boolean;
   width?: number;
   height?: number;
 };
@@ -43,7 +43,7 @@ const demoSlides: FeaturedSlide[] = [
     mobileImage: "/images/slider/online-wal-katha-audio-pdf-mobile.webp",
     href: "/online-wal-katha-audio-pdf/",
     category: "",
-    preserveAspectRatio: true,
+    bannerFill: true,
     width: 1200,
     height: 610,
   },
@@ -156,15 +156,11 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
                 desktop file above that width, or in browsers that
                 don't support <picture> at all.
 
-                2026-08 ASPECT-RATIO FIX (SEO Site Checkup "Image
-                Aspect Ratio Test" failure on homepage): the source
-                dimensions for each slide are now declared individually.
-                Existing story-slide masters remain 1200x400 and match
-                md:aspect-[24/8]. The dedicated homepage banner uses a
-                1200x610 desktop WebP and 700x356 mobile WebP;
-                object-contain preserves its full artwork and embedded text.
-                Its shared wider frame is filled by a blurred cover copy; keep
-                that layer bright enough to replace the black side gutters.
+                2026-10 BANNER-FILL FIX: the first artwork contains its
+                own headline and badges, so anchor its cover crop at the
+                top. This fills the shared wide frame without side gutters
+                while keeping the Sinhala title, 18+ badge, and PDF/audio
+                icons visible. The lower bedding is the cropped area.
 
                 NOTE: slide.image / slide.mobileImage now carry a
                 "?v=<hash>" cache-busting query string (see
@@ -172,13 +168,6 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
                 below still describe the image's real intrinsic pixel
                 dimensions and are completely unaffected by the query
                 string. */}
-            {slide.preserveAspectRatio && (
-              <div
-                aria-hidden="true"
-                class="slider-banner-backdrop pointer-events-none absolute inset-0 scale-110 bg-cover bg-center opacity-80 blur-2xl"
-                style={`background-image: url("${slide.image}")`}
-              ></div>
-            )}
             <picture class="relative block h-full w-full">
               <source media="(max-width: 767px)" srcset={slide.mobileImage} />
               <img
@@ -189,7 +178,7 @@ const demoSlidesWithVersion = demoSlides.map((slide) => ({
                 loading={index === 0 ? "eager" : "lazy"}
                 decoding={index === 0 ? "sync" : "async"}
                 fetchpriority={index === 0 ? "high" : "low"}
-                class={`w-full h-full object-center transition duration-500 ${slide.preserveAspectRatio ? "object-contain" : "object-cover group-hover:scale-[1.02]"}`}
+                class={`w-full h-full transition duration-500 ${slide.bannerFill ? "object-cover object-top" : "object-cover object-center group-hover:scale-[1.02]"}`}
               />
             </picture>
           </div>

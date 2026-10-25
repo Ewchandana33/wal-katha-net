@@ -167,21 +167,17 @@ async function main() {
       if (bannerImage) {
         try { await bannerImage.decode(); } catch {}
       }
-      const backdrop = firstFrame?.querySelector('.slider-banner-backdrop');
-      const backdropStyle = backdrop ? getComputedStyle(backdrop) : null;
       return {
         viewport: innerWidth, rootScroll: root.scrollWidth, columns,
         cards: grid?.children.length || 0, imageBounds,
         featuredBanner: {
           frameCount: frames.length,
           imageFit: bannerImage ? getComputedStyle(bannerImage).objectFit : null,
+          imagePosition: bannerImage ? getComputedStyle(bannerImage).objectPosition : null,
           imageNaturalWidth: bannerImage?.naturalWidth || 0,
           imageNaturalHeight: bannerImage?.naturalHeight || 0,
           imageSource: bannerImage?.currentSrc || '',
-          backdropSize: backdropStyle?.backgroundSize || null,
-          backdropImage: backdropStyle?.backgroundImage || null,
-          backdropFilter: backdropStyle?.filter || 'none',
-          backdropOpacity: backdropStyle ? Number(backdropStyle.opacity) : null,
+          hasBackdrop: Boolean(firstFrame?.querySelector('.slider-banner-backdrop')),
           firstFrameHeight: firstFrame?.getBoundingClientRect().height || null,
           nextFrameHeight: nextFrame?.getBoundingClientRect().height || null
         }
@@ -198,11 +194,9 @@ async function main() {
     assert.equal(new URL(result.featuredBanner.imageSource).pathname, expectedBanner.path, `Featured banner should select the expected asset at ${width}px`);
     assert.equal(result.featuredBanner.imageNaturalWidth, expectedBanner.width, `Featured banner must decode at its expected width at ${width}px`);
     assert.equal(result.featuredBanner.imageNaturalHeight, expectedBanner.height, `Featured banner must decode at its expected height at ${width}px`);
-    assert.equal(result.featuredBanner.imageFit, 'contain', 'Featured banner artwork should remain uncropped');
-    assert.equal(result.featuredBanner.backdropSize, 'cover', 'Featured banner backdrop should fill the shared frame');
-    assert.notEqual(result.featuredBanner.backdropImage, 'none', 'Featured banner should use its blurred artwork backdrop');
-    assert.ok(result.featuredBanner.backdropFilter.includes('blur('), 'Featured banner background should stay blurred behind the artwork');
-    assert.ok(result.featuredBanner.backdropOpacity >= 0.75, 'Featured banner backdrop should be visible rather than appearing as black gutters');
+    assert.equal(result.featuredBanner.imageFit, 'cover', 'Featured banner artwork should fill the frame without side gutters');
+    assert.equal(result.featuredBanner.imagePosition, '50% 0%', 'Featured banner crop should keep the embedded headline and badges visible');
+    assert.equal(result.featuredBanner.hasBackdrop, false, 'Featured banner should not rely on a dark blurred side-fill layer');
     assert.ok(Math.abs(result.featuredBanner.firstFrameHeight - result.featuredBanner.nextFrameHeight) <= 1, 'Featured and story slides should retain the same frame height');
     for (const bounds of result.imageBounds) {
       assert.ok(bounds.left >= -1 && bounds.right >= -1, `Post thumbnail should stay inside its card at ${width}px`);
