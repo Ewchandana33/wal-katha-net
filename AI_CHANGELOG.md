@@ -16,9 +16,25 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 56 earlier dated entries from 2026-10-14 through 2026-10-24; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 57 earlier dated entries from 2026-10-14 through 2026-10-24; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-25 — Make the site layout fluid across devices
+
+### Request and changes
+
+- Addressed the request to remove the narrow fixed page frame and make the existing site use available screen width from mobile through ultrawide desktop.
+- The shared `.container` had a 1000px maximum; the responsive layout change removes that cap, sets post cards to 2–6 columns by screen width, and lets article sections use the full 12-column grid.
+- Browser verification then found a 4px narrow-screen bleed: the Bootstrap-style `.row` uses 2rem total gutters (−1rem side margins), while the page frame used 0.75rem minimum padding. Raised the minimum page-frame padding to 1rem in `src/styles/components.css` and `src/styles/small-screen-fixes.css` so row gutters align with the viewport.
+- Kept all work on `fix/full-width-responsive-layout-20261025` in draft PR #99; no merge or Production release.
+
+### Verification
+
+- Final code commit `1a423724bd4b2656815380e89eaeb1f9d810dc69` passed GitHub Actions CI run `40169965473` (Astro type-check, tests, and production build).
+- Cloudflare Pages Preview deployment `90d470c6-a2a8-4363-98fe-935b18c89f4e` completed build and deploy successfully for that exact commit. Preview returned HTTP 200 at https://90d470c6.wala-katha.pages.dev. Its 171 available log records had no error, failure, fatal, or exception matches.
+- Headless Chromium 152 checked the homepage and article page at 280, 320, 390, 768, 1024, 1440, 1920, and 2560px. No document-root horizontal overflow or row-edge bleed was observed. Homepage grid columns were 2, 2, 2, 3, 4, 4, 5, and 6 at those widths; article content filled the available frame. The site's age-confirmation overlay remained active; the test did not bypass it.
+- PR #99 remains open as a draft; its auto-merge workflow was skipped. No merge, Production deployment, or live-site code change occurred.
 
 ## 2026-10-24 — Correct the feature placement as a standalone page
 
@@ -100,19 +116,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Cloudflare Pages Preview deployment `3df784a5-b508-4c43-bbd6-32034f15279a` (`https://3df784a5.wala-katha.pages.dev`) completed successfully; queued, initialize, clone, build, and deploy stages all passed. The rendered homepage and title asset both returned HTTP 200; the asset served as `image/webp` at 354,480 bytes, and its deployed H1/alt text matches the Sinhala title.
 - Deployment logs returned 173 of 174 entries; no warning/error/failure/fatal/exception markers were found in the returned entries. One log entry was unavailable, so this check is limited to the 173 returned.
 - These checks cover the image/code commit above. A documentation-only changelog follow-up will receive its own CI/Preview checks before the PR summary is refreshed.
-
-## 2026-10-23 — Match the homepage title to the gold/red reference
-
-### Request and changes
-
-- Correct the title styling that looked too dim and sat too close to the content below.
-- Match the supplied title's exact selectable Sinhala wording (`සිංහල වැල් කතා සහ වැල් කතා`) and existing font; brighten the metallic gold and ivory gradients, add restrained crimson edge glow and depth, restore the outlined 18+ badge, lengthen the desktop red underline to 52vw to match the 1024px reference, cap desktop type at 3.25rem to keep it single-line on wide screens, retain the centered gold highlight, and add controlled space below the title.
-- Keep the layout responsive and update the title-specific verifier. On mobile, keep the 18+ badge in the title's inline text flow so it moves to a new line only when space is insufficient. No title image, dependency, unrelated page change, merge, or Production release.
-
-### Verification
-
-- Initial implementation commit cc85c96465fe18f4e4f91570191c8b91e1983e54 on draft PR #91 passed GitHub Actions run 39965144654 and its Cloudflare Pages check; its commit-matched Preview deployment 8fe7037e-fb26-4e70-86df-53ff72a91616 completed successfully.
-- Responsive follow-up commit dede67b6e593ab5bb32dfb20e1f89799ac95cb20 passed GitHub Actions run 39966486651 (Type-check and production build) and the Cloudflare Pages check. Preview deployment bef6ab1e-0741-40cf-9fde-28cf25601297 completed its deploy stage successfully for that exact commit. Preview: https://bef6ab1e.wala-katha.pages.dev.
-- The final Preview returned HTTP 200. All 174 available deployment-log records, including container logs, were checked; none matched error, failure, warning, fatal, or exception markers.
-- Local headless Chromium measurements at 320, 360, 390, 430, 768, and 1024px found no horizontal overflow. The 18+ badge stayed visible in the viewport, did not overlap the title, and shared its final text line; the title used two lines only at 320 and 360px and one line at 390px and wider. The screenshot remained behind the site's existing age-confirmation overlay; the review did not bypass it.
-- PR #91 remains a draft; auto-merge was skipped. No merge or Production deployment occurred.
