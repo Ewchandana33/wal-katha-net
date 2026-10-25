@@ -34,7 +34,7 @@ Online කියවීම, Audio ලෙස සවන්දීම සහ PDF ල�
 
 **Wal Katha — ඔබ කැමති කතා, ඔබ කැමති විදිහට රසවිඳින්න! ❤️**
 
-*සටහන: Audio සහ PDF පහසුකම් මෙම අඩවියෙ සියලුම කතා වලට ලබාගත හැකියි.*
+*සටහන: Audio සහ PDF පහසුකම් මෙම අඩවියෙ ඇති සියලුම කතා වලට දැන් ලබාගත හැකියි.*
 
 <div style="margin: 2.25rem 0; text-align: center;">
   <a href="https://www.walakatha.net/" target="_blank" rel="noopener noreferrer" aria-label="Wal Katha වෙබ් අඩවියට පිවිසෙන්න" style="display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; padding: 0.9rem 1.5rem; background: linear-gradient(135deg, #e11d48, #9f1239); color: #fff; font-weight: 700; text-decoration: none; box-shadow: 0 10px 24px rgba(225, 29, 72, 0.28);">
