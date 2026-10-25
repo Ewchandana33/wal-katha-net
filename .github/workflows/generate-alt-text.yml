@@ -75,5 +75,5 @@ jobs:
             if [ "$IS_DRAFT" = "true" ]; then gh pr ready "$PR_URL"; fi
           fi
           gh workflow run ci.yml --ref "$BRANCH"
-          gh pr merge "$PR_URL" --auto --squash
+          echo "PR is ready for human review; no auto-merge is queued."
           echo "Queued $PR_URL for protected auto-merge after required CI and Cloudflare preview checks."
