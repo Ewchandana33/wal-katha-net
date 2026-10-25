@@ -7,8 +7,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
-const widths = [280, 320, 390, 768, 1024, 1440, 1920, 2560];
-const expectedColumns = [2, 2, 2, 3, 4, 4, 5, 6];
+const widths = [280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, 2560];
+const expectedColumns = [2, 2, 2, 2, 2, 2, 3, 4, 4, 5, 6];
 const remoteUrl = process.env.RESPONSIVE_TEST_URL;
 const baseUrl = remoteUrl || 'http://127.0.0.1:4321';
 let previewServer;
@@ -159,16 +159,43 @@ async function main() {
         const cardRect = card.getBoundingClientRect();
         return { left: imageRect.left - cardRect.left, right: cardRect.right - imageRect.right };
       })) : [];
-      return { viewport: innerWidth, rootScroll: root.scrollWidth, columns, cards: grid?.children.length || 0, imageBounds };
+      const slider = document.querySelector('#astro-featured-slider');
+      const frames = slider ? [...slider.querySelectorAll('#slider-wrapper > div > a > div')] : [];
+      const firstFrame = frames[0];
+      const nextFrame = frames[1];
+      const bannerImage = firstFrame?.querySelector('picture img');
+      const backdrop = firstFrame?.querySelector('.slider-banner-backdrop');
+      const backdropStyle = backdrop ? getComputedStyle(backdrop) : null;
+      return {
+        viewport: innerWidth, rootScroll: root.scrollWidth, columns,
+        cards: grid?.children.length || 0, imageBounds,
+        featuredBanner: {
+          frameCount: frames.length,
+          imageFit: bannerImage ? getComputedStyle(bannerImage).objectFit : null,
+          backdropSize: backdropStyle?.backgroundSize || null,
+          backdropImage: backdropStyle?.backgroundImage || null,
+          backdropFilter: backdropStyle?.filter || 'none',
+          backdropOpacity: backdropStyle ? Number(backdropStyle.opacity) : null,
+          firstFrameHeight: firstFrame?.getBoundingClientRect().height || null,
+          nextFrameHeight: nextFrame?.getBoundingClientRect().height || null
+        }
+      };
     })()`);
     assert.equal(result.viewport, width, `Homepage viewport should be ${width}px`);
     assert.ok(result.rootScroll <= width + 1, `Homepage should not overflow horizontally at ${width}px (scrollWidth ${result.rootScroll})`);
     assert.equal(result.columns, expectedColumns[i], `Post grid should use ${expectedColumns[i]} columns at ${width}px`);
     assert.ok(result.cards > 0, 'Homepage post grid should contain cards');
+    assert.ok(result.featuredBanner.frameCount >= 2, 'Featured slider should contain banner and story slides');
+    assert.equal(result.featuredBanner.imageFit, 'contain', 'Featured banner artwork should remain uncropped');
+    assert.equal(result.featuredBanner.backdropSize, 'cover', 'Featured banner backdrop should fill the shared frame');
+    assert.notEqual(result.featuredBanner.backdropImage, 'none', 'Featured banner should use its blurred artwork backdrop');
+    assert.ok(result.featuredBanner.backdropFilter.includes('blur('), 'Featured banner background should stay blurred behind the artwork');
+    assert.ok(result.featuredBanner.backdropOpacity >= 0.75, 'Featured banner backdrop should be visible rather than appearing as black gutters');
+    assert.ok(Math.abs(result.featuredBanner.firstFrameHeight - result.featuredBanner.nextFrameHeight) <= 1, 'Featured and story slides should retain the same frame height');
     for (const bounds of result.imageBounds) {
       assert.ok(bounds.left >= -1 && bounds.right >= -1, `Post thumbnail should stay inside its card at ${width}px`);
     }
-    homeResults.push({ width, columns: result.columns, rootScroll: result.rootScroll });
+    homeResults.push({ width, columns: result.columns, rootScroll: result.rootScroll, featuredBanner: result.featuredBanner });
   }
 
   await navigate(browser, articleUrl);
