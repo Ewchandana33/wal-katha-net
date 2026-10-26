@@ -102,6 +102,9 @@ const postsCollection = defineCollection({
       categories: z.array(z.string()).default(() => ["others"]),
       authors: z.array(z.string()).default(() => ["Admin"]),
       tags: z.array(z.string()).default(() => ["others"]),
+      // Stories are generated only from posts that have been explicitly
+      // reviewed for this format; all existing posts remain opt-out.
+      web_story: z.boolean().optional(),
       // Optional synonym/related-word list for the auto internal-links
       // remark plugin (src/lib/remarkAutoInternalLinks.mjs). Each entry
       // acts as an extra keyword that links back to this same post,

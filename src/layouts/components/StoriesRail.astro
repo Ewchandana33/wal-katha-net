@@ -1,0 +1,125 @@
+---
+interface StoryPost {
+  id: string;
+  data: {
+    title: string;
+    description?: string;
+    image?: string;
+    image_alt?: string;
+  };
+}
+
+interface Props {
+  stories: StoryPost[];
+}
+
+const { stories } = Astro.props;
+---
+
+{stories.length > 0 && (
+  <section class="stories-rail" aria-labelledby="stories-rail-title">
+    <div class="stories-rail__heading">
+      <div>
+        <p class="stories-rail__eyebrow">කෙටි කියවීම්</p>
+        <h2 id="stories-rail-title">Stories</h2>
+      </div>
+      <a class="stories-rail__all" href="/stories/">සියල්ල බලන්න</a>
+    </div>
+
+    <div class="stories-rail__list">
+      {stories.slice(0, 5).map((story) => (
+        <a class="stories-rail__card" href={`/stories/${encodeURIComponent(story.id)}/`}>
+          <img
+            src={story.data.image}
+            alt={story.data.image_alt || story.data.title}
+            width="420"
+            height="598"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="stories-rail__card-title">{story.data.title}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+)}
+
+<style>
+  .stories-rail {
+    margin: 1.5rem 0 2rem;
+    padding: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba(1, 173, 159, 0.11), rgba(11, 13, 18, 0.96) 55%);
+  }
+
+  .stories-rail__heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .stories-rail__eyebrow {
+    margin: 0 0 0.2rem;
+    color: #01c4b4;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .stories-rail h2 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(1.2rem, 4vw, 1.55rem);
+    font-weight: 800;
+  }
+
+  .stories-rail__all {
+    flex: 0 0 auto;
+    color: #8de9df;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .stories-rail__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .stories-rail__card {
+    display: grid;
+    gap: 0.55rem;
+    min-width: 0;
+    color: #f4f4f5;
+    text-decoration: none;
+  }
+
+  .stories-rail__card img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 0.75rem;
+    background: #17191d;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .stories-rail__card-title {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #f4f4f5;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.45;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .stories-rail__card:hover .stories-rail__card-title,
+  .stories-rail__all:hover {
+    color: #01c4b4;
+  }
+</style>

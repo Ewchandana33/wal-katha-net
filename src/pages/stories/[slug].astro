@@ -1,0 +1,128 @@
+---
+import config from "@/config/config.json";
+import noindexPostIds from "@/config/noindex-post-ids.json";
+import { getSinglePage } from "@/lib/contentParser.astro";
+import { buildStorySlides, selectWebStories } from "@/lib/webStories.mjs";
+
+export async function getStaticPaths() {
+  const posts = await getSinglePage("posts");
+  const stories = selectWebStories(posts, new Set(noindexPostIds));
+
+  return stories.map((story) => ({
+    params: { slug: story.id },
+    props: { story, slides: buildStorySlides(story) },
+  }));
+}
+
+const { story, slides } = Astro.props;
+const baseUrl = (config?.site?.base_url || "").replace(/\/$/, "");
+const canonicalUrl = `${baseUrl}/stories/${encodeURIComponent(story.id)}/`;
+const sourceUrl = `${baseUrl}/blog/${encodeURIComponent(story.id)}/`;
+const coverUrl = `${baseUrl}${story.data.image}`;
+const posterUrl = `${baseUrl}/story-poster/${encodeURIComponent(story.id)}.webp`;
+const publisherLogoUrl = `${baseUrl}/images/app-icon.webp`;
+const title = String(story.data.title || "Wal Katha Story").trim();
+const description = String(story.data.description || slides[0] || title).trim();
+const imageAlt = String(story.data.image_alt || title).trim();
+---
+
+<!doctype html>
+<html amp lang="si">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
+    <meta name="robots" content="noindex,follow" />
+    <title>{title} | Stories</title>
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href="/images/favicon.webp" type="image/webp" />
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+    <script async custom-element="amp-story" src="https://cdn.ampproject.org/v0/amp-story-1.0.js"></script>
+    <style amp-boilerplate>
+      body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}
+      @-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}
+      @-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}
+      @-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}
+      @-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}
+      @keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}
+    </style>
+    <noscript>
+      <style amp-boilerplate>
+        body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}
+      </style>
+    </noscript>
+    <style amp-custom>
+      *{box-sizing:border-box}
+      body{margin:0;background:#050505;color:#fff;font-family:Arial,sans-serif}
+      amp-story{color:#fff}
+      .story-image{opacity:.72}
+      .story-shade{background:linear-gradient(180deg,rgba(0,0,0,.08) 12%,rgba(0,0,0,.25) 46%,rgba(0,0,0,.92) 100%)}
+      .story-copy{align-self:end;padding:30px 26px 54px}
+      .story-eyebrow{margin:0 0 12px;color:#8de9df;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+      .story-title{margin:0 0 16px;font-size:34px;font-weight:800;line-height:1.2}
+      .story-text{margin:0;font-size:22px;line-height:1.45}
+      .story-brand{position:absolute;top:26px;left:24px;padding:8px 12px;border:1px solid rgba(255,255,255,.4);border-radius:999px;background:rgba(0,0,0,.45);font-size:13px;font-weight:700}
+    </style>
+  </head>
+  <body>
+    <amp-story
+      standalone
+      title={title}
+      publisher="Wal Katha"
+      publisher-logo-src={publisherLogoUrl}
+      poster-portrait-src={posterUrl}
+    >
+      <amp-story-page id="cover">
+        <amp-story-grid-layer template="fill">
+          <amp-img
+            class="story-image"
+            src={coverUrl}
+            alt={imageAlt}
+            width="1200"
+            height="630"
+            layout="fill"
+            object-fit="cover"
+            object-position="50% 50%"
+          ></amp-img>
+        </amp-story-grid-layer>
+        <amp-story-grid-layer template="fill" class="story-shade"></amp-story-grid-layer>
+        <amp-story-grid-layer template="vertical">
+          <div class="story-brand">Wal Katha · Stories</div>
+          <div class="story-copy">
+            <p class="story-eyebrow">කෙටි කියවීම</p>
+            <h1 class="story-title">{title}</h1>
+            <p class="story-text">{description}</p>
+          </div>
+        </amp-story-grid-layer>
+      </amp-story-page>
+
+      {slides.map((text, index) => (
+        <amp-story-page id={`page-${index + 1}`}>
+          <amp-story-grid-layer template="fill">
+            <amp-img
+              class="story-image"
+              src={coverUrl}
+              alt={imageAlt}
+              width="1200"
+              height="630"
+              layout="fill"
+              object-fit="cover"
+              object-position="50% 50%"
+            ></amp-img>
+          </amp-story-grid-layer>
+          <amp-story-grid-layer template="fill" class="story-shade"></amp-story-grid-layer>
+          <amp-story-grid-layer template="vertical">
+            <div class="story-copy">
+              <p class="story-eyebrow">කතාව · {index + 1}</p>
+              <p class="story-text">{text}</p>
+            </div>
+          </amp-story-grid-layer>
+          {index === slides.length - 1 && (
+            <amp-story-page-outlink layout="nodisplay">
+              <a href={sourceUrl}>සම්පූර්ණ කතාව කියවන්න</a>
+            </amp-story-page-outlink>
+          )}
+        </amp-story-page>
+      ))}
+    </amp-story>
+  </body>
+</html>

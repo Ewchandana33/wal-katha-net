@@ -16,9 +16,28 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 60 earlier dated entries from 2026-10-14 through 2026-10-24; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 62 earlier dated entries from 2026-10-14 through 2026-10-25; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-26 — Add editorially gated, non-indexed Web Stories
+
+### Request and changes
+
+- Continue the unfinished Story feature without changing existing Google indexing or automatic PDF generation.
+- Add an optional `web_story` editorial flag. A Story now requires explicit approval, a published source post, a local existing WebP cover, no existing noindex exclusion, and no detected sensitive terms in its title, metadata, tags, categories, or body. No existing post has been opted in, so the current content creates zero Story pages and the homepage rail stays hidden.
+- Add a conditional homepage Stories rail, a `/stories/` archive, AMP Story detail pages, and build-time portrait WebP posters cropped from the existing cover. The poster crop is emitted as a separate static image and does not modify source images.
+- Mark new Story HTML and poster URLs noindex; exclude only the new `/stories` prefix from the existing sitemap. Existing article/page robots directives, canonical behavior, sitemap URLs, `robots.txt`, PDF routes, PDF generator/version files, and PDF verifiers are unchanged.
+- No dependencies or content-post metadata were changed. Production deployment and merge are not authorized.
+
+### Verification status
+
+- Base source checked out from `main` at `05d5ded3cce4a1084c6cba334cac19b7e696c31b`; the existing workspace CI run `40214935250` had passed before this feature work.
+- Final local `yarn check` passed. `yarn test` passed 15/15 tests, including the new eligibility, sensitive-content, Markdown-slide, and portrait-poster checks; the four additional repository test files passed 12/12 tests, including the changelog/archive rules.
+- Local `yarn build` completed successfully in 6m 14s. The sitemap indexability guard checked 33 page URLs; the built Story archive was canonical and noindex, and no Story or poster URL appeared in the sitemap output.
+- The existing PDF verifier passed for all 7 published articles and 74 PDF pages, including its attachment/noindex-header and sitemap-exclusion checks. No PDF route, generator, version, content, or verifier file was changed.
+- Poster crop test uses the neutral app icon in memory and checks a 640×853 WebP; it does not write to or change any PDF or article image.
+- No eligible existing Story content was found. GitHub Actions and Cloudflare Preview verification are pending; no merge or Production deployment has occurred.
 
 ## 2026-10-25 — Make the homepage banner fill its frame
 
@@ -83,44 +102,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Cloudflare Pages Preview deployment `c062e4c9-e04b-4787-af9c-c7e167c11f29` completed all five stages successfully; the article page returned HTTP 200. All 175 deployment logs, including container logs, were checked; no warning, error, failure, fatal, or exception markers were found.
 - Headless Chromium checked the article and homepage at 280, 320, 390, 768, 1024, 1440, 1920, and 2560px. The article cover center offset was 0px at all eight widths; the homepage grid stayed at 2, 2, 2, 3, 4, 4, 5, and 6 columns, with card images inside their frames. No document-root horizontal overflow or `.row` edge bleed was observed. The age-confirmation overlay stayed active; the test did not bypass it.
 - PR #99 remains a draft; no merge or Production deployment occurred.
-
-## 2026-10-25 — Make the site layout fluid across devices
-
-### Request and changes
-
-- Addressed the request to remove the narrow fixed page frame and make the existing site use available screen width from mobile through ultrawide desktop.
-- The shared `.container` had a 1000px maximum; the responsive layout change removes that cap, sets post cards to 2–6 columns by screen width, and lets article sections use the full 12-column grid.
-- Browser verification then found a 4px narrow-screen bleed: the Bootstrap-style `.row` uses 2rem total gutters (−1rem side margins), while the page frame used 0.75rem minimum padding. Raised the minimum page-frame padding to 1rem in `src/styles/components.css` and `src/styles/small-screen-fixes.css` so row gutters align with the viewport.
-- Kept all work on `fix/full-width-responsive-layout-20261025` in draft PR #99; no merge or Production release.
-
-### Verification
-
-- Final code commit `1a423724bd4b2656815380e89eaeb1f9d810dc69` passed GitHub Actions CI run `40169965473` (Astro type-check, tests, and production build).
-- Cloudflare Pages Preview deployment `90d470c6-a2a8-4363-98fe-935b18c89f4e` completed build and deploy successfully for that exact commit. Preview returned HTTP 200 at https://90d470c6.wala-katha.pages.dev. All 175 available deployment log records, including container logs, had no error, failure, fatal, exception, or warning matches.
-- Headless Chromium 152 checked the homepage and article page at 280, 320, 390, 768, 1024, 1440, 1920, and 2560px. No document-root horizontal overflow or row-edge bleed was observed. Homepage grid columns were 2, 2, 2, 3, 4, 4, 5, and 6 at those widths; article content filled the available frame. The site's age-confirmation overlay remained active; the test did not bypass it.
-- PR #99 remains open as a draft; its auto-merge workflow was skipped. No merge, Production deployment, or live-site code change occurred.
-
-## 2026-10-24 — Correct the feature placement as a standalone page
-
-### Request and changes
-
-- Supersedes the placement described in the earlier entry “Add online, audio, and PDF feature article.” The user clarified that this must be a standalone page like Privacy Policy, not a blog post.
-- Removed the entry from src/content/posts and added it to src/content/pages/online-wal-katha-audio-pdf.md. Its direct route is /online-wal-katha-audio-pdf/. Moved the supplied banner to public/images/pages/online-wal-katha-audio-pdf.webp. No homepage, menu, or footer link was added; the homepage loads only posts.
-- Added explicit legacy redirects from both /blog/online-wal-katha-audio-pdf/ and the non-trailing-slash variant to the standalone page. The build-time redirect fixer initially sent the deleted post URL to /categories/wal-katha/; the explicit rule corrects that destination.
-- During this Preview-verification stage, the work remained on feature branch content/online-wal-katha-audio-pdf-20261024 in draft PR #92, pending the author's explicit Production approval; the subsequent Production rollout is recorded below.
-
-### Verification
-
-- Final code commit 0317f857c3347d3dbd5c2543d51045621e5b380c passed GitHub Actions CI run 40088184523. Astro check reported 0 errors, 0 warnings, and 27 hints. CI logs still contain existing Node DEP0040/DEP0169 deprecations and warnings in unchanged source files; none identify this page or redirect rule.
-- Cloudflare Pages Preview deployment 70b81d1c-9ac7-4c45-868e-e91f2cc62652 completed all five stages successfully for that commit: https://70b81d1c.wala-katha.pages.dev. All 175 available deployment-log records, including container logs, were checked; none matched warning, error, failed, fatal, or exception markers.
-- Direct page returned HTTP 200 with the expected canonical URL, title, and description; the banner returned HTTP 200 image/webp. The former blog URL returned 301 to /online-wal-katha-audio-pdf/, and the no-slash page URL returned 308 to its canonical trailing-slash URL. The Preview homepage HTML contained neither the page slug nor its title.
-- Desktop (1365×900) and mobile (390×844) captures showed the site's 18+ confirmation gate at both sizes; it was not bypassed. Preview responses are noindex. At this stage Production main was bb5215476fa976a3a1983299dd218fc641f0c56f; the later approval and rollout are recorded below.
-
-
-### Production rollout after explicit approval (2026-10-24)
-
-- After the user explicitly approved release, draft PR #92 was marked ready through GitHub GraphQL and squash-merged into main as commit 1a0c52bc1b196f926684c8307b410e31660f67c1.
-- GitHub Actions CI run 40091530019 passed on the merge commit. Cloudflare Pages Production deployment 3845e72b-08cb-453f-b40d-ea780c59b3d0 completed all five stages successfully for that same commit. All 175 available deployment-log records were checked; none matched warning, error, failed, fatal, or exception markers.
-- https://www.walakatha.net/online-wal-katha-audio-pdf/ returned HTTP 200 with the expected canonical URL, index/follow robots metadata, and the existing 18+ confirmation gate. The banner returned HTTP 200 image/webp. The homepage HTML contained neither the page slug nor its title.
-- The legacy trailing-slash blog URL redirected to the standalone page with one 301; the legacy no-slash URL reached the same HTTP 200 destination after two redirects. The no-slash standalone URL redirected to its canonical trailing-slash URL with HTTP 301. The non-www hostname redirected to www.
-- PR #92 is closed and merged. Production main now points to 1a0c52bc1b196f926684c8307b410e31660f67c1. No age-gate bypass or separate visual redesign was performed during Production verification.

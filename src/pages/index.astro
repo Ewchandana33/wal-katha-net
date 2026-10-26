@@ -4,8 +4,11 @@ import config from "@/config/config.json";
 import Base from "@/layouts/Base.astro";
 import Pagination from "@/layouts/components/Pagination.astro";
 import FeaturedSlider from "@/layouts/components/FeaturedSlider.astro";
+import StoriesRail from "@/layouts/components/StoriesRail.astro";
 import AdsterraBanner from "@/layouts/components/AdsterraBanner.astro";
 import { getSinglePage } from "@/lib/contentParser.astro";
+import { selectWebStories } from "@/lib/webStories.mjs";
+import noindexPostIds from "@/config/noindex-post-ids.json";
 import { sortByDate } from "@/lib/utils/sortFunctions";
 import { withTrailingSlash } from "@/lib/utils/urlHelper";
 
@@ -19,6 +22,7 @@ import social from "@/config/social.json";
 
 const posts = await getSinglePage("posts");
 const sortedPosts = sortByDate(posts);
+const webStories = selectWebStories(posts, new Set(noindexPostIds));
 const totalPages = Math.ceil(posts.length / config.settings.pagination);
 const currentPosts = sortedPosts.slice(0, config.settings.pagination);
 
@@ -211,6 +215,7 @@ const homePageSchema = {
       </div>
 
       <FeaturedSlider />
+      <StoriesRail stories={webStories} />
       <AdsterraBanner />
 
       <Posts posts={currentPosts} className="mb-16" />

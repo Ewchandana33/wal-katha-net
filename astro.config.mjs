@@ -331,6 +331,9 @@ const EXCLUDED_SITEMAP_PATHS = [
   "/page/1",
   "/search",
   "/downloads",
+  // Story pages are an on-site format only for now. Keep them out of
+  // Google's existing sitemap/indexing surface unless indexing is requested.
+  "/stories",
   "/news-sitemap.xml",
   "/image-sitemap.xml",
   ...AUTOMATICALLY_EXCLUDED_SITEMAP_PATHS,

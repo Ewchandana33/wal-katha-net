@@ -1,0 +1,132 @@
+---
+import Base from "@/layouts/Base.astro";
+import config from "@/config/config.json";
+import noindexPostIds from "@/config/noindex-post-ids.json";
+import { getSinglePage } from "@/lib/contentParser.astro";
+import { selectWebStories } from "@/lib/webStories.mjs";
+
+const posts = await getSinglePage("posts");
+const stories = selectWebStories(posts, new Set(noindexPostIds));
+const baseUrl = (config?.site?.base_url || "").replace(/\/$/, "");
+const canonicalUrl = `${baseUrl}/stories/`;
+---
+
+<Base
+  title="Stories"
+  meta_title="Stories | Wal Katha"
+  description="කෙටි කියවීම් සඳහා සූදානම් කළ Stories එකතුව."
+  canonical={canonicalUrl}
+  noindex={true}
+>
+  <main class="section stories-page">
+    <div class="container">
+      <a class="stories-page__back" href="/">← මුල් පිටුවට</a>
+      <header class="stories-page__header">
+        <p>කෙටි කියවීම්</p>
+        <h1>Stories</h1>
+        <span>කෙටි, පුවරු අනුව කියවිය හැකි කතා.</span>
+      </header>
+
+      {stories.length > 0 ? (
+        <div class="stories-page__grid">
+          {stories.map((story) => (
+            <a class="stories-page__card" href={`/stories/${encodeURIComponent(story.id)}/`}>
+              <img
+                src={story.data.image}
+                alt={story.data.image_alt || story.data.title}
+                width="420"
+                height="598"
+                loading="lazy"
+                decoding="async"
+              />
+              <span>{story.data.title}</span>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <p class="stories-page__empty">
+          දැනට පෙන්වීමට කතා නැහැ. පළ කිරීමට සුදුසු බව තහවුරු කළ කතාවක් සූදානම් වූ විට මෙහි දිස්වෙයි.
+        </p>
+      )}
+    </div>
+  </main>
+</Base>
+
+<style>
+  .stories-page {
+    min-height: 65vh;
+    color: #f4f4f5;
+  }
+
+  .stories-page__back {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: #8de9df;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .stories-page__header {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .stories-page__header p {
+    margin: 0 0 0.25rem;
+    color: #01c4b4;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+  }
+
+  .stories-page__header h1 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(2rem, 7vw, 3rem);
+    font-weight: 900;
+  }
+
+  .stories-page__header span,
+  .stories-page__empty {
+    color: rgba(244, 244, 245, 0.72);
+    line-height: 1.7;
+  }
+
+  .stories-page__empty {
+    max-width: 38rem;
+    margin: 0 auto;
+    padding: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 1rem;
+    background: #0c0d10;
+    text-align: center;
+  }
+
+  .stories-page__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 1rem;
+  }
+
+  .stories-page__card {
+    display: grid;
+    gap: 0.6rem;
+    color: #f4f4f5;
+    font-weight: 700;
+    line-height: 1.45;
+    text-decoration: none;
+  }
+
+  .stories-page__card img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 0.8rem;
+    background: #17191d;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .stories-page__card:hover {
+    color: #01c4b4;
+  }
+</style>
