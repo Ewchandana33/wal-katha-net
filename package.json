@@ -9,13 +9,13 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/verify-post-downloads.mjs && node scripts/verify-featured-links.mjs && node scripts/verify-social-image-meta.mjs && node scripts/inline-critical-css.mjs && node scripts/verify-homepage-performance.mjs",
+    "build": "node scripts/generate-rating-story-slugs.mjs && astro build && node scripts/verify-post-downloads.mjs && node scripts/verify-featured-links.mjs && node scripts/verify-social-image-meta.mjs && node scripts/inline-critical-css.mjs && node scripts/verify-homepage-performance.mjs",
     "preview": "astro preview",
     "format": "prettier -w .",
     "check": "astro check",
     "deploy:cf-workers": "yarn build && npx wrangler@latest deploy",
     "preview:cf-workers": "yarn build && npx wrangler@latest dev",
-    "test": "node --test scripts/pages-middleware.test.mjs scripts/reader-tools.test.mjs scripts/content-protection.test.mjs"
+    "test": "node scripts/generate-rating-story-slugs.mjs && node --test scripts/pages-middleware.test.mjs scripts/reader-tools.test.mjs scripts/content-protection.test.mjs scripts/story-rating.test.mjs"
   },
   "resolutions": {
     "undici": "^7.28.0",

@@ -1,0 +1,759 @@
+---
+const { storySlug } = Astro.props as { storySlug: string };
+const ratings = [
+  { value: 1, label: "දුර්වලයි" },
+  { value: 2, label: "සාමාන්‍යයි" },
+  { value: 3, label: "හොඳයි" },
+  { value: 4, label: "ඉතා හොඳයි" },
+  { value: 5, label: "විශිෂ්ටයි" },
+];
+---
+
+<section
+  class="story-rating"
+  data-rating-widget
+  data-story-slug={storySlug}
+  aria-labelledby={`story-rating-title-${storySlug}`}
+  aria-busy="true"
+>
+  <div class="rating-panel">
+    <header class="rating-heading">
+      <span class="rating-heading-star" aria-hidden="true">★</span>
+      <div>
+        <h2 id={`story-rating-title-${storySlug}`}>මෙම කතාවට ඔබේ ඇගයීම ලබා දෙන්න</h2>
+        <p>ඔබට මේ කතාව කොතරම් හොඳද? තරු එකක් තෝරා ඔබේ අදහස දක්වන්න.</p>
+      </div>
+    </header>
+
+    <div class="rating-main">
+      <div class="rating-vote">
+        <fieldset class="rating-fieldset" data-rating-fieldset>
+          <legend class="rating-sr-only">තරු එකේ සිට පහ දක්වා ඇගයීමක් තෝරන්න</legend>
+          <div class="rating-options">
+            {ratings.map(({ value, label }) => (
+              <label class="rating-option" data-rating-option data-value={value}>
+                <input
+                  class="rating-input"
+                  type="radio"
+                  name={`story-rating-${storySlug}`}
+                  value={value}
+                  aria-label={`${value} තරු — ${label}`}
+                  disabled
+                  data-rating-input
+                />
+                <span class="rating-star" aria-hidden="true">★</span>
+                <span class="rating-number">{value}</span>
+                <span class="rating-caption">{label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <button class="rating-submit" type="button" data-rating-submit disabled>
+          ඇගයීම සටහන් කරන්න
+        </button>
+      </div>
+
+      <aside class="rating-summary" aria-label="කතාවේ සමස්ත ඇගයීම">
+        <div class="rating-average-line">
+          <strong data-rating-average>0.0</strong>
+          <span>/ 5</span>
+        </div>
+        <div class="rating-average-stars" data-average-stars role="img" aria-label="තවමත් ඇගයීම් නැත">
+          {ratings.map(({ value }) => (
+            <span data-average-star={value} aria-hidden="true">★</span>
+          ))}
+        </div>
+        <span class="rating-average-label" data-rating-average-label>තවමත් ඇගයීම් නැත</span>
+      </aside>
+    </div>
+
+    <div class="rating-breakdown" aria-label="තරු අනුව ලැබුණු ඇගයීම්">
+      <h3 class="rating-sr-only">තරු අනුව ඇගයීම් බෙදී ඇති ආකාරය</h3>
+      {[5, 4, 3, 2, 1].map((value) => (
+        <div class="rating-breakdown-row" data-rating-row={value}>
+          <span class="rating-breakdown-value">{value} <span aria-hidden="true">★</span></span>
+          <span class="rating-track" aria-hidden="true">
+            <span class="rating-track-fill" data-rating-bar={value}></span>
+          </span>
+          <span class="rating-breakdown-count" data-rating-count={value}>0</span>
+        </div>
+      ))}
+    </div>
+
+    <div class="rating-footer">
+      <div class="rating-vote-total">
+        <span class="rating-people-icon" aria-hidden="true">♟</span>
+        <span>
+          <span class="rating-total-label">ඇගයීම් සංඛ්‍යාව</span>
+          <strong data-rating-total>0</strong>
+        </span>
+      </div>
+      <div class="rating-message-wrap">
+        <p class="rating-message" data-rating-message role="status" aria-live="polite" aria-atomic="true">
+          ඔබේ තරු තෝරා ඇගයීම සටහන් කරන්න.
+        </p>
+        <button class="rating-retry" type="button" data-rating-retry hidden>නැවත උත්සාහ කරන්න</button>
+      </div>
+    </div>
+
+    <p class="rating-privacy">
+      නැවත ඡන්දය වැළැක්වීමට බ්‍රවුසර කුකියක් සහ කෙටි කාලීන හැෂ් කළ හඳුනාගැනීමක් භාවිතා කරයි.
+      අමු IP ලිපිනය ගබඩා නොකෙරේ.
+    </p>
+  </div>
+</section>
+
+<style>
+  .story-rating {
+    --rating-bg: #07111e;
+    --rating-panel: #0a1523;
+    --rating-border: #243246;
+    --rating-text: #f2f5f9;
+    --rating-muted: #a3afbf;
+    --rating-track: #1d2a39;
+    --rating-red: #e3334e;
+    --rating-gold: #f3b43b;
+    width: 100%;
+    max-width: 100%;
+    margin: 2.25rem 0;
+    color: var(--rating-text);
+    font-family: inherit;
+  }
+
+  .story-rating *,
+  .story-rating *::before,
+  .story-rating *::after {
+    box-sizing: border-box;
+  }
+
+  .rating-panel {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: clamp(1rem, 3vw, 1.75rem);
+    border: 1px solid var(--rating-border);
+    border-radius: 1rem;
+    background: linear-gradient(145deg, #0b1624 0%, var(--rating-bg) 72%);
+    box-shadow: 0 16px 40px rgb(0 0 0 / 22%);
+  }
+
+  .rating-panel::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: var(--rating-red);
+    content: "";
+  }
+
+  .rating-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.35rem;
+  }
+
+  .rating-heading-star {
+    flex: 0 0 auto;
+    color: var(--rating-red);
+    font-size: 1.7rem;
+    line-height: 1.2;
+  }
+
+  .rating-heading h2 {
+    margin: 0;
+    color: var(--rating-text);
+    font-size: clamp(1.05rem, 2vw, 1.35rem);
+    font-weight: 800;
+    line-height: 1.5;
+  }
+
+  .rating-heading p {
+    margin: 0.25rem 0 0;
+    color: var(--rating-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .rating-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(9rem, 10.5rem);
+    gap: 1.25rem;
+    align-items: stretch;
+  }
+
+  .rating-vote {
+    min-width: 0;
+  }
+
+  .rating-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .rating-options {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .rating-option {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 5.25rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.12rem;
+    padding: 0.35rem 0.12rem;
+    border-radius: 0.65rem;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 140ms ease, transform 140ms ease;
+  }
+
+  .rating-option:hover,
+  .rating-option.is-highlighted {
+    background: rgb(255 255 255 / 5%);
+  }
+
+  .rating-option:active {
+    transform: scale(0.97);
+  }
+
+  .rating-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .rating-option:focus-within {
+    outline: 2px solid #78b8ff;
+    outline-offset: 2px;
+  }
+
+  .rating-star {
+    color: #5d6776;
+    font-size: clamp(1.7rem, 4vw, 2.25rem);
+    line-height: 1;
+    transition: color 140ms ease;
+  }
+
+  .rating-option.is-highlighted .rating-star {
+    color: var(--rating-gold);
+  }
+
+  .rating-number {
+    color: var(--rating-text);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .rating-caption {
+    color: var(--rating-muted);
+    font-size: clamp(0.58rem, 1.5vw, 0.72rem);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .rating-submit,
+  .rating-retry {
+    min-height: 2.75rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid #a91d36;
+    border-radius: 0.65rem;
+    background: #a91d36;
+    color: #fff;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 750;
+    cursor: pointer;
+    transition: background-color 140ms ease, border-color 140ms ease;
+  }
+
+  .rating-submit {
+    width: 100%;
+    margin-top: 0.65rem;
+  }
+
+  .rating-submit:not(:disabled):hover,
+  .rating-retry:hover {
+    border-color: #d52d48;
+    background: #c3223e;
+  }
+
+  .rating-submit:focus-visible,
+  .rating-retry:focus-visible {
+    outline: 2px solid #78b8ff;
+    outline-offset: 3px;
+  }
+
+  .rating-submit:disabled {
+    border-color: #334155;
+    background: #293546;
+    color: #a3afbf;
+    cursor: not-allowed;
+  }
+
+  .rating-summary {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 0.5rem;
+    border-left: 1px solid var(--rating-border);
+    text-align: center;
+  }
+
+  .rating-average-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    white-space: nowrap;
+  }
+
+  .rating-average-line strong {
+    color: var(--rating-text);
+    font-size: clamp(2.2rem, 5vw, 3rem);
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .rating-average-line > span {
+    color: var(--rating-muted);
+    font-size: 0.9rem;
+  }
+
+  .rating-average-stars {
+    display: flex;
+    gap: 0.08rem;
+    margin-top: 0.45rem;
+    color: var(--rating-gold);
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .rating-average-stars > span {
+    color: #485466;
+  }
+
+  .rating-average-label {
+    margin-top: 0.45rem;
+    color: var(--rating-muted);
+    font-size: 0.76rem;
+    line-height: 1.5;
+  }
+
+  .rating-breakdown {
+    display: grid;
+    gap: 0.42rem;
+    margin-top: 1.25rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--rating-border);
+  }
+
+  .rating-breakdown-row {
+    display: grid;
+    grid-template-columns: 2.35rem minmax(0, 1fr) 2.4rem;
+    gap: 0.55rem;
+    align-items: center;
+    min-width: 0;
+    color: var(--rating-muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .rating-breakdown-value {
+    white-space: nowrap;
+  }
+
+  .rating-breakdown-value > span {
+    color: var(--rating-gold);
+  }
+
+  .rating-track {
+    display: block;
+    overflow: hidden;
+    height: 0.55rem;
+    border-radius: 99px;
+    background: var(--rating-track);
+  }
+
+  .rating-track-fill {
+    display: block;
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #c92340, var(--rating-red));
+    transition: width 200ms ease;
+  }
+
+  .rating-breakdown-count {
+    color: var(--rating-text);
+    text-align: right;
+  }
+
+  .rating-footer {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.7fr) minmax(0, 1.3fr);
+    gap: 0.85rem;
+    align-items: stretch;
+    margin-top: 1.15rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rating-border);
+  }
+
+  .rating-vote-total {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--rating-border);
+    border-radius: 0.75rem;
+    background: rgb(255 255 255 / 2%);
+  }
+
+  .rating-people-icon {
+    color: #aab7c8;
+    font-size: 1.55rem;
+    line-height: 1;
+  }
+
+  .rating-vote-total > span:last-child {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .rating-total-label {
+    color: var(--rating-muted);
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+
+  .rating-vote-total strong {
+    color: var(--rating-text);
+    font-size: 1.15rem;
+    line-height: 1.25;
+  }
+
+  .rating-message-wrap {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid #243246;
+    border-radius: 0.75rem;
+    background: rgb(117 145 182 / 7%);
+  }
+
+  .rating-message-wrap::before {
+    flex: 0 0 auto;
+    color: #9cb4d4;
+    content: "ⓘ";
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+
+  .rating-message {
+    min-width: 0;
+    margin: 0;
+    color: #bac7d8;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .rating-message-wrap.is-success {
+    border-color: #1c6849;
+    background: rgb(35 147 94 / 10%);
+  }
+
+  .rating-message-wrap.is-success::before {
+    color: #58d69b;
+    content: "✓";
+  }
+
+  .rating-message-wrap.is-error {
+    border-color: #823246;
+    background: rgb(209 46 73 / 10%);
+  }
+
+  .rating-message-wrap.is-error::before {
+    color: #ff7890;
+    content: "!";
+  }
+
+  .rating-privacy {
+    margin: 0.8rem 0 0;
+    color: #8c9aac;
+    font-size: 0.7rem;
+    line-height: 1.6;
+  }
+
+  .rating-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  @media (max-width: 600px) {
+    .rating-main {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.8rem;
+    }
+
+    .rating-summary {
+      display: grid;
+      grid-template-columns: auto auto minmax(0, 1fr);
+      gap: 0.4rem 0.65rem;
+      justify-content: start;
+      justify-items: start;
+      padding: 0.8rem 0 0;
+      border-top: 1px solid var(--rating-border);
+      border-left: 0;
+      text-align: left;
+    }
+
+    .rating-average-line strong {
+      font-size: 2rem;
+    }
+
+    .rating-average-stars {
+      align-self: center;
+      margin-top: 0;
+    }
+
+    .rating-average-label {
+      align-self: center;
+      margin-top: 0;
+    }
+
+    .rating-footer {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .rating-vote-total {
+      min-height: 3.25rem;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .rating-option {
+      padding-inline: 0;
+    }
+
+    .rating-caption {
+      font-size: 0.58rem;
+    }
+
+    .rating-breakdown-row {
+      grid-template-columns: 2.1rem minmax(0, 1fr) 2rem;
+      gap: 0.4rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rating-option,
+    .rating-star,
+    .rating-submit,
+    .rating-retry,
+    .rating-track-fill {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const RATING_API = "/api/rating";
+
+  function setMessage(root: HTMLElement, message: string, state: "info" | "success" | "error" = "info") {
+    const wrapper = root.querySelector<HTMLElement>(".rating-message-wrap");
+    const text = root.querySelector<HTMLElement>("[data-rating-message]");
+    if (text) text.textContent = message;
+    wrapper?.classList.remove("is-success", "is-error");
+    if (state === "success") wrapper?.classList.add("is-success");
+    if (state === "error") wrapper?.classList.add("is-error");
+  }
+
+  function renderStatistics(root: HTMLElement, data: Record<string, any>) {
+    const total = Number(data.total_votes) || 0;
+    const average = Number(data.average_rating) || 0;
+    const counts = data.rating_counts || {};
+    const totalEl = root.querySelector<HTMLElement>("[data-rating-total]");
+    const averageEl = root.querySelector<HTMLElement>("[data-rating-average]");
+    const averageLabel = root.querySelector<HTMLElement>("[data-rating-average-label]");
+    const averageStars = root.querySelector<HTMLElement>("[data-average-stars]");
+
+    if (totalEl) totalEl.textContent = total.toLocaleString("si-LK");
+    if (averageEl) averageEl.textContent = average.toFixed(1);
+    if (averageLabel) {
+      averageLabel.textContent =
+        total === 0 ? "තවමත් ඇගයීම් නැත" : `ඇගයීම් ${total.toLocaleString("si-LK")}ක්`;
+    }
+    if (averageStars) {
+      averageStars.setAttribute(
+        "aria-label",
+        total === 0 ? "තවමත් ඇගයීම් නැත" : `5න් ${average.toFixed(1)}ක සාමාන්‍ය ඇගයීම`,
+      );
+    }
+
+    root.querySelectorAll<HTMLElement>("[data-average-star]").forEach((star) => {
+      const value = Number(star.dataset.averageStar);
+      const fill = Math.min(1, Math.max(0, average - value + 1));
+      const percent = Math.round(fill * 100);
+      star.style.backgroundImage = `linear-gradient(90deg, #f3b43b ${percent}%, #485466 ${percent}%)`;
+      star.style.backgroundClip = "text";
+      star.style.webkitTextFillColor = "transparent";
+    });
+
+    for (let rating = 1; rating <= 5; rating += 1) {
+      const count = Number(counts[rating]) || 0;
+      const countEl = root.querySelector<HTMLElement>(`[data-rating-count="${rating}"]`);
+      const bar = root.querySelector<HTMLElement>(`[data-rating-bar="${rating}"]`);
+      if (countEl) countEl.textContent = count.toLocaleString("si-LK");
+      if (bar) bar.style.width = total > 0 ? `${(count / total) * 100}%` : "0%";
+    }
+  }
+
+  function updateSelection(root: HTMLElement, selectedValue: number | null) {
+    root.querySelectorAll<HTMLElement>("[data-rating-option]").forEach((option) => {
+      const value = Number(option.dataset.value);
+      option.classList.toggle("is-highlighted", selectedValue !== null && value <= selectedValue);
+    });
+  }
+
+  async function initializeRatingWidget(root: HTMLElement) {
+    const storySlug = root.dataset.storySlug;
+    const inputs = Array.from(root.querySelectorAll<HTMLInputElement>("[data-rating-input]"));
+    const submit = root.querySelector<HTMLButtonElement>("[data-rating-submit]");
+    const retry = root.querySelector<HTMLButtonElement>("[data-rating-retry]");
+    const messageWrap = root.querySelector<HTMLElement>(".rating-message-wrap");
+    if (!storySlug || !submit) return;
+
+    let hasVoted = false;
+    let submitting = false;
+
+    inputs.forEach((input) => {
+      input.addEventListener("change", () => {
+        updateSelection(root, Number(input.value));
+        submit.disabled = hasVoted || submitting;
+        if (!hasVoted) setMessage(root, "ඔබේ තේරීම සූදානම්. ඇගයීම සටහන් කරන්න.");
+      });
+      input.addEventListener("focus", () => updateSelection(root, Number(input.value)));
+    });
+
+    root.querySelectorAll<HTMLElement>("[data-rating-option]").forEach((option) => {
+      option.addEventListener("mouseenter", () => updateSelection(root, Number(option.dataset.value)));
+      option.addEventListener("mouseleave", () => {
+        const selected = inputs.find((input) => input.checked);
+        updateSelection(root, selected ? Number(selected.value) : null);
+      });
+    });
+
+    async function loadRatings() {
+      root.setAttribute("aria-busy", "true");
+      if (retry) retry.hidden = true;
+      try {
+        const response = await fetch(`${RATING_API}?story=${encodeURIComponent(storySlug)}`, {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error("ratings_unavailable");
+        renderStatistics(root, data);
+        hasVoted = data.has_voted === true;
+        inputs.forEach((input) => {
+          input.disabled = hasVoted;
+          input.checked = hasVoted && Number(input.value) === Number(data.user_rating);
+        });
+        submit.disabled = hasVoted || !inputs.some((input) => input.checked);
+        updateSelection(root, hasVoted ? Number(data.user_rating) : null);
+        if (hasVoted) {
+          setMessage(root, "ඔබ දැනටමත් මෙම කතාවට ඇගයීමක් ලබා දී ඇත.");
+        }
+      } catch {
+        setMessage(root, "ඇගයීම් දත්ත ලබාගත නොහැකි විය. නැවත උත්සාහ කරන්න.", "error");
+        if (retry) retry.hidden = false;
+      } finally {
+        root.setAttribute("aria-busy", "false");
+      }
+    }
+
+    retry?.addEventListener("click", loadRatings);
+
+    submit.addEventListener("click", async () => {
+      const selected = inputs.find((input) => input.checked);
+      if (!selected || hasVoted || submitting) return;
+      submitting = true;
+      submit.disabled = true;
+      inputs.forEach((input) => (input.disabled = true));
+      if (retry) retry.hidden = true;
+      setMessage(root, "ඔබේ ඇගයීම සටහන් කරමින්…");
+      try {
+        const response = await fetch(RATING_API, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ storySlug, rating: Number(selected.value) }),
+        });
+        const data = await response.json();
+        if (response.status === 409 && data.code === "already_voted") {
+          renderStatistics(root, data);
+          hasVoted = true;
+          setMessage(root, "ඔබ දැනටමත් මෙම කතාවට ඇගයීමක් ලබා දී ඇත.");
+          return;
+        }
+        if (!response.ok) {
+          if (response.status === 429) {
+            throw new Error("rate_limited");
+          }
+          throw new Error("rating_failed");
+        }
+
+        renderStatistics(root, data);
+        hasVoted = true;
+        inputs.forEach((input) => (input.disabled = true));
+        setMessage(root, "ස්තුතියි! ඔබේ ඇගයීම සාර්ථකව සටහන් විය.", "success");
+      } catch (error) {
+        const message =
+          error instanceof Error && error.message === "rate_limited"
+            ? "ඉල්ලීම් සීමාව ඉක්මවා ඇත. මිනිත්තු කිහිපයකින් නැවත උත්සාහ කරන්න."
+            : "ඇගයීම සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
+        setMessage(root, message, "error");
+        inputs.forEach((input) => (input.disabled = false));
+        submit.disabled = !inputs.some((input) => input.checked);
+      } finally {
+        submitting = false;
+      }
+    });
+
+    if (messageWrap && !messageWrap.classList.contains("is-error")) {
+      setMessage(root, "දත්ත ලබාගනිමින්…");
+    }
+    await loadRatings();
+  }
+
+  function initializeStoryRatings() {
+    document.querySelectorAll<HTMLElement>("[data-rating-widget]").forEach((root) => {
+      if (root.dataset.ratingInitialized === "true") return;
+      root.dataset.ratingInitialized = "true";
+      void initializeRatingWidget(root);
+    });
+  }
+
+  document.addEventListener("astro:page-load", initializeStoryRatings);
+  initializeStoryRatings();
+</script>

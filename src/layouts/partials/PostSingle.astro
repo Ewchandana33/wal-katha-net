@@ -2,6 +2,7 @@
 import Share from "@/components/Share.astro";
 import AdsterraBanner from "@/components/AdsterraBanner.astro";
 import SimilarPosts from "@/layouts/components/SimilarPosts.astro";
+import StoryRating from "@/components/StoryRating.astro";
 import config from "@/config/config.json";
 import { getSinglePage } from "@/lib/contentParser.astro";
 import dateFormat from "@/lib/utils/dateFormat";
@@ -546,6 +547,7 @@ const imageObjectSchema = schemaImageUrl
         <div class="content mb-6 text-left text-[#F8F8FF] custom-post-content">
           <Content />
         </div>
+        <StoryRating storySlug={post.id} />
         <AdsterraBanner />
 
         {/* 2026 TAGS + SHARE FOOTER REDESIGN:
