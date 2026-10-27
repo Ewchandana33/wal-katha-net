@@ -34,6 +34,27 @@ assert.equal(articleUrl.origin, base.origin, 'Article route must remain on the P
 const article = await get(articleUrl, 'Preview article');
 const articleRobots = assertNoindex(article, 'Preview article');
 const sitemap = await get(new URL('/sitemap-index.xml', base), 'Preview sitemap index');
+const storySlug = decodeURIComponent(articleUrl.pathname.slice('/blog/'.length).replace(/\/+$/, ''));
+assert.match(storySlug, /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/, 'Article URL should provide a valid story ID.');
+const ratingResponse = await fetch(
+  new URL(`/api/rating?story=${encodeURIComponent(storySlug)}`, base),
+  { redirect: 'follow', signal: AbortSignal.timeout(20000) }
+);
+assert.equal(ratingResponse.status, 200, `Rating API should return HTTP 200, got ${ratingResponse.status}.`);
+const ratingData = await ratingResponse.json();
+assert.ok(Number.isSafeInteger(ratingData.total_votes) && ratingData.total_votes >= 0, 'Rating API should return a non-negative integer vote total.');
+assert.ok(Number.isSafeInteger(ratingData.total_stars) && ratingData.total_stars >= 0, 'Rating API should return a non-negative integer star total.');
+assert.equal(typeof ratingData.average_rating, 'number', 'Rating API should return a numeric average.');
+assert.ok(ratingData.rating_counts && typeof ratingData.rating_counts === 'object' && !Array.isArray(ratingData.rating_counts), 'Rating API should return per-star counts.');
+assert.deepEqual(Object.keys(ratingData.rating_counts).sort(), ['1', '2', '3', '4', '5'], 'Rating API should include every star-count bucket.');
+const ratingCounts = [1, 2, 3, 4, 5].map(value => ratingData.rating_counts[value]);
+assert.ok(ratingCounts.every(count => Number.isSafeInteger(count) && count >= 0), 'Rating counts should be non-negative integers.');
+assert.equal(ratingCounts.reduce((sum, count) => sum + count, 0), ratingData.total_votes, 'Rating breakdown should match the total vote count.');
+const calculatedAverage = ratingData.total_votes === 0
+  ? 0
+  : Number((ratingData.total_stars / ratingData.total_votes).toFixed(1));
+assert.equal(ratingData.average_rating, calculatedAverage, 'Rating API average should match its real vote totals.');
+assert.equal(typeof ratingData.has_voted, 'boolean', 'Rating API should return the current browser vote state.');
 console.log(JSON.stringify({
   status: 'PASS',
   preview: base.origin,
@@ -43,5 +64,9 @@ console.log(JSON.stringify({
   articleStatus: article.status,
   articleXRobotsTag: articleRobots,
   sitemapStatus: sitemap.status,
+  ratingApiStatus: ratingResponse.status,
+  ratingStorySlug: storySlug,
+  ratingVotes: ratingData.total_votes,
+  ratingAverage: ratingData.average_rating,
   ageGatePresentAndUntouched: true
 }, null, 2));

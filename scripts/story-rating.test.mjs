@@ -4,7 +4,7 @@ import { PUBLISHED_STORY_SLUGS } from "../functions/_shared/published-story-slug
 import { onRequest } from "../functions/api/rating.js";
 
 const BASE_URL = "https://preview.wala-katha.pages.dev/api/rating";
-const STORY_SLUG = "Akkai-Nangi-wal-katha";
+const STORY_SLUG = "akkai-nangi-wal-katha";
 const IP = "203.0.113.10";
 
 class MemoryD1 {
@@ -111,6 +111,8 @@ function makePostContext({
 
 test("allowlist contains published story IDs and excludes private/draft files", () => {
   assert.ok(PUBLISHED_STORY_SLUGS.has(STORY_SLUG));
+  assert.ok(PUBLISHED_STORY_SLUGS.has("nimali-saha-boss"));
+  assert.ok(!PUBLISHED_STORY_SLUGS.has("Akkai-Nangi-wal-katha"));
   assert.ok(!PUBLISHED_STORY_SLUGS.has("-index"));
   assert.ok(!PUBLISHED_STORY_SLUGS.has("not-a-real-story"));
 });

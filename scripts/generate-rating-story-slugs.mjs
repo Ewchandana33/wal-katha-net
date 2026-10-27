@@ -21,7 +21,9 @@ for (const file of files) {
   // drafts must not be rateable, even if their URL is guessed.
   if (/^[ \t]*draft[ \t]*:[ \t]*true[ \t]*(?:#.*)?$/m.test(frontmatter)) continue;
 
-  const slug = file.replaceAll(path.sep, "/").replace(/\.mdx?$/i, "");
+  // Astro's file-based collection IDs are lowercase; keep the server allowlist
+  // aligned with the URLs and the `post.id` passed to the rating widget.
+  const slug = file.replaceAll(path.sep, "/").replace(/\.mdx?$/i, "").toLowerCase();
   if (!/^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/.test(slug)) {
     throw new Error(`Unsupported published story slug: ${slug}`);
   }

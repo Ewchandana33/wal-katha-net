@@ -636,12 +636,16 @@ const ratings = [
   }
 
   async function initializeRatingWidget(root: HTMLElement) {
-    const storySlug = root.dataset.storySlug;
+    const storySlugValue = root.dataset.storySlug;
     const inputs = Array.from(root.querySelectorAll<HTMLInputElement>("[data-rating-input]"));
-    const submit = root.querySelector<HTMLButtonElement>("[data-rating-submit]");
+    const submitCandidate = root.querySelector<HTMLButtonElement>("[data-rating-submit]");
     const retry = root.querySelector<HTMLButtonElement>("[data-rating-retry]");
     const messageWrap = root.querySelector<HTMLElement>(".rating-message-wrap");
-    if (!storySlug || !submit) return;
+    if (!storySlugValue || !submitCandidate) return;
+
+    // Capture stable, non-null aliases before callbacks close over these values.
+    const storySlug: string = storySlugValue;
+    const submit: HTMLButtonElement = submitCandidate;
 
     let hasVoted = false;
     let submitting = false;

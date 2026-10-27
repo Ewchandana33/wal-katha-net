@@ -93,9 +93,15 @@ async function startBrowser() {
   });
   const call = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++nextId;
+    const expressionHint = method === 'Runtime.evaluate' && params.expression
+      ? ` (${String(params.expression).replace(/\s+/g, ' ').slice(0, 120)})`
+      : '';
+    const metricsHint = method === 'Emulation.setDeviceMetricsOverride'
+      ? ` ${JSON.stringify(params)}`
+      : '';
     const timer = setTimeout(() => {
       pending.delete(id);
-      reject(new Error(`Chrome DevTools call timed out: ${method}`));
+      reject(new Error(`Chrome DevTools call timed out: ${method}${metricsHint}${expressionHint}`));
     }, 20000);
     pending.set(id, { resolve, reject, timer });
     websocket.send(JSON.stringify({ id, method, params }));
@@ -129,9 +135,36 @@ async function setViewport(browser, width) {
   await browser.evaluate('(async () => { await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); return true; })()');
 }
 
+async function waitForFeaturedBanner(browser, width) {
+  const expectedPath = width <= 767
+    ? '/images/slider/online-wal-katha-audio-pdf-mobile.webp'
+    : '/images/slider/online-wal-katha-audio-pdf.webp';
+  let lastState;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    lastState = await browser.evaluate(`(() => {
+      const image = document.querySelector('#astro-featured-slider #slider-wrapper > div > a > div picture img');
+      return {
+        source: image?.currentSrc || '',
+        width: image?.naturalWidth || 0,
+        height: image?.naturalHeight || 0
+      };
+    })()`);
+    if (lastState.source && new URL(lastState.source).pathname === expectedPath && lastState.width > 0 && lastState.height > 0) {
+      return lastState;
+    }
+    await sleep(250);
+  }
+  throw new Error(`Featured banner did not load at ${width}px: ${JSON.stringify(lastState)}`);
+}
+
 async function main() {
   if (!remoteUrl) {
-    previewServer = spawn('yarn', ['preview', '--host', '127.0.0.1', '--port', '4321'], { stdio: 'ignore' });
+    previewServer = spawn('yarn', ['preview', '--host', '127.0.0.1', '--port', '4321'], {
+      stdio: 'ignore',
+      // Astro otherwise auto-backgrounds preview servers inside Replit Agent,
+      // so this browser test cannot monitor or clean up the child process.
+      env: { ...process.env, ASTRO_PREVIEW_BACKGROUND: '0' }
+    });
   }
   const rootResponse = await waitForHttp(`${baseUrl}/`, previewServer, remoteUrl ? 'Preview site' : 'Astro preview server');
   assert.equal(rootResponse.status, 200, 'Homepage should return HTTP 200');
@@ -145,11 +178,14 @@ async function main() {
   assert.ok(articleUrl, 'Homepage post grid should link to an article');
   assert.equal(new URL(articleUrl).origin, new URL(baseUrl).origin, 'Article test route must stay on the test origin');
   assert.match(new URL(articleUrl).pathname, /^\/blog\//, 'Article link should use a blog route');
+  const articleSlug = decodeURIComponent(new URL(articleUrl).pathname.split('/').filter(Boolean)[1]);
 
   const homeResults = [];
   for (let i = 0; i < widths.length; i++) {
     const width = widths[i];
+    console.log(`[responsive] Homepage ${width}px`);
     await setViewport(browser, width);
+    await waitForFeaturedBanner(browser, width);
     const result = await browser.evaluate(`(async () => {
       const grid = document.querySelector('.post-grid');
       const root = document.documentElement;
@@ -164,9 +200,6 @@ async function main() {
       const firstFrame = frames[0];
       const nextFrame = frames[1];
       const bannerImage = firstFrame?.querySelector('picture img');
-      if (bannerImage) {
-        try { await bannerImage.decode(); } catch {}
-      }
       return {
         viewport: innerWidth, rootScroll: root.scrollWidth, columns,
         cards: grid?.children.length || 0, imageBounds,
@@ -207,16 +240,32 @@ async function main() {
   await navigate(browser, articleUrl);
   const articleResults = [];
   for (const width of widths) {
+    console.log(`[responsive] Article ${width}px`);
     await setViewport(browser, width);
     const result = await browser.evaluate(`(() => {
       const root = document.documentElement;
       const image = document.querySelector('article img.max-w-4xl');
-      if (!image) return { viewport: innerWidth, rootScroll: root.scrollWidth, found: false };
+      const rating = document.querySelector('[data-rating-widget]');
+      const ratingInputs = rating ? [...rating.querySelectorAll('[data-rating-input]')] : [];
+      const ratingRect = rating?.getBoundingClientRect();
+      if (!image) return {
+        viewport: innerWidth, rootScroll: root.scrollWidth, found: false,
+        rating: { found: Boolean(rating), slug: rating?.dataset.storySlug || '', width: ratingRect?.width || 0, values: ratingInputs.map(input => input.value),
+          labels: ratingInputs.map(input => input.getAttribute('aria-label')),
+          hasStatus: Boolean(rating?.querySelector('[role="status"][aria-live="polite"]')),
+          hasSummary: Boolean(rating?.querySelector('[data-rating-average]')),
+          hasBreakdown: Boolean(rating?.querySelector('[data-rating-bar="5"]')) }
+      };
       const rect = image.getBoundingClientRect();
       return {
         viewport: innerWidth, rootScroll: root.scrollWidth, found: true,
         centerOffset: rect.left + rect.width / 2 - innerWidth / 2,
-        width: rect.width, display: getComputedStyle(image).display
+        width: rect.width, display: getComputedStyle(image).display,
+        rating: { found: Boolean(rating), slug: rating?.dataset.storySlug || '', width: ratingRect?.width || 0, values: ratingInputs.map(input => input.value),
+          labels: ratingInputs.map(input => input.getAttribute('aria-label')),
+          hasStatus: Boolean(rating?.querySelector('[role="status"][aria-live="polite"]')),
+          hasSummary: Boolean(rating?.querySelector('[data-rating-average]')),
+          hasBreakdown: Boolean(rating?.querySelector('[data-rating-bar="5"]')) }
       };
     })()`);
     assert.ok(result.rootScroll <= width + 1, `Article should not overflow horizontally at ${width}px (scrollWidth ${result.rootScroll})`);
@@ -224,6 +273,12 @@ async function main() {
     assert.ok(Math.abs(result.centerOffset) <= 1, `Article cover should be centered at ${width}px (offset ${result.centerOffset}px)`);
     assert.equal(result.display, 'block', `Article cover should remain block-level at ${width}px`);
     assert.ok(result.width <= Math.min(width, 896) + 1, `Article cover should fit its viewport/max-width at ${width}px`);
+    assert.ok(result.rating.found, `Story rating widget should render at ${width}px`);
+    assert.equal(result.rating.slug, articleSlug, `Story rating widget should use the article route ID at ${width}px`);
+    assert.ok(result.rating.width <= width + 1, `Story rating widget should fit its viewport at ${width}px`);
+    assert.deepEqual(result.rating.values, ['1', '2', '3', '4', '5'], `Story rating widget should expose five ordered choices at ${width}px`);
+    assert.ok(result.rating.labels.every(label => typeof label === 'string' && label.length > 0), `Rating choices should have accessible labels at ${width}px`);
+    assert.ok(result.rating.hasStatus && result.rating.hasSummary && result.rating.hasBreakdown, `Rating summary, breakdown, and live status should render at ${width}px`);
     articleResults.push({ width, centerOffset: Math.round(result.centerOffset * 100) / 100, rootScroll: result.rootScroll });
   }
 
