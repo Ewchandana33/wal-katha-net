@@ -30,9 +30,10 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Verification
 
-- `yarn test` passed all 17 tests; `yarn check` passed; the changelog/archive retention tests passed 2/2. The dependency install used the checked-in frozen lockfile.
-- The full static build is still running on this memory-limited local runner. A normal-heap attempt was killed with exit 137; the retry with a capped Node heap has progressed through static route generation but is not yet complete. The updated Chromium interaction check has not yet run.
-- CI and the PR Preview will provide a separate clean-runner verification. No Production branch or Production deployment has been changed.
+- `yarn test` passed all 17 tests; `yarn check` passed; the changelog/archive retention tests passed 2/2. Dependencies were installed from the checked-in frozen lockfile. Both full builds attempted in this local 1.6 GiB cgroup were killed with exit 137, including the capped-heap retry.
+- GitHub Actions CI run `40636663470` passed for commit `f50d9ca0725062aab42fdf73caeaa89ad07ae691`: type-check, CI test steps, static production build, responsive Chromium, SEO output, Preview route, and age-gate checks all succeeded.
+- Cloudflare Pages Preview deployment `61ce2c40-7232-44cd-b95f-183b9aebcdf2` completed all five stages successfully for that exact commit: https://61ce2c40.wala-katha.pages.dev. The article and read-only rating API GET returned HTTP 200; the aggregate remained at 0 votes. Direct Preview Chromium checked the article at 280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, and 2560px with no horizontal overflow; all five choices and the toast were present, and the removed footnote was absent. CI's isolated mocked interaction also passed the green selected tile, gold star, success toast, and auto-dismiss assertions. No live POST was sent.
+- PR #105 remains open as a draft. No merge, `main` update, or Production deployment occurred.
 
 ## 2026-10-27 — Complete the story-rating Preview integration
 
