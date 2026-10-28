@@ -16,9 +16,21 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 66 earlier dated entries from 2026-10-14 through 2026-10-25; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 67 earlier dated entries from 2026-10-14 through 2026-10-27; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-28 — Correct responsive rating selection test timing
+
+### Changes
+
+- Snapshot the selected tile class and radio checked/disabled state immediately after the rating click in `scripts/verify-responsive-layout.mjs`, before subsequent vote, toast, and comments interactions. Include radio state in failure diagnostics.
+- Archive the oldest complete dated changelog section to keep the five-entry active history and update its coverage/count.
+
+### Verification
+
+- GitHub Actions run `40681777229` attempt 1 failed before responsive assertions because Chrome DevTools did not become reachable. Attempt 2 passed Astro type-check, all 25 unit tests, the 51-page static build, and homepage/article layout checks at 11 viewport widths, then failed the selected-tile assertion. The assertion previously read the class after the later interaction sequence; this branch update is pending CI verification.
+- Interactive checks use isolated API stubs; no live rating/comment POST was made. No Production code, data, or deployment was changed.
 
 ## 2026-10-28 — Complete story comments and colorless toast
 
@@ -76,19 +88,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - GitHub Actions CI run `40636663470` passed for commit `f50d9ca0725062aab42fdf73caeaa89ad07ae691`: type-check, CI test steps, static production build, responsive Chromium, SEO output, Preview route, and age-gate checks all succeeded.
 - Cloudflare Pages Preview deployment `61ce2c40-7232-44cd-b95f-183b9aebcdf2` completed all five stages successfully for that exact commit: https://61ce2c40.wala-katha.pages.dev. The article and read-only rating API GET returned HTTP 200; the aggregate remained at 0 votes. Direct Preview Chromium checked the article at 280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, and 2560px with no horizontal overflow; all five choices and the toast were present, and the removed footnote was absent. CI's isolated mocked interaction also passed the green selected tile, gold star, success toast, and auto-dismiss assertions. No live POST was sent.
 - PR #105 remains open as a draft. No merge, `main` update, or Production deployment occurred.
-
-## 2026-10-27 — Complete the story-rating Preview integration
-
-### Root causes and changes
-
-- Resolved the two strict-null Astro type-check errors in StoryRating.astro by capturing the story ID and submit button only after validating both values.
-- The story routes and Astro content IDs use lowercase slugs, while the generated API allowlist preserved filename capitalization. Lowercase the generated IDs, regenerate the seven-story allowlist, and add regression coverage for canonical route IDs and case mismatches.
-- The Preview D1 database existed and its tables were migrated, but the Pages runtime did not receive the DB binding from Wrangler configuration. Add the existing walakatha-rating-preview database binding under env.preview only; keep Production unbound.
-- Extend the Preview smoke test to read the real route-derived rating API and validate its totals, buckets, and average without submitting test votes. Extend Chromium coverage to assert the rating widget, matching route ID, five accessible choices, summary, breakdown, live status, and viewport fit at all 11 widths. Keep the age gate untouched and make the local Astro preview test server stay in the foreground in Replit Agent.
-
-### Verification
-
-- Local yarn test passed 17/17; yarn check passed; yarn build completed all 51 pages and the PDF, featured-link, social-image, critical-CSS, homepage-performance, and sitemap-indexability verifiers. The built article rendered five choices with the canonical lowercase slug. Local Chromium runs were unreliable in this Replit sandbox with about 204 MB available memory; the hosted CI browser test below passed on the same implementation commit.
-- GitHub Actions CI run 40541834937 passed every step for implementation commit 95d67f701035ed2ab91e7b3a5ddb0cd1f1d611b0 in draft PR #105: Astro type-check, tests, build, responsive Chromium at 280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, and 2560px, SEO checks, and Preview route/API/noindex/age-gate verification. The API smoke returned HTTP 200 for methsala-akka-wal-katha with 0 votes and average 0. Existing dependency/action deprecation notices and Astro hints in unrelated files remain.
-- Cloudflare Pages Preview deployment 62f5df25-1a99-401d-93a4-8a503dc3c7e9 completed all five stages successfully for that exact commit: https://62f5df25.wala-katha.pages.dev. A separate read-only smoke returned HTTP 200 for /blog/akkai-nangi-wal-katha/ and /api/rating?story=akkai-nangi-wal-katha; the article contained the widget and five inputs, and the API returned all five zero-count buckets, 0 votes, and average 0. No POST or demo vote was submitted.
-- After the Preview deploy, Cloudflare still reported Production deployment 6e110384-5552-454c-bc87-8970f98a2305 on main commit 05d5ded3cce4a1084c6cba334cac19b7e696c31b; Production D1 binding is null while Preview is bound to the existing rating database. PR #105 remains a draft; no merge or Production deployment occurred.

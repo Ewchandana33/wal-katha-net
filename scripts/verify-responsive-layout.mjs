@@ -437,6 +437,9 @@ async function main() {
       const commentInitiallyHidden = Boolean(commentField?.hidden);
       input?.click();
       await new Promise(resolve => setTimeout(resolve, 180));
+      const selectedClassAfterClick = Boolean(option?.classList.contains('is-selected'));
+      const inputCheckedAfterClick = input?.checked === true;
+      const inputDisabledAfterClick = input?.disabled === true;
       const selectedBackground = option ? getComputedStyle(option).backgroundColor : '';
       const selectedStarColor = star ? getComputedStyle(star).color : '';
       const commentVisibleAfterRating = Boolean(commentField && !commentField.hidden);
@@ -504,7 +507,9 @@ async function main() {
         && !document.body.classList.contains('story-comments-open')
         && document.body.style.overflow !== 'hidden');
       return {
-        selectedClass: option?.classList.contains('is-selected') || false,
+        selectedClass: selectedClassAfterClick,
+        inputCheckedAfterClick,
+        inputDisabledAfterClick,
         selectedBackground,
         selectedStarColor,
         commentInitiallyHidden,
@@ -531,7 +536,7 @@ async function main() {
       };
     })()`);
     const selectedGreen = interaction.selectedBackground.match(/\d+/g)?.map(Number);
-    assert.ok(interaction.selectedClass, 'Clicking a rating should mark the selected tile');
+    assert.ok(interaction.selectedClass, `Clicking a rating should mark the selected tile (checked=${interaction.inputCheckedAfterClick}, disabled=${interaction.inputDisabledAfterClick})`);
     assert.ok(selectedGreen && selectedGreen.length >= 3 && selectedGreen[1] > selectedGreen[0] && selectedGreen[1] > selectedGreen[2], 'The selected rating tile should turn green');
     assert.equal(interaction.selectedStarColor, 'rgb(243, 180, 59)', 'The selected star should remain gold');
     assert.ok(interaction.commentInitiallyHidden, 'The optional comment field should stay hidden before a rating is chosen');
