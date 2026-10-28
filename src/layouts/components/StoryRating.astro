@@ -17,6 +17,15 @@ const ratings = [
   aria-busy="true"
 >
   <div class="rating-panel">
+    <div
+      class="rating-toast"
+      data-rating-toast
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      hidden
+    ></div>
+
     <header class="rating-heading">
       <span class="rating-heading-star" aria-hidden="true">★</span>
       <div>
@@ -96,10 +105,6 @@ const ratings = [
       </div>
     </div>
 
-    <p class="rating-privacy">
-      නැවත ඡන්දය වැළැක්වීමට බ්‍රවුසර කුකියක් සහ කෙටි කාලීන හැෂ් කළ හඳුනාගැනීමක් භාවිතා කරයි.
-      අමු IP ලිපිනය ගබඩා නොකෙරේ.
-    </p>
   </div>
 </section>
 
@@ -208,6 +213,7 @@ const ratings = [
     justify-content: center;
     gap: 0.12rem;
     padding: 0.35rem 0.12rem;
+    border: 1px solid transparent;
     border-radius: 0.65rem;
     cursor: pointer;
     text-align: center;
@@ -215,8 +221,14 @@ const ratings = [
   }
 
   .rating-option:hover,
-  .rating-option.is-highlighted {
+  .rating-option.is-highlighted:not(.is-selected) {
     background: rgb(255 255 255 / 5%);
+  }
+
+  .rating-option.is-selected,
+  .rating-option.is-selected:hover {
+    border-color: #2a9a69;
+    background: #123c2d;
   }
 
   .rating-option:active {
@@ -492,11 +504,45 @@ const ratings = [
     content: "!";
   }
 
-  .rating-privacy {
-    margin: 0.8rem 0 0;
-    color: #8c9aac;
-    font-size: 0.7rem;
-    line-height: 1.6;
+  .rating-toast[hidden] {
+    display: none;
+  }
+
+  .rating-toast {
+    position: fixed;
+    z-index: 1100;
+    inset-block-start: calc(env(safe-area-inset-top, 0px) + 1rem);
+    inset-inline-start: 50%;
+    display: flex;
+    width: min(28rem, calc(100vw - 2rem));
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.9rem 1rem;
+    transform: translate(-50%, -0.5rem);
+    border: 1px solid #2a9a69;
+    border-radius: 0.8rem;
+    background: #103528;
+    box-shadow: 0 12px 36px rgb(0 0 0 / 38%);
+    color: #e8fff3;
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1.55;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
+  .rating-toast::before {
+    flex: 0 0 auto;
+    color: #58d69b;
+    content: "✓";
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+
+  .rating-toast.is-visible {
+    transform: translate(-50%, 0);
+    opacity: 1;
   }
 
   .rating-sr-only {
@@ -570,6 +616,7 @@ const ratings = [
     .rating-star,
     .rating-submit,
     .rating-retry,
+    .rating-toast,
     .rating-track-fill {
       transition: none;
     }
@@ -632,6 +679,8 @@ const ratings = [
     root.querySelectorAll<HTMLElement>("[data-rating-option]").forEach((option) => {
       const value = Number(option.dataset.value);
       option.classList.toggle("is-highlighted", selectedValue !== null && value <= selectedValue);
+      const input = option.querySelector<HTMLInputElement>("[data-rating-input]");
+      option.classList.toggle("is-selected", input?.checked === true);
     });
   }
 
@@ -649,6 +698,28 @@ const ratings = [
 
     let hasVoted = false;
     let submitting = false;
+    let successToastTimer: number | undefined;
+    let successToastHideTimer: number | undefined;
+
+    function showSuccessToast(message: string) {
+      const toast = root.querySelector<HTMLElement>("[data-rating-toast]");
+      if (!toast) return;
+      if (successToastTimer !== undefined) window.clearTimeout(successToastTimer);
+      if (successToastHideTimer !== undefined) window.clearTimeout(successToastHideTimer);
+
+      toast.textContent = message;
+      toast.hidden = false;
+      window.requestAnimationFrame(() => toast.classList.add("is-visible"));
+      successToastTimer = window.setTimeout(() => {
+        toast.classList.remove("is-visible");
+        successToastHideTimer = window.setTimeout(() => {
+          toast.hidden = true;
+          toast.textContent = "";
+          successToastTimer = undefined;
+          successToastHideTimer = undefined;
+        }, 200);
+      }, 3500);
+    }
 
     inputs.forEach((input) => {
       input.addEventListener("change", () => {
@@ -730,7 +801,8 @@ const ratings = [
         renderStatistics(root, data);
         hasVoted = true;
         inputs.forEach((input) => (input.disabled = true));
-        setMessage(root, "ස්තුතියි! ඔබේ ඇගයීම සාර්ථකව සටහන් විය.", "success");
+        setMessage(root, "ඔබේ ඇගයීම සටහන් වී ඇත.");
+        showSuccessToast("ස්තුතියි!");
       } catch (error) {
         const message =
           error instanceof Error && error.message === "rate_limited"

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -15,6 +15,7 @@ let previewServer;
 let chrome;
 let websocket;
 let profile;
+let ratingHarnessDirectory;
 
 function findBrowser() {
   const candidates = [process.env.CHROME_PATH, process.env.CHROMIUM_PATH, 'chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable'].filter(Boolean);
@@ -135,6 +136,50 @@ async function setViewport(browser, width) {
   await browser.evaluate('(async () => { await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); return true; })()');
 }
 
+async function createRatingHarness(articleSlug) {
+  const articlePath = join(process.cwd(), 'dist', 'blog', articleSlug, 'index.html');
+  const articleHtml = await readFile(articlePath, 'utf8');
+  const widgetHtml = articleHtml.match(/<section\b(?=[^>]*\bdata-rating-widget\b)[\s\S]*?<\/section>/i)?.[0];
+  assert.ok(widgetHtml, `Built article ${articleSlug} should contain the story rating widget`);
+
+  const localOrigin = new URL(baseUrl).origin;
+  const localizeAsset = value => {
+    const assetUrl = new URL(value, baseUrl);
+    return assetUrl.origin === localOrigin ? `${assetUrl.pathname}${assetUrl.search}` : null;
+  };
+  const stylesheetPaths = [...articleHtml.matchAll(/<link\b[^>]*>/gi)]
+    .map(([tag]) => {
+      if (!/\brel=["']stylesheet["']/i.test(tag)) return null;
+      const href = tag.match(/\bhref=["']([^"']+)["']/i)?.[1];
+      return href ? localizeAsset(href) : null;
+    })
+    .filter(Boolean);
+  const inlineStyles = [...articleHtml.matchAll(/<style\b[^>]*>[\s\S]*?<\/style>/gi)]
+    .map(([styleBlock]) => styleBlock);
+  const modulePaths = [...articleHtml.matchAll(/<script\b[^>]*>/gi)]
+    .map(([tag]) => {
+      if (!/\btype=["']module["']/i.test(tag)) return null;
+      const src = tag.match(/\bsrc=["']([^"']+)["']/i)?.[1];
+      return src ? localizeAsset(src) : null;
+    })
+    .filter(Boolean);
+  assert.ok(modulePaths.length > 0, 'Built article should include the module scripts that initialize the rating widget');
+
+  ratingHarnessDirectory = join(process.cwd(), 'dist', '__rating-test__');
+  await mkdir(ratingHarnessDirectory, { recursive: true });
+  const documentHtml = [
+    '<!doctype html>',
+    '<html lang="si"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
+    ...stylesheetPaths.map(path => `<link rel="stylesheet" href="${path}">`),
+    ...inlineStyles,
+    '</head><body>',
+    widgetHtml,
+    ...modulePaths.map(path => `<script type="module" src="${path}"></script>`),
+    '</body></html>'
+  ].join('');
+  await writeFile(join(ratingHarnessDirectory, 'index.html'), documentHtml);
+}
+
 async function waitForFeaturedBanner(browser, width) {
   const expectedPath = width <= 767
     ? '/images/slider/online-wal-katha-audio-pdf-mobile.webp'
@@ -179,6 +224,34 @@ async function main() {
   assert.equal(new URL(articleUrl).origin, new URL(baseUrl).origin, 'Article test route must stay on the test origin');
   assert.match(new URL(articleUrl).pathname, /^\/blog\//, 'Article link should use a blog route');
   const articleSlug = decodeURIComponent(new URL(articleUrl).pathname.split('/').filter(Boolean)[1]);
+
+  if (!remoteUrl) {
+    await browser.call('Page.addScriptToEvaluateOnNewDocument', {
+      source: `(() => {
+        const nativeFetch = window.fetch.bind(window);
+        const makeResponse = (data, status = 200) => new Response(JSON.stringify(data), {
+          status,
+          headers: { 'Content-Type': 'application/json' }
+        });
+        window.fetch = async (input, init = {}) => {
+          const rawUrl = typeof input === 'string' ? input : input?.url;
+          const method = String(init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+          const pathname = rawUrl ? new URL(rawUrl, location.href).pathname : '';
+          if (pathname !== '/api/rating') return nativeFetch(input, init);
+          if (method === 'GET') return makeResponse({
+            average_rating: 0, total_votes: 0, total_stars: 0,
+            rating_counts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, has_voted: false
+          });
+          if (method === 'POST') return makeResponse({
+            average_rating: 4, total_votes: 1, total_stars: 4,
+            rating_counts: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 0 },
+            has_voted: true, user_rating: 4
+          }, 201);
+          return nativeFetch(input, init);
+        };
+      })();`
+    });
+  }
 
   const homeResults = [];
   for (let i = 0; i < widths.length; i++) {
@@ -238,6 +311,16 @@ async function main() {
   }
 
   await navigate(browser, articleUrl);
+  const ratingReady = await browser.evaluate(`(async () => {
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      const widget = document.querySelector('[data-rating-widget]');
+      if (widget?.getAttribute('aria-busy') === 'false') return true;
+      await new Promise(resolve => setTimeout(resolve, 25));
+    }
+    return false;
+  })()`);
+  assert.ok(ratingReady, 'The rating widget should finish loading its initial aggregate');
+
   const articleResults = [];
   for (const width of widths) {
     console.log(`[responsive] Article ${width}px`);
@@ -253,6 +336,8 @@ async function main() {
         rating: { found: Boolean(rating), slug: rating?.dataset.storySlug || '', width: ratingRect?.width || 0, values: ratingInputs.map(input => input.value),
           labels: ratingInputs.map(input => input.getAttribute('aria-label')),
           hasStatus: Boolean(rating?.querySelector('[role="status"][aria-live="polite"]')),
+          hasToast: Boolean(rating?.querySelector('[data-rating-toast][role="status"][aria-live="polite"]')),
+          hasPrivacyNote: Boolean(rating?.querySelector('.rating-privacy')),
           hasSummary: Boolean(rating?.querySelector('[data-rating-average]')),
           hasBreakdown: Boolean(rating?.querySelector('[data-rating-bar="5"]')) }
       };
@@ -264,6 +349,8 @@ async function main() {
         rating: { found: Boolean(rating), slug: rating?.dataset.storySlug || '', width: ratingRect?.width || 0, values: ratingInputs.map(input => input.value),
           labels: ratingInputs.map(input => input.getAttribute('aria-label')),
           hasStatus: Boolean(rating?.querySelector('[role="status"][aria-live="polite"]')),
+          hasToast: Boolean(rating?.querySelector('[data-rating-toast][role="status"][aria-live="polite"]')),
+          hasPrivacyNote: Boolean(rating?.querySelector('.rating-privacy')),
           hasSummary: Boolean(rating?.querySelector('[data-rating-average]')),
           hasBreakdown: Boolean(rating?.querySelector('[data-rating-bar="5"]')) }
       };
@@ -278,11 +365,68 @@ async function main() {
     assert.ok(result.rating.width <= width + 1, `Story rating widget should fit its viewport at ${width}px`);
     assert.deepEqual(result.rating.values, ['1', '2', '3', '4', '5'], `Story rating widget should expose five ordered choices at ${width}px`);
     assert.ok(result.rating.labels.every(label => typeof label === 'string' && label.length > 0), `Rating choices should have accessible labels at ${width}px`);
+    assert.ok(result.rating.hasToast, `A live-region success toast should be available at ${width}px`);
+    assert.equal(result.rating.hasPrivacyNote, false, `The requested duplicate-vote footnote should be removed at ${width}px`);
     assert.ok(result.rating.hasStatus && result.rating.hasSummary && result.rating.hasBreakdown, `Rating summary, breakdown, and live status should render at ${width}px`);
     articleResults.push({ width, centerOffset: Math.round(result.centerOffset * 100) / 100, rootScroll: result.rootScroll });
   }
 
-  console.log(JSON.stringify({ status: 'PASS', homepage: homeResults, article: articleResults, ageGateWasNotInteractedWith: true }, null, 2));
+  let interaction = {
+    status: 'skipped',
+    reason: 'Remote Preview checks are read-only; interactive assertions run only in the isolated local fixture.'
+  };
+  if (!remoteUrl) {
+    await createRatingHarness(articleSlug);
+    await setViewport(browser, 390);
+    await navigate(browser, `${baseUrl}/__rating-test__/`);
+    const harnessReady = await browser.evaluate(`(async () => {
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        const widget = document.querySelector('[data-rating-widget]');
+        if (widget?.getAttribute('aria-busy') === 'false') return true;
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      return false;
+    })()`);
+    assert.ok(harnessReady, 'The isolated rating fixture should initialize against the stub API');
+
+    interaction = await browser.evaluate(`(async () => {
+      const root = document.querySelector('[data-rating-widget]');
+      const input = root?.querySelector('[data-rating-input][value="4"]');
+      const option = input?.closest('[data-rating-option]');
+      const star = option?.querySelector('.rating-star');
+      input?.click();
+      await new Promise(resolve => setTimeout(resolve, 180));
+      const selectedBackground = option ? getComputedStyle(option).backgroundColor : '';
+      const selectedStarColor = star ? getComputedStyle(star).color : '';
+      root?.querySelector('[data-rating-submit]')?.click();
+      const toast = root?.querySelector('[data-rating-toast]');
+      for (let attempt = 0; attempt < 40 && toast?.hidden; attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      const toastAppeared = Boolean(toast && !toast.hidden && toast.classList.contains('is-visible'));
+      const toastText = toast?.textContent?.trim() || '';
+      await new Promise(resolve => setTimeout(resolve, 3900));
+      return {
+        selectedClass: option?.classList.contains('is-selected') || false,
+        selectedBackground,
+        selectedStarColor,
+        toastAppeared,
+        toastText,
+        toastHiddenAfterTimeout: toast?.hidden || false
+      };
+    })()`);
+    const selectedGreen = interaction.selectedBackground.match(/\d+/g)?.map(Number);
+    assert.ok(interaction.selectedClass, 'Clicking a rating should mark the selected tile');
+    assert.ok(selectedGreen && selectedGreen.length >= 3 && selectedGreen[1] > selectedGreen[0] && selectedGreen[1] > selectedGreen[2], 'The selected rating tile should turn green');
+    assert.equal(interaction.selectedStarColor, 'rgb(243, 180, 59)', 'The selected star should remain gold');
+    assert.ok(interaction.toastAppeared, 'A successful vote should display the thank-you toast');
+    assert.match(interaction.toastText, /ස්තුතියි/);
+    assert.ok(interaction.toastHiddenAfterTimeout, 'The thank-you toast should dismiss itself');
+    interaction.status = 'PASS';
+    interaction.fixture = 'isolated local widget; all rating API calls stubbed';
+  }
+
+  console.log(JSON.stringify({ status: 'PASS', homepage: homeResults, article: articleResults, interaction, ageGateWasNotInteractedWith: true }, null, 2));
 }
 
 try {
@@ -291,5 +435,6 @@ try {
   websocket?.close();
   await stop(chrome);
   await stop(previewServer);
+  if (ratingHarnessDirectory) await rm(ratingHarnessDirectory, { recursive: true, force: true });
   if (profile) await rm(profile, { recursive: true, force: true });
 }

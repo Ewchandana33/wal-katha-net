@@ -16,9 +16,23 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 62 earlier dated entries from 2026-10-14 through 2026-10-25; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 63 earlier dated entries from 2026-10-14 through 2026-10-25; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-28 — Improve story-rating feedback and audit Google snippets
+
+### Request and changes
+
+- Make a successful story rating show a brief, accessible thank-you toast that dismisses itself; highlight the selected rating tile green while keeping its star gold; remove the duplicate-vote privacy footnote from the widget.
+- Extend the responsive Chromium test to verify the selected color, gold star, success toast, automatic dismissal, and removal of the footnote. The test stubs rating API requests, so it does not write votes to the Preview or Production database.
+- Audited the added request for Google Search stars against Google's current review-snippet guidance. The story page is an Article/BlogPosting; that generic type is not listed as eligible for Google's review-snippet star feature. Do not emit misleading AggregateRating markup or relabel a story as a Book/Episode to try to qualify. Revisit only if a page genuinely represents a Google-supported type and the rating is visible and real; valid markup still does not guarantee a rich result.
+
+### Verification
+
+- `yarn test` passed all 17 tests; `yarn check` passed; the changelog/archive retention tests passed 2/2. The dependency install used the checked-in frozen lockfile.
+- The full static build is still running on this memory-limited local runner. A normal-heap attempt was killed with exit 137; the retry with a capped Node heap has progressed through static route generation but is not yet complete. The updated Chromium interaction check has not yet run.
+- CI and the PR Preview will provide a separate clean-runner verification. No Production branch or Production deployment has been changed.
 
 ## 2026-10-27 — Complete the story-rating Preview integration
 
@@ -83,19 +97,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Cloudflare Pages Preview deployment `e4837acf-8bd9-416e-9708-aa9399dce588` completed successfully for the implementation commit: https://e4837acf.wala-katha.pages.dev. Browser smoke checks confirmed object-fit: contain, backdrop cover/blur/0.8 opacity, and equal frame heights at 461, 640, 700, and 768px. The age-gate overlay prevented a visual screenshot confirmation without interacting with it.
 - Production remains on deployment `c0a0d04d-6c08-403c-aa78-806b009049c8`, main commit `39ed65f0cb7818379a260a97eabcee768485acf3`. No merge or Production deployment was performed; explicit approval is still required.
 - A documentation-only follow-up commit records these implementation checks; its own CI and Preview results are tracked separately.
-
-
-## 2026-10-25 — Center the article cover image responsively
-
-### Request and changes
-
-- Addressed the report that the primary post cover was left-aligned on desktop and the request to center it across device sizes while checking related responsive image layout.
-- Root cause: Astro rendered the cover image as `inline-block`; its existing `mx-auto` could not center a `max-w-4xl` image once it became narrower than the wide article column. Added `block` to the cover image classes in `src/layouts/partials/PostSingle.astro`. It remains full available width on smaller screens and is centered at its existing 896px maximum on desktop.
-- Audited the homepage post-card thumbnails and article layout at eight viewport widths; no additional card-image, row-gutter, or horizontal-overflow issue was found in the tested pages.
-
-### Verification
-
-- Code commit `228ad4d5f38210867fe0836dc0f2499d2338aa1d` passed GitHub Actions CI run `40172972916`: Astro type-check, the middleware/logic/changelog tests, static site build, and homepage/pagination SEO checks all succeeded.
-- Cloudflare Pages Preview deployment `c062e4c9-e04b-4787-af9c-c7e167c11f29` completed all five stages successfully; the article page returned HTTP 200. All 175 deployment logs, including container logs, were checked; no warning, error, failure, fatal, or exception markers were found.
-- Headless Chromium checked the article and homepage at 280, 320, 390, 768, 1024, 1440, 1920, and 2560px. The article cover center offset was 0px at all eight widths; the homepage grid stayed at 2, 2, 2, 3, 4, 4, 5, and 6 columns, with card images inside their frames. No document-root horizontal overflow or `.row` edge bleed was observed. The age-confirmation overlay stayed active; the test did not bypass it.
-- PR #99 remains a draft; no merge or Production deployment occurred.
