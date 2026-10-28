@@ -5,7 +5,8 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 const RATE_WINDOW_SECONDS = 10 * 60;
 const RATE_LIMIT = 20;
 const RATE_LIMIT_RETENTION_SECONDS = 24 * 60 * 60;
-const MAX_BODY_BYTES = 512;
+const MAX_BODY_BYTES = 4096;
+const MAX_COMMENT_LENGTH = 500;
 
 const JSON_HEADERS = {
   "Cache-Control": "no-store",
@@ -223,12 +224,16 @@ async function handlePost(context) {
   }
 
   const body = parsed.value;
+  const commentText = typeof body.comment === "string" ? body.comment.trim() : "";
+  const commentLength = Array.from(commentText).length;
   if (
-    Object.keys(body).some((key) => !["storySlug", "rating"].includes(key)) ||
+    Object.keys(body).some((key) => !["storySlug", "rating", "comment"].includes(key)) ||
     typeof body.storySlug !== "string" ||
     !Number.isInteger(body.rating) ||
     body.rating < 1 ||
-    body.rating > 5
+    body.rating > 5 ||
+    (Object.hasOwn(body, "comment") &&
+      (typeof body.comment !== "string" || commentLength > MAX_COMMENT_LENGTH))
   ) {
     return jsonResponse({ error: "invalid_rating" }, 400);
   }
@@ -278,15 +283,28 @@ async function handlePost(context) {
     }
 
     try {
-      await db
-        .prepare(
-          "INSERT INTO story_ratings (story_slug, voter_hash, rating) VALUES (?, ?, ?)",
-        )
-        .bind(body.storySlug, voterHash, body.rating)
-        .run();
+      const statements = [
+        db
+          .prepare(
+            "INSERT INTO story_ratings (story_slug, voter_hash, rating) VALUES (?, ?, ?)",
+          )
+          .bind(body.storySlug, voterHash, body.rating),
+      ];
+      if (commentText) {
+        statements.push(
+          db
+            .prepare(
+              `INSERT INTO story_rating_comments
+                (story_slug, author_hash, review_voter_hash, body)
+               VALUES (?, ?, ?, ?)`,
+            )
+            .bind(body.storySlug, voterHash, voterHash, commentText),
+        );
+      }
+      await db.batch(statements);
     } catch {
-      // The database uniqueness constraint remains authoritative if two
-      // requests race after both have passed the read-before-insert check.
+      // D1 batch keeps the rating and optional comment atomic. The rating
+      // uniqueness constraint remains authoritative when two votes race.
       const racedRating = await getVoterRating(db, body.storySlug, voterHash);
       if (racedRating === null) throw new Error("rating_insert_failed");
       const statistics = await loadStatistics(db, body.storySlug);
@@ -308,6 +326,7 @@ async function handlePost(context) {
         code: "vote_saved",
         has_voted: true,
         user_rating: body.rating,
+        comment_saved: Boolean(commentText),
       },
       201,
     );

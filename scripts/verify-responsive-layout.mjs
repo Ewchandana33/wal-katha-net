@@ -141,6 +141,8 @@ async function createRatingHarness(articleSlug) {
   const articleHtml = await readFile(articlePath, 'utf8');
   const widgetHtml = articleHtml.match(/<section\b(?=[^>]*\bdata-rating-widget\b)[\s\S]*?<\/section>/i)?.[0];
   assert.ok(widgetHtml, `Built article ${articleSlug} should contain the story rating widget`);
+  const commentsHtml = articleHtml.match(/<div\b(?=[^>]*\bdata-story-comments\b)[\s\S]*?<\/dialog>\s*<\/div>/i)?.[0];
+  assert.ok(commentsHtml, `Built article ${articleSlug} should contain the separate story comments dialog`);
 
   const localOrigin = new URL(baseUrl).origin;
   const localizeAsset = value => {
@@ -174,6 +176,7 @@ async function createRatingHarness(articleSlug) {
     ...inlineStyles,
     '</head><body>',
     widgetHtml,
+    commentsHtml,
     ...modulePaths.map(path => `<script type="module" src="${path}"></script>`),
     '</body></html>'
   ].join('');
@@ -236,7 +239,28 @@ async function main() {
         window.fetch = async (input, init = {}) => {
           const rawUrl = typeof input === 'string' ? input : input?.url;
           const method = String(init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
-          const pathname = rawUrl ? new URL(rawUrl, location.href).pathname : '';
+          const requestUrl = rawUrl ? new URL(rawUrl, location.href) : null;
+          const pathname = requestUrl?.pathname || '';
+          if (pathname === '/api/rating/comments') {
+            if (method === 'GET' && requestUrl.searchParams.get('countOnly') === '1') {
+              return makeResponse({ total_comments: 1 });
+            }
+            if (method === 'GET') return makeResponse({
+              total_comments: 1,
+              comments: [{
+                id: 9, body: 'පරීක්ෂණ අදහස', created_at: 1800000000,
+                like_count: 0, liked: false, is_mine: false, replies: []
+              }],
+              has_more: false, next_cursor: null
+            });
+            if (method === 'POST') return makeResponse({
+              comment: { id: 10, parent_id: 9, body: 'පරීක්ෂණ පිළිතුර', created_at: 1800000010 },
+              total_comments: 2
+            }, 201);
+          }
+          if (/^\/api\/rating\/comments\/\d+\/like$/.test(pathname) && method === 'POST') {
+            return makeResponse({ liked: true, like_count: 1 });
+          }
           if (pathname !== '/api/rating') return nativeFetch(input, init);
           if (method === 'GET') return makeResponse({
             average_rating: 0, total_votes: 0, total_stars: 0,
@@ -245,7 +269,7 @@ async function main() {
           if (method === 'POST') return makeResponse({
             average_rating: 4, total_votes: 1, total_stars: 4,
             rating_counts: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 0 },
-            has_voted: true, user_rating: 4
+            has_voted: true, user_rating: 4, comment_saved: true
           }, 201);
           return nativeFetch(input, init);
         };
@@ -338,6 +362,10 @@ async function main() {
           hasStatus: Boolean(rating?.querySelector('[role="status"][aria-live="polite"]')),
           hasToast: Boolean(rating?.querySelector('[data-rating-toast][role="status"][aria-live="polite"]')),
           hasToastBackdrop: Boolean(rating?.querySelector('[data-rating-toast-backdrop][aria-hidden="true"]')),
+           hasCommentField: Boolean(rating?.querySelector('[data-rating-comment-field]')),
+           commentInitiallyHidden: rating?.querySelector('[data-rating-comment-field]')?.hidden === true,
+           hasCommentsButton: Boolean(document.querySelector('[data-comments-open][aria-haspopup="dialog"]')),
+           hasCommentsDialog: Boolean(document.querySelector('[data-comments-dialog][aria-labelledby]')),
           hasPrivacyNote: Boolean(rating?.querySelector('.rating-privacy')),
           hasSummary: Boolean(rating?.querySelector('[data-rating-average]')),
           hasBreakdown: Boolean(rating?.querySelector('[data-rating-bar="5"]')) }
@@ -352,6 +380,10 @@ async function main() {
           hasStatus: Boolean(rating?.querySelector('[role="status"][aria-live="polite"]')),
           hasToast: Boolean(rating?.querySelector('[data-rating-toast][role="status"][aria-live="polite"]')),
           hasToastBackdrop: Boolean(rating?.querySelector('[data-rating-toast-backdrop][aria-hidden="true"]')),
+           hasCommentField: Boolean(rating?.querySelector('[data-rating-comment-field]')),
+           commentInitiallyHidden: rating?.querySelector('[data-rating-comment-field]')?.hidden === true,
+           hasCommentsButton: Boolean(document.querySelector('[data-comments-open][aria-haspopup="dialog"]')),
+           hasCommentsDialog: Boolean(document.querySelector('[data-comments-dialog][aria-labelledby]')),
           hasPrivacyNote: Boolean(rating?.querySelector('.rating-privacy')),
           hasSummary: Boolean(rating?.querySelector('[data-rating-average]')),
           hasBreakdown: Boolean(rating?.querySelector('[data-rating-bar="5"]')) }
@@ -369,6 +401,8 @@ async function main() {
     assert.ok(result.rating.labels.every(label => typeof label === 'string' && label.length > 0), `Rating choices should have accessible labels at ${width}px`);
     assert.ok(result.rating.hasToast, `A live-region success toast should be available at ${width}px`);
     assert.ok(result.rating.hasToastBackdrop, `A decorative success backdrop should be available at ${width}px`);
+    assert.ok(result.rating.hasCommentField && result.rating.commentInitiallyHidden, `Optional comment field should start hidden at ${width}px`);
+    assert.ok(result.rating.hasCommentsButton && result.rating.hasCommentsDialog, `Separate comments dialog should be available at ${width}px`);
     assert.equal(result.rating.hasPrivacyNote, false, `The requested duplicate-vote footnote should be removed at ${width}px`);
     assert.ok(result.rating.hasStatus && result.rating.hasSummary && result.rating.hasBreakdown, `Rating summary, breakdown, and live status should render at ${width}px`);
     articleResults.push({ width, centerOffset: Math.round(result.centerOffset * 100) / 100, rootScroll: result.rootScroll });
@@ -397,10 +431,20 @@ async function main() {
       const input = root?.querySelector('[data-rating-input][value="4"]');
       const option = input?.closest('[data-rating-option]');
       const star = option?.querySelector('.rating-star');
+      const commentField = root?.querySelector('[data-rating-comment-field]');
+      const commentInput = root?.querySelector('[data-rating-comment]');
+      const commentCount = root?.querySelector('[data-rating-comment-length]');
+      const commentInitiallyHidden = Boolean(commentField?.hidden);
       input?.click();
       await new Promise(resolve => setTimeout(resolve, 180));
       const selectedBackground = option ? getComputedStyle(option).backgroundColor : '';
       const selectedStarColor = star ? getComputedStyle(star).color : '';
+      const commentVisibleAfterRating = Boolean(commentField && !commentField.hidden);
+      if (commentInput) {
+        commentInput.value = 'පරීක්ෂණ අදහස';
+        commentInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      const commentCounter = commentCount?.textContent || '';
       root?.querySelector('[data-rating-submit]')?.click();
       const toast = root?.querySelector('[data-rating-toast]');
       const backdrop = root?.querySelector('[data-rating-toast-backdrop]');
@@ -422,12 +466,50 @@ async function main() {
       const backdropCoversViewport = Boolean(backdropRect && Math.abs(backdropRect.left) <= 1 && Math.abs(backdropRect.top) <= 1
         && Math.abs(backdropRect.width - window.innerWidth) <= 1 && Math.abs(backdropRect.height - window.innerHeight) <= 1);
       const backdropBackground = backdropStyle?.backgroundColor || '';
+      const backdropFilter = backdropStyle?.backdropFilter || '';
       const backdropPosition = backdropStyle?.position || '';
       await new Promise(resolve => setTimeout(resolve, 3900));
+      const commentsButton = document.querySelector('[data-comments-open]');
+      const dialog = document.querySelector('[data-comments-dialog]');
+      commentsButton?.click();
+      for (let attempt = 0; attempt < 40 && !document.querySelector('[data-comments-list] .story-comment'); attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      const dialogOpened = Boolean(dialog?.open && dialog.matches(':modal'));
+      const pageLocked = Boolean(document.documentElement.classList.contains('story-comments-open')
+        && document.body.classList.contains('story-comments-open')
+        && document.body.style.overflow === 'hidden');
+      const likeButton = dialog?.querySelector('.story-comment-action[aria-pressed]');
+      likeButton?.click();
+      for (let attempt = 0; attempt < 40 && likeButton?.getAttribute('aria-pressed') !== 'true'; attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      const likeWorked = likeButton?.getAttribute('aria-pressed') === 'true'
+        && /1/.test(likeButton.textContent || '');
+      const replyButton = [...(dialog?.querySelectorAll('.story-comment-action') || [])]
+        .find(button => button.textContent?.includes('පිළිතුරු'));
+      replyButton?.click();
+      const replyForm = dialog?.querySelector('.story-reply-form');
+      const replyInput = replyForm?.querySelector('textarea');
+      if (replyInput) replyInput.value = 'පරීක්ෂණ පිළිතුර';
+      replyForm?.requestSubmit();
+      for (let attempt = 0; attempt < 40 && !dialog?.querySelector('.story-comment-replies .story-comment'); attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      const replyWorked = Boolean(dialog?.querySelector('.story-comment-replies .story-comment'));
+      dialog?.querySelector('[data-comments-close]')?.click();
+      await new Promise(resolve => setTimeout(resolve, 30));
+      const dialogClosed = Boolean(dialog && !dialog.open);
+      const pageUnlocked = Boolean(!document.documentElement.classList.contains('story-comments-open')
+        && !document.body.classList.contains('story-comments-open')
+        && document.body.style.overflow !== 'hidden');
       return {
         selectedClass: option?.classList.contains('is-selected') || false,
         selectedBackground,
         selectedStarColor,
+        commentInitiallyHidden,
+        commentVisibleAfterRating,
+        commentCounter,
         toastAppeared,
         toastText,
         toastCentered,
@@ -437,29 +519,44 @@ async function main() {
         backdropAppeared,
         backdropCoversViewport,
         backdropBackground,
+        backdropFilter,
         backdropPosition,
-        backdropHiddenAfterTimeout: backdrop?.hidden || false
+        backdropHiddenAfterTimeout: backdrop?.hidden || false,
+        dialogOpened,
+        pageLocked,
+        likeWorked,
+        replyWorked,
+        dialogClosed,
+        pageUnlocked
       };
     })()`);
     const selectedGreen = interaction.selectedBackground.match(/\d+/g)?.map(Number);
     assert.ok(interaction.selectedClass, 'Clicking a rating should mark the selected tile');
     assert.ok(selectedGreen && selectedGreen.length >= 3 && selectedGreen[1] > selectedGreen[0] && selectedGreen[1] > selectedGreen[2], 'The selected rating tile should turn green');
     assert.equal(interaction.selectedStarColor, 'rgb(243, 180, 59)', 'The selected star should remain gold');
+    assert.ok(interaction.commentInitiallyHidden, 'The optional comment field should stay hidden before a rating is chosen');
+    assert.ok(interaction.commentVisibleAfterRating, 'Choosing a rating should reveal the optional comment field');
+    assert.match(interaction.commentCounter, /[1-9]/, 'The optional comment should update its character counter');
     assert.ok(interaction.toastAppeared, 'A successful vote should display the thank-you toast');
     assert.match(interaction.toastText, /ස්තුතියි/);
     assert.equal(interaction.toastPosition, 'fixed', 'The thank-you toast should float above page content');
     assert.ok(interaction.toastCentered, 'The thank-you toast should be centered in the viewport, not anchored at the top or bottom');
     assert.equal(interaction.toastBackground, 'rgb(16, 53, 40)', 'The thank-you toast should retain its original green appearance');
-    assert.ok(interaction.backdropAppeared, 'The blue backdrop should appear with the thank-you toast');
-    assert.equal(interaction.backdropPosition, 'fixed', 'The blue backdrop should cover the viewport');
-    assert.ok(interaction.backdropCoversViewport, 'The blue backdrop should cover the full viewport');
-    const backdropBlue = interaction.backdropBackground.match(/\d+/g)?.map(Number);
-    assert.ok(backdropBlue && backdropBlue.length >= 3 && backdropBlue[2] > backdropBlue[0] && backdropBlue[2] > backdropBlue[1], 'The full-screen backdrop should be blue');
+    assert.ok(interaction.backdropAppeared, 'The transparent backdrop should appear with the thank-you toast');
+    assert.equal(interaction.backdropPosition, 'fixed', 'The transparent backdrop should cover the viewport');
+    assert.ok(interaction.backdropCoversViewport, 'The transparent backdrop should cover the full viewport');
+    assert.equal(interaction.backdropBackground, 'rgba(0, 0, 0, 0)', 'The thank-you backdrop should have no color tint');
+    assert.match(interaction.backdropFilter, /blur\(/, 'The thank-you backdrop should blur the page without tinting it');
     assert.ok(interaction.toastHiddenAfterTimeout, 'The thank-you toast should dismiss itself');
-    assert.ok(interaction.backdropHiddenAfterTimeout, 'The blue backdrop should disappear with the thank-you toast');
-    assert.equal(interaction.toastHiddenAfterTimeout, interaction.backdropHiddenAfterTimeout, 'The toast and blue backdrop should be dismissed together');
+    assert.ok(interaction.backdropHiddenAfterTimeout, 'The transparent backdrop should disappear with the thank-you toast');
+    assert.equal(interaction.toastHiddenAfterTimeout, interaction.backdropHiddenAfterTimeout, 'The toast and backdrop should be dismissed together');
+    assert.ok(interaction.dialogOpened, 'The separate comments dialog should open as a modal');
+    assert.ok(interaction.pageLocked, 'The open modal should lock background scrolling and interaction');
+    assert.ok(interaction.likeWorked, 'A comment like should update its pressed state and count');
+    assert.ok(interaction.replyWorked, 'A reply should appear under its parent comment');
+    assert.ok(interaction.dialogClosed && interaction.pageUnlocked, 'Closing the comments dialog should restore page interaction');
     interaction.status = 'PASS';
-    interaction.fixture = 'isolated local widget; all rating API calls stubbed';
+    interaction.fixture = 'isolated local rating and comments UI; all API calls stubbed';
   }
 
   console.log(JSON.stringify({ status: 'PASS', homepage: homeResults, article: articleResults, interaction, ageGateWasNotInteractedWith: true }, null, 2));

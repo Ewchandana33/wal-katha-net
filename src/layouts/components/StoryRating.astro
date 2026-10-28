@@ -1,4 +1,6 @@
 ---
+import StoryRatingComments from "./StoryRatingComments.astro";
+
 const { storySlug } = Astro.props as { storySlug: string };
 const ratings = [
   { value: 1, label: "දුර්වලයි" },
@@ -35,7 +37,7 @@ const ratings = [
       <span class="rating-heading-star" aria-hidden="true">★</span>
       <div>
         <h2 id={`story-rating-title-${storySlug}`}>මෙම කතාවට ඔබේ ඇගයීම ලබා දෙන්න</h2>
-        <p>ඔබට මේ කතාව කොතරම් හොඳද? තරු එකක් තෝරා ඔබේ අදහස දක්වන්න.</p>
+        <p>ඔබට මේ කතාව කොතරම් හොඳද? තරු තෝරා, කැමති නම් කෙටි අදහසක් ලියන්න.</p>
       </div>
     </header>
 
@@ -62,6 +64,22 @@ const ratings = [
             ))}
           </div>
         </fieldset>
+        <div class="rating-comment-field" data-rating-comment-field hidden>
+          <label for={`story-rating-comment-${storySlug}`}>
+            ඔබගේ අදහස <span>(විකල්පයි)</span>
+          </label>
+          <textarea
+            id={`story-rating-comment-${storySlug}`}
+            data-rating-comment
+            rows="3"
+            maxlength="500"
+            placeholder="මෙම කතාව ගැන ඔබට හැඟුණු දේ කෙටියෙන් ලියන්න…"
+            aria-describedby={`story-rating-comment-count-${storySlug}`}
+          ></textarea>
+          <span class="rating-comment-length" id={`story-rating-comment-count-${storySlug}`}>
+            <span data-rating-comment-length>0</span> / 500
+          </span>
+        </div>
         <button class="rating-submit" type="button" data-rating-submit disabled>
           ඇගයීම සටහන් කරන්න
         </button>
@@ -116,6 +134,8 @@ const ratings = [
 
   </div>
 </section>
+
+<StoryRatingComments storySlug={storySlug} />
 
 <style>
   .story-rating {
@@ -271,6 +291,61 @@ const ratings = [
   .rating-option:focus-within {
     outline: 2px solid #78b8ff;
     outline-offset: 2px;
+  }
+
+  .rating-comment-field {
+    position: relative;
+    margin-top: 0.75rem;
+  }
+
+  .rating-comment-field[hidden] {
+    display: none;
+  }
+
+  .rating-comment-field label {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--rating-text);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .rating-comment-field label span {
+    color: var(--rating-muted);
+    font-weight: 400;
+  }
+
+  .rating-comment-field textarea {
+    display: block;
+    width: 100%;
+    min-height: 5rem;
+    resize: vertical;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid #35445a;
+    border-radius: 0.65rem;
+    background: #091321;
+    color: var(--rating-text);
+    font: inherit;
+    font-size: 0.86rem;
+    line-height: 1.6;
+  }
+
+  .rating-comment-field textarea::placeholder {
+    color: #8290a3;
+  }
+
+  .rating-comment-field textarea:focus-visible {
+    border-color: #78b8ff;
+    outline: 2px solid #78b8ff;
+    outline-offset: 2px;
+  }
+
+  .rating-comment-length {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--rating-muted);
+    font-size: 0.72rem;
+    text-align: right;
   }
 
   .rating-star {
@@ -559,7 +634,7 @@ const ratings = [
     position: fixed;
     z-index: 100001;
     inset: 0;
-    background: rgb(37 99 235 / 82%);
+    background: transparent;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     opacity: 0;
@@ -764,6 +839,19 @@ const ratings = [
     let submitting = false;
     let successToastTimer: number | undefined;
     let successToastHideTimer: number | undefined;
+    const commentField = root.querySelector<HTMLElement>("[data-rating-comment-field]");
+    const commentInput = root.querySelector<HTMLTextAreaElement>("[data-rating-comment]");
+    const commentLength = root.querySelector<HTMLElement>("[data-rating-comment-length]");
+
+    function updateCommentField() {
+      if (commentField) {
+        commentField.hidden = hasVoted || !inputs.some((input) => input.checked);
+      }
+    }
+
+    commentInput?.addEventListener("input", () => {
+      if (commentLength) commentLength.textContent = String(Array.from(commentInput.value).length);
+    });
 
     function showSuccessToast(message: string) {
       const toast = root.querySelector<HTMLElement>("[data-rating-toast]");
@@ -795,6 +883,7 @@ const ratings = [
     inputs.forEach((input) => {
       input.addEventListener("change", () => {
         updateSelection(root, Number(input.value));
+        updateCommentField();
         submit.disabled = hasVoted || submitting;
         if (!hasVoted) setMessage(root, "ඔබේ තේරීම සූදානම්. ඇගයීම සටහන් කරන්න.");
       });
@@ -827,6 +916,7 @@ const ratings = [
         });
         submit.disabled = hasVoted || !inputs.some((input) => input.checked);
         updateSelection(root, hasVoted ? Number(data.user_rating) : null);
+        updateCommentField();
         if (hasVoted) {
           setMessage(root, "ඔබ දැනටමත් මෙම කතාවට ඇගයීමක් ලබා දී ඇත.");
         }
@@ -853,12 +943,17 @@ const ratings = [
           method: "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ storySlug, rating: Number(selected.value) }),
+          body: JSON.stringify({
+            storySlug,
+            rating: Number(selected.value),
+            comment: commentInput?.value.trim() || "",
+          }),
         });
         const data = await response.json();
         if (response.status === 409 && data.code === "already_voted") {
           renderStatistics(root, data);
           hasVoted = true;
+          updateCommentField();
           setMessage(root, "ඔබ දැනටමත් මෙම කතාවට ඇගයීමක් ලබා දී ඇත.");
           return;
         }
@@ -871,8 +966,14 @@ const ratings = [
 
         renderStatistics(root, data);
         hasVoted = true;
+        updateCommentField();
         inputs.forEach((input) => (input.disabled = true));
         setMessage(root, "ඔබේ ඇගයීම සටහන් වී ඇත.");
+        if (data.comment_saved) {
+          document.dispatchEvent(
+            new CustomEvent("story-rating-comment-created", { detail: { storySlug } }),
+          );
+        }
         showSuccessToast("ස්තුතියි!");
       } catch (error) {
         const message =
@@ -881,6 +982,7 @@ const ratings = [
             : "ඇගයීම සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
         setMessage(root, message, "error");
         inputs.forEach((input) => (input.disabled = false));
+        updateCommentField();
         submit.disabled = !inputs.some((input) => input.checked);
       } finally {
         submitting = false;

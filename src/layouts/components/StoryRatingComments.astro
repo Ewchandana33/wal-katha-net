@@ -1,0 +1,733 @@
+---
+const { storySlug } = Astro.props as { storySlug: string };
+const dialogId = `story-comments-${storySlug}`;
+---
+
+<div class="story-comments" data-story-comments data-story-slug={storySlug}>
+  <button
+    class="story-comments-open"
+    type="button"
+    data-comments-open
+    aria-haspopup="dialog"
+    aria-controls={dialogId}
+  >
+    අදහස් බලන්න
+    <span class="story-comments-count" data-comments-count aria-label="අදහස් සංඛ්‍යාව">0</span>
+  </button>
+
+  <dialog class="story-comments-dialog" id={dialogId} data-comments-dialog aria-labelledby={`${dialogId}-title`}>
+    <div class="story-comments-panel">
+      <header class="story-comments-header">
+        <div>
+          <p class="story-comments-eyebrow">පාඨක අදහස්</p>
+          <h2 id={`${dialogId}-title`}>මෙම කතාව ගැන අදහස්</h2>
+          <p class="story-comments-intro">
+            අදහස් බැලීමට හෝ පිළිතුරු දීමට හැකිය. අදහසක් එක් කිරීමට තරු ඇගයීමක් ලබා දෙන්න.
+          </p>
+        </div>
+        <button class="story-comments-close" type="button" data-comments-close aria-label="අදහස් කවුළුව වසන්න">
+          <span aria-hidden="true">×</span>
+        </button>
+      </header>
+
+      <p class="story-comments-status" data-comments-status role="status" aria-live="polite">
+        අදහස් ලබාගනිමින්…
+      </p>
+      <ol class="story-comments-list" data-comments-list aria-label="කතාවේ අදහස්"></ol>
+      <button class="story-comments-more" type="button" data-comments-more hidden>
+        තවත් අදහස් බලන්න
+      </button>
+    </div>
+  </dialog>
+</div>
+
+<style>
+  .story-comments,
+  .story-comments * {
+    box-sizing: border-box;
+  }
+
+  .story-comments {
+    margin: -0.9rem 0 2rem;
+  }
+
+  .story-comments-open {
+    display: inline-flex;
+    min-height: 2.65rem;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid #34445b;
+    border-radius: 999px;
+    background: #0b1727;
+    color: #ecf2fa;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
+  }
+
+  .story-comments-open:hover {
+    border-color: #7895ba;
+    background: #12233a;
+    transform: translateY(-1px);
+  }
+
+  .story-comments-open:focus-visible,
+  .story-comments-close:focus-visible,
+  .story-comments-more:focus-visible,
+  .story-comment-action:focus-visible,
+  .story-reply-submit:focus-visible,
+  .story-reply-cancel:focus-visible {
+    outline: 2px solid #8ec3ff;
+    outline-offset: 3px;
+  }
+
+  .story-comments-count {
+    display: grid;
+    min-width: 1.55rem;
+    height: 1.55rem;
+    place-items: center;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: #1b2d44;
+    color: #b8d7ff;
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .story-comments-dialog {
+    width: min(42rem, calc(100vw - 1.5rem));
+    max-width: none;
+    max-height: min(84vh, 52rem);
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #34445b;
+    border-radius: 1.15rem;
+    background: #091321;
+    color: #edf2f8;
+    box-shadow: 0 28px 90px rgb(0 0 0 / 58%);
+  }
+
+  .story-comments-dialog::backdrop {
+    background: rgb(0 0 0 / 72%);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .story-comments-panel {
+    display: flex;
+    max-height: min(84vh, 52rem);
+    flex-direction: column;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .story-comments-header {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.3rem 1.4rem 1.1rem;
+    border-bottom: 1px solid #263448;
+    background: #0b1727;
+  }
+
+  .story-comments-eyebrow {
+    margin: 0 0 0.25rem;
+    color: #9abbe0;
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .story-comments-header h2 {
+    margin: 0;
+    color: #f4f7fb;
+    font-size: clamp(1.1rem, 3vw, 1.45rem);
+    line-height: 1.4;
+  }
+
+  .story-comments-intro {
+    max-width: 33rem;
+    margin: 0.4rem 0 0;
+    color: #aab7c8;
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+
+  .story-comments-close {
+    display: grid;
+    width: 2.4rem;
+    height: 2.4rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid #35445a;
+    border-radius: 50%;
+    background: #101e30;
+    color: #f0f4fa;
+    font: inherit;
+    font-size: 1.7rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .story-comments-status {
+    margin: 0;
+    padding: 1rem 1.4rem 0;
+    color: #aab7c8;
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+
+  .story-comments-status:empty {
+    display: none;
+  }
+
+  .story-comments-list {
+    display: grid;
+    gap: 0.85rem;
+    margin: 0;
+    padding: 1rem 1.4rem 1.4rem;
+    list-style: none;
+  }
+
+  .story-comment {
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid #253348;
+    border-radius: 0.9rem;
+    background: #0c1929;
+    overflow-wrap: anywhere;
+  }
+
+  .story-comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .story-comment-author {
+    color: #dce8f6;
+    font-size: 0.79rem;
+    font-weight: 750;
+  }
+
+  .story-comment-date {
+    color: #8c9bb0;
+    font-size: 0.7rem;
+  }
+
+  .story-comment-body {
+    margin: 0;
+    color: #d4dce7;
+    font-size: 0.88rem;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .story-comment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .story-comment-action {
+    min-height: 2rem;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid #33445a;
+    border-radius: 999px;
+    background: #101e30;
+    color: #b9c7d8;
+    font: inherit;
+    font-size: 0.74rem;
+    cursor: pointer;
+  }
+
+  .story-comment-action[aria-pressed="true"] {
+    border-color: #a83d5a;
+    background: #351c2a;
+    color: #ff9db2;
+  }
+
+  .story-comment-action:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
+  .story-comment-replies {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0.8rem 0 0 0.55rem;
+    padding-left: 0.8rem;
+    border-left: 2px solid #344760;
+    list-style: none;
+  }
+
+  .story-comment-replies .story-comment {
+    padding: 0.8rem;
+    background: #0a1522;
+  }
+
+  .story-reply-form {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.75rem;
+  }
+
+  .story-reply-form[hidden] {
+    display: none;
+  }
+
+  .story-reply-form label {
+    color: #cbd6e3;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .story-reply-form textarea {
+    width: 100%;
+    min-height: 4.25rem;
+    resize: vertical;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #35445a;
+    border-radius: 0.65rem;
+    background: #07111e;
+    color: #f1f5fa;
+    font: inherit;
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+
+  .story-reply-form textarea:focus-visible {
+    border-color: #8ec3ff;
+    outline: 2px solid #8ec3ff;
+    outline-offset: 2px;
+  }
+
+  .story-reply-error {
+    margin: 0;
+    color: #ff9dab;
+    font-size: 0.76rem;
+  }
+
+  .story-reply-error:empty {
+    display: none;
+  }
+
+  .story-reply-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .story-reply-submit,
+  .story-reply-cancel,
+  .story-comments-more {
+    min-height: 2.25rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid #405875;
+    border-radius: 0.6rem;
+    background: #142740;
+    color: #eef5ff;
+    font: inherit;
+    font-size: 0.77rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .story-reply-submit:disabled,
+  .story-comments-more:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+
+  .story-reply-cancel {
+    border-color: #35445a;
+    background: #101e30;
+    color: #b9c7d8;
+  }
+
+  .story-comments-more {
+    align-self: center;
+    margin: 0 1rem 1.2rem;
+  }
+
+  .story-comments-more[hidden] {
+    display: none;
+  }
+
+  :global(html.story-comments-open),
+  :global(body.story-comments-open) {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  @media (max-width: 480px) {
+    .story-comments {
+      margin-top: -0.6rem;
+    }
+
+    .story-comments-dialog {
+      width: calc(100vw - 1rem);
+      max-height: 88vh;
+      border-radius: 0.9rem;
+    }
+
+    .story-comments-panel {
+      max-height: 88vh;
+    }
+
+    .story-comments-header {
+      padding: 1rem;
+    }
+
+    .story-comments-status {
+      padding: 0.85rem 1rem 0;
+    }
+
+    .story-comments-list {
+      padding: 0.85rem 1rem 1rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .story-comments-open {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const COMMENTS_API = "/api/rating/comments";
+
+  type CommentRecord = {
+    id: number;
+    body: string;
+    created_at: number;
+    like_count: number;
+    liked: boolean;
+    is_mine: boolean;
+    replies?: CommentRecord[];
+  };
+
+  function safeText(value: unknown) {
+    return typeof value === "string" ? value : "";
+  }
+
+  function formatDate(timestamp: number) {
+    if (!Number.isFinite(timestamp) || timestamp <= 0) return "";
+    try {
+      return new Intl.DateTimeFormat("si-LK", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date(timestamp * 1000));
+    } catch {
+      return "";
+    }
+  }
+
+  function initializeComments(widget: HTMLElement) {
+    if (widget.dataset.commentsInitialized === "true") return;
+    widget.dataset.commentsInitialized = "true";
+
+    const storySlug = widget.dataset.storySlug;
+    const openButton = widget.querySelector<HTMLButtonElement>("[data-comments-open]");
+    const dialog = widget.querySelector<HTMLDialogElement>("[data-comments-dialog]");
+    const closeButton = widget.querySelector<HTMLButtonElement>("[data-comments-close]");
+    const countEl = widget.querySelector<HTMLElement>("[data-comments-count]");
+    const status = widget.querySelector<HTMLElement>("[data-comments-status]");
+    const list = widget.querySelector<HTMLOListElement>("[data-comments-list]");
+    const moreButton = widget.querySelector<HTMLButtonElement>("[data-comments-more]");
+    if (!storySlug || !openButton || !dialog || !closeButton || !countEl || !status || !list || !moreButton) {
+      return;
+    }
+
+    let nextCursor: string | null = null;
+    let hasMore = false;
+    let loading = false;
+    let previousBodyOverflow = "";
+    let previousActiveElement: HTMLElement | null = null;
+
+    const updateCount = (count: unknown) => {
+      const value = Number(count);
+      countEl.textContent = Number.isFinite(value) && value > 0
+        ? value.toLocaleString("si-LK")
+        : "0";
+      openButton.setAttribute(
+        "aria-label",
+        `අදහස් ${countEl.textContent}ක් බලන්න`,
+      );
+    };
+
+    async function loadCount() {
+      try {
+        const response = await fetch(
+          `${COMMENTS_API}?story=${encodeURIComponent(storySlug)}&countOnly=1`,
+          { credentials: "same-origin", cache: "no-store" },
+        );
+        if (!response.ok) return;
+        const data = await response.json();
+        updateCount(data.total_comments);
+      } catch {
+        // The comments dialog can still be opened and will show its own error.
+      }
+    }
+
+    function buildComment(record: CommentRecord, isReply = false): HTMLElement {
+      const article = document.createElement("article");
+      article.className = "story-comment";
+      article.dataset.commentId = String(record.id);
+
+      const header = document.createElement("div");
+      header.className = "story-comment-header";
+      const author = document.createElement("span");
+      author.className = "story-comment-author";
+      author.textContent = record.is_mine ? "ඔබ" : "නිර්නාමික පාඨකයෙක්";
+      const date = document.createElement("time");
+      date.className = "story-comment-date";
+      date.textContent = formatDate(Number(record.created_at));
+      header.append(author, date);
+
+      const body = document.createElement("p");
+      body.className = "story-comment-body";
+      body.textContent = safeText(record.body);
+      article.append(header, body);
+
+      const actions = document.createElement("div");
+      actions.className = "story-comment-actions";
+      const likeButton = document.createElement("button");
+      likeButton.className = "story-comment-action";
+      likeButton.type = "button";
+      likeButton.setAttribute("aria-pressed", String(record.liked === true));
+      likeButton.textContent = `♥ කැමතියි · ${Number(record.like_count) || 0}`;
+      likeButton.addEventListener("click", async () => {
+        if (likeButton.disabled) return;
+        likeButton.disabled = true;
+        try {
+          const response = await fetch(`${COMMENTS_API}/${encodeURIComponent(String(record.id))}/like`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ storySlug }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error("like_failed");
+          record.liked = data.liked === true;
+          record.like_count = Number(data.like_count) || 0;
+          likeButton.setAttribute("aria-pressed", String(record.liked));
+          likeButton.textContent = `♥ කැමතියි · ${record.like_count}`;
+        } catch {
+          status.textContent = "කැමැත්ත සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
+        } finally {
+          likeButton.disabled = false;
+        }
+      });
+      actions.append(likeButton);
+
+      if (!isReply) {
+        const replyButton = document.createElement("button");
+        replyButton.className = "story-comment-action";
+        replyButton.type = "button";
+        replyButton.textContent = "පිළිතුරු දෙන්න";
+        actions.append(replyButton);
+        article.append(actions);
+
+        const replyList = document.createElement("ol");
+        replyList.className = "story-comment-replies";
+        replyList.setAttribute("aria-label", "පිළිතුරු");
+        for (const reply of record.replies || []) {
+          const replyItem = document.createElement("li");
+          replyItem.append(buildComment(reply, true));
+          replyList.append(replyItem);
+        }
+        if (replyList.childElementCount > 0) article.append(replyList);
+
+        const form = document.createElement("form");
+        form.className = "story-reply-form";
+        form.hidden = true;
+        const label = document.createElement("label");
+        const inputId = `story-reply-${storySlug}-${record.id}`;
+        label.htmlFor = inputId;
+        label.textContent = "ඔබගේ පිළිතුර";
+        const textarea = document.createElement("textarea");
+        textarea.id = inputId;
+        textarea.maxLength = 500;
+        textarea.rows = 2;
+        textarea.required = true;
+        textarea.placeholder = "කෙටි පිළිතුරක් ලියන්න…";
+        const error = document.createElement("p");
+        error.className = "story-reply-error";
+        error.setAttribute("role", "status");
+        const controls = document.createElement("div");
+        controls.className = "story-reply-controls";
+        const sendButton = document.createElement("button");
+        sendButton.className = "story-reply-submit";
+        sendButton.type = "submit";
+        sendButton.textContent = "පිළිතුර සටහන් කරන්න";
+        const cancelButton = document.createElement("button");
+        cancelButton.className = "story-reply-cancel";
+        cancelButton.type = "button";
+        cancelButton.textContent = "අවලංගු කරන්න";
+        controls.append(sendButton, cancelButton);
+        form.append(label, textarea, error, controls);
+        article.append(form);
+
+        replyButton.setAttribute("aria-expanded", "false");
+        replyButton.addEventListener("click", () => {
+          const isOpen = !form.hidden;
+          form.hidden = isOpen;
+          replyButton.setAttribute("aria-expanded", String(!isOpen));
+          if (!isOpen) textarea.focus();
+        });
+        cancelButton.addEventListener("click", () => {
+          form.hidden = true;
+          replyButton.setAttribute("aria-expanded", "false");
+          error.textContent = "";
+          textarea.value = "";
+          replyButton.focus();
+        });
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const replyText = textarea.value.trim();
+          if (!replyText || Array.from(replyText).length > 500 || sendButton.disabled) return;
+          sendButton.disabled = true;
+          error.textContent = "";
+          try {
+            const response = await fetch(COMMENTS_API, {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ storySlug, parentId: record.id, body: replyText }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error("reply_failed");
+            const replyItem = document.createElement("li");
+            replyItem.append(buildComment({
+              ...data.comment,
+              like_count: 0,
+              liked: false,
+              is_mine: true,
+            }, true));
+            replyList.append(replyItem);
+            if (!article.contains(replyList)) article.insertBefore(replyList, form);
+            updateCount(data.total_comments);
+            textarea.value = "";
+            form.hidden = true;
+            replyButton.setAttribute("aria-expanded", "false");
+          } catch {
+            error.textContent = "පිළිතුර සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
+          } finally {
+            sendButton.disabled = false;
+          }
+        });
+      } else {
+        article.append(actions);
+      }
+      return article;
+    }
+
+    async function loadComments(append = false) {
+      if (loading) return;
+      loading = true;
+      moreButton.disabled = true;
+      status.textContent = append ? "තවත් අදහස් ලබාගනිමින්…" : "අදහස් ලබාගනිමින්…";
+      if (!append) list.replaceChildren();
+      const query = new URLSearchParams({ story: storySlug });
+      if (append && nextCursor) query.set("before", nextCursor);
+      try {
+        const response = await fetch(`${COMMENTS_API}?${query}`, {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error("comments_unavailable");
+        updateCount(data.total_comments);
+        const comments = Array.isArray(data.comments) ? data.comments as CommentRecord[] : [];
+        for (const comment of comments) {
+          const item = document.createElement("li");
+          item.append(buildComment(comment));
+          list.append(item);
+        }
+        nextCursor = typeof data.next_cursor === "string" ? data.next_cursor : null;
+        hasMore = data.has_more === true;
+        moreButton.hidden = !hasMore;
+        status.textContent = comments.length === 0 && !append
+          ? "තවම අදහස් නැහැ. මුලින්ම තරු ඇගයීමක් ලබා දී ඔබේ අදහස එක් කරන්න."
+          : "";
+      } catch {
+        status.textContent = "අදහස් ලබාගැනීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
+        moreButton.hidden = true;
+      } finally {
+        loading = false;
+        moreButton.disabled = false;
+      }
+    }
+
+    function openDialog() {
+      if (dialog.open) return;
+      previousActiveElement = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+      previousBodyOverflow = document.body.style.overflow;
+      dialog.showModal();
+      document.documentElement.classList.add("story-comments-open");
+      document.body.classList.add("story-comments-open");
+      document.body.style.overflow = "hidden";
+      void loadComments();
+      closeButton.focus();
+    }
+
+    function restorePage() {
+      document.documentElement.classList.remove("story-comments-open");
+      document.body.classList.remove("story-comments-open");
+      document.body.style.overflow = previousBodyOverflow;
+      previousActiveElement?.focus();
+      previousActiveElement = null;
+    }
+
+    openButton.addEventListener("click", openDialog);
+    openButton.addEventListener("story-comments-count-refresh", () => void loadCount());
+    closeButton.addEventListener("click", () => dialog.close());
+    moreButton.addEventListener("click", () => {
+      if (hasMore && nextCursor) void loadComments(true);
+    });
+    dialog.addEventListener("close", restorePage);
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    void loadCount();
+  }
+
+  function initializeStoryComments() {
+    document.querySelectorAll<HTMLElement>("[data-story-comments]").forEach(initializeComments);
+  }
+
+  document.addEventListener("story-rating-comment-created", (event) => {
+    const storySlug = (event as CustomEvent<{ storySlug?: string }>).detail?.storySlug;
+    if (!storySlug) return;
+    document.querySelectorAll<HTMLElement>("[data-story-comments]").forEach((widget) => {
+      if (widget.dataset.storySlug !== storySlug) return;
+      const dialog = widget.querySelector<HTMLDialogElement>("[data-comments-dialog]");
+      const button = widget.querySelector<HTMLButtonElement>("[data-comments-open]");
+      button?.dispatchEvent(new Event("story-comments-count-refresh"));
+      if (dialog?.open) {
+        const more = widget.querySelector<HTMLButtonElement>("[data-comments-more]");
+        more?.click();
+      }
+    });
+  });
+
+  document.addEventListener("astro:page-load", initializeStoryComments);
+  initializeStoryComments();
+</script>

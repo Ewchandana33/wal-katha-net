@@ -9,8 +9,29 @@ const IP = "203.0.113.10";
 
 class MemoryD1 {
   votes = [];
+  comments = [];
   rateLimits = new Map();
   fail = false;
+  failCommentInsert = false;
+  batchQueue = Promise.resolve();
+
+  batch(statements) {
+    const task = this.batchQueue.then(async () => {
+      const votesBefore = [...this.votes];
+      const commentsBefore = [...this.comments];
+      try {
+        const results = [];
+        for (const statement of statements) results.push(await statement.run());
+        return results;
+      } catch (error) {
+        this.votes = votesBefore;
+        this.comments = commentsBefore;
+        throw error;
+      }
+    });
+    this.batchQueue = task.then(() => undefined, () => undefined);
+    return task;
+  }
 
   prepare(sql) {
     const db = this;
@@ -62,6 +83,20 @@ class MemoryD1 {
               }
               db.votes.push({ story_slug, voter_hash, rating });
               return { success: true, meta: { changes: 1 } };
+            }
+            if (normalizedSql.includes("INSERT INTO story_rating_comments")) {
+              if (db.failCommentInsert) throw new Error("simulated comment insert failure");
+              const [story_slug, author_hash, review_voter_hash, body] = params;
+              if (db.comments.some((comment) =>
+                comment.story_slug === story_slug && comment.review_voter_hash === review_voter_hash
+              )) {
+                throw new Error("UNIQUE constraint failed");
+              }
+              const id = db.comments.length + 1;
+              db.comments.push({
+                id, story_slug, author_hash, review_voter_hash, parent_id: null, body,
+              });
+              return { success: true, meta: { changes: 1, last_row_id: id } };
             }
             throw new Error(`Unexpected run() query: ${normalizedSql}`);
           },
@@ -219,6 +254,57 @@ test("repeated and concurrent votes from one browser produce one vote only", asy
   const duplicate = await onRequest(makePostContext({ db, token: "d".repeat(43), rating: 2 }));
   assert.equal(duplicate.status, 409);
   assert.equal(db.votes.length, 1);
+});
+
+test("rating and optional comment are stored together using the same private voter identity", async () => {
+  const db = new MemoryD1();
+  const token = "r".repeat(43);
+  const response = await onRequest(makePostContext({
+    db,
+    token,
+    body: JSON.stringify({ storySlug: STORY_SLUG, rating: 4, comment: "  හොඳ කතාවක්  " }),
+  }));
+  const data = await response.json();
+  assert.equal(response.status, 201);
+  assert.equal(data.comment_saved, true);
+  assert.equal(db.votes.length, 1);
+  assert.equal(db.comments.length, 1);
+  assert.equal(db.comments[0].body, "හොඳ කතාවක්");
+  assert.equal(db.comments[0].author_hash, db.votes[0].voter_hash);
+  assert.equal(db.comments[0].review_voter_hash, db.votes[0].voter_hash);
+
+  const duplicate = await onRequest(makePostContext({
+    db,
+    token,
+    body: JSON.stringify({ storySlug: STORY_SLUG, rating: 2, comment: "duplicate" }),
+  }));
+  assert.equal(duplicate.status, 409);
+  assert.equal(db.comments.length, 1);
+});
+
+test("comment validation rejects non-text and overlong feedback", async () => {
+  const db = new MemoryD1();
+  for (const comment of [null, "අ".repeat(501)]) {
+    const response = await onRequest(makePostContext({
+      db,
+      body: JSON.stringify({ storySlug: STORY_SLUG, rating: 5, comment }),
+    }));
+    assert.equal(response.status, 400);
+  }
+  assert.equal(db.votes.length, 0);
+  assert.equal(db.comments.length, 0);
+});
+
+test("failed comment insertion rolls the rating back with its D1 batch", async () => {
+  const db = new MemoryD1();
+  db.failCommentInsert = true;
+  const response = await onRequest(makePostContext({
+    db,
+    body: JSON.stringify({ storySlug: STORY_SLUG, rating: 5, comment: "atomic test" }),
+  }));
+  assert.equal(response.status, 500);
+  assert.equal(db.votes.length, 0);
+  assert.equal(db.comments.length, 0);
 });
 
 test("API throttles excessive submissions by a short-lived hashed IP identity", async () => {
