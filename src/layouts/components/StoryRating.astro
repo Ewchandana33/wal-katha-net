@@ -16,16 +16,21 @@ const ratings = [
   aria-labelledby={`story-rating-title-${storySlug}`}
   aria-busy="true"
 >
+  <div
+    class="rating-toast-backdrop"
+    data-rating-toast-backdrop
+    aria-hidden="true"
+    hidden
+  ></div>
+  <div
+    class="rating-toast"
+    data-rating-toast
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    hidden
+  ></div>
   <div class="rating-panel">
-    <div
-      class="rating-toast"
-      data-rating-toast
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-      hidden
-    ></div>
-
     <header class="rating-heading">
       <span class="rating-heading-star" aria-hidden="true">★</span>
       <div>
@@ -546,47 +551,56 @@ const ratings = [
     display: none;
   }
 
+  .rating-toast-backdrop[hidden] {
+    display: none;
+  }
+
+  .rating-toast-backdrop {
+    position: fixed;
+    z-index: 100001;
+    inset: 0;
+    background: rgb(37 99 235 / 82%);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  .rating-toast-backdrop.is-visible {
+    opacity: 1;
+  }
+
   .rating-toast {
     position: fixed;
-    z-index: 1100;
+    z-index: 100002;
     inset-block-start: 50%;
     inset-inline-start: 50%;
     display: flex;
     width: min(28rem, calc(100vw - 2rem));
-    max-height: calc(100vh - 2rem);
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
     gap: 0.65rem;
-    padding: 1rem 1.25rem;
-    transform: translate(-50%, -50%) scale(0.96);
-    border: 1px solid #93c5fd;
-    border-radius: 1rem;
-    background-color: #1d4ed8;
-    background-image: linear-gradient(135deg, var(--rating-blue) 0%, #1d4ed8 100%);
-    box-shadow: 0 20px 60px rgb(3 12 35 / 45%), 0 0 34px rgb(37 99 235 / 32%);
-    color: #fff;
-    font-size: 1rem;
-    font-weight: 800;
-    line-height: 1.55;
+    padding: 0.9rem 1rem;
+    transform: translate(-50%, -50%) scale(0.98);
+    border: 1px solid #2a9a69;
+    border-radius: 0.8rem;
+    background: #103528;
+    box-shadow: 0 12px 36px rgb(0 0 0 / 38%);
+    color: #e8fff3;
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1.4;
     opacity: 0;
     pointer-events: none;
-    text-align: center;
     transition: opacity 180ms ease, transform 180ms ease;
   }
 
   .rating-toast::before {
     flex: 0 0 auto;
-    display: grid;
-    width: 1.65rem;
-    height: 1.65rem;
-    place-items: center;
-    border: 1px solid rgb(255 255 255 / 35%);
-    border-radius: 50%;
-    background: rgb(255 255 255 / 16%);
-    color: #fff;
+    color: #58d69b;
     content: "✓";
-    font-size: 0.95rem;
-    line-height: 1;
+    font-size: 1.1rem;
+    line-height: 1.4;
   }
 
   .rating-toast.is-visible {
@@ -665,6 +679,7 @@ const ratings = [
     .rating-star,
     .rating-submit,
     .rating-retry,
+    .rating-toast-backdrop,
     .rating-toast,
     .rating-track-fill {
       transition: none;
@@ -752,16 +767,23 @@ const ratings = [
 
     function showSuccessToast(message: string) {
       const toast = root.querySelector<HTMLElement>("[data-rating-toast]");
-      if (!toast) return;
+      const backdrop = root.querySelector<HTMLElement>("[data-rating-toast-backdrop]");
+      if (!toast || !backdrop) return;
       if (successToastTimer !== undefined) window.clearTimeout(successToastTimer);
       if (successToastHideTimer !== undefined) window.clearTimeout(successToastHideTimer);
 
       toast.textContent = message;
       toast.hidden = false;
-      window.requestAnimationFrame(() => toast.classList.add("is-visible"));
+      backdrop.hidden = false;
+      window.requestAnimationFrame(() => {
+        backdrop.classList.add("is-visible");
+        toast.classList.add("is-visible");
+      });
       successToastTimer = window.setTimeout(() => {
+        backdrop.classList.remove("is-visible");
         toast.classList.remove("is-visible");
         successToastHideTimer = window.setTimeout(() => {
+          backdrop.hidden = true;
           toast.hidden = true;
           toast.textContent = "";
           successToastTimer = undefined;

@@ -20,6 +20,19 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ## Recent entries
 
+## 2026-10-28 — Correct story-rating success backdrop
+
+### Correction and changes
+
+- Correction to “Center and restyle story-rating feedback”: the user asked for a full-screen blue backdrop behind the original thank-you notice, not a blue notice.
+- Restore the original dark-green toast appearance and keep it centered. Add a fixed blue-tinted, blurred viewport backdrop that appears and auto-dismisses together with the toast after 3.5 seconds.
+- Update the isolated responsive Chromium test to verify full-viewport backdrop coverage, its blue color, the unchanged green toast, and the paired automatic dismissal.
+
+### Verification
+
+- `yarn test` passed 17/17; `yarn check`, `node --check scripts/verify-responsive-layout.mjs`, and `git diff --check` passed. `yarn check` reports the existing 20 dependency-resolution warnings and Node.js `url.parse()` deprecation warning.
+- PR #105 branch update, GitHub CI, and Cloudflare Preview checks are pending. No Production branch update or deployment was performed.
+
 ## 2026-10-28 — Center and restyle story-rating feedback
 
 ### Request and changes

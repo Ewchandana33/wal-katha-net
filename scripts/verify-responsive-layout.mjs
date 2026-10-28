@@ -337,6 +337,7 @@ async function main() {
           labels: ratingInputs.map(input => input.getAttribute('aria-label')),
           hasStatus: Boolean(rating?.querySelector('[role="status"][aria-live="polite"]')),
           hasToast: Boolean(rating?.querySelector('[data-rating-toast][role="status"][aria-live="polite"]')),
+          hasToastBackdrop: Boolean(rating?.querySelector('[data-rating-toast-backdrop][aria-hidden="true"]')),
           hasPrivacyNote: Boolean(rating?.querySelector('.rating-privacy')),
           hasSummary: Boolean(rating?.querySelector('[data-rating-average]')),
           hasBreakdown: Boolean(rating?.querySelector('[data-rating-bar="5"]')) }
@@ -350,6 +351,7 @@ async function main() {
           labels: ratingInputs.map(input => input.getAttribute('aria-label')),
           hasStatus: Boolean(rating?.querySelector('[role="status"][aria-live="polite"]')),
           hasToast: Boolean(rating?.querySelector('[data-rating-toast][role="status"][aria-live="polite"]')),
+          hasToastBackdrop: Boolean(rating?.querySelector('[data-rating-toast-backdrop][aria-hidden="true"]')),
           hasPrivacyNote: Boolean(rating?.querySelector('.rating-privacy')),
           hasSummary: Boolean(rating?.querySelector('[data-rating-average]')),
           hasBreakdown: Boolean(rating?.querySelector('[data-rating-bar="5"]')) }
@@ -366,6 +368,7 @@ async function main() {
     assert.deepEqual(result.rating.values, ['1', '2', '3', '4', '5'], `Story rating widget should expose five ordered choices at ${width}px`);
     assert.ok(result.rating.labels.every(label => typeof label === 'string' && label.length > 0), `Rating choices should have accessible labels at ${width}px`);
     assert.ok(result.rating.hasToast, `A live-region success toast should be available at ${width}px`);
+    assert.ok(result.rating.hasToastBackdrop, `A decorative success backdrop should be available at ${width}px`);
     assert.equal(result.rating.hasPrivacyNote, false, `The requested duplicate-vote footnote should be removed at ${width}px`);
     assert.ok(result.rating.hasStatus && result.rating.hasSummary && result.rating.hasBreakdown, `Rating summary, breakdown, and live status should render at ${width}px`);
     articleResults.push({ width, centerOffset: Math.round(result.centerOffset * 100) / 100, rootScroll: result.rootScroll });
@@ -400,11 +403,13 @@ async function main() {
       const selectedStarColor = star ? getComputedStyle(star).color : '';
       root?.querySelector('[data-rating-submit]')?.click();
       const toast = root?.querySelector('[data-rating-toast]');
-      for (let attempt = 0; attempt < 40 && toast?.hidden; attempt += 1) {
+      const backdrop = root?.querySelector('[data-rating-toast-backdrop]');
+      for (let attempt = 0; attempt < 40 && (toast?.hidden || backdrop?.hidden); attempt += 1) {
         await new Promise(resolve => setTimeout(resolve, 25));
       }
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const toastAppeared = Boolean(toast && !toast.hidden && toast.classList.contains('is-visible'));
+      const backdropAppeared = Boolean(backdrop && !backdrop.hidden && backdrop.classList.contains('is-visible'));
       const toastText = toast?.textContent?.trim() || '';
       const toastRect = toast?.getBoundingClientRect();
       const toastStyle = toast ? getComputedStyle(toast) : null;
@@ -412,6 +417,12 @@ async function main() {
         && Math.abs(toastRect.top + toastRect.height / 2 - window.innerHeight / 2) <= 2);
       const toastBackground = toastStyle?.backgroundColor || '';
       const toastPosition = toastStyle?.position || '';
+      const backdropRect = backdrop?.getBoundingClientRect();
+      const backdropStyle = backdrop ? getComputedStyle(backdrop) : null;
+      const backdropCoversViewport = Boolean(backdropRect && Math.abs(backdropRect.left) <= 1 && Math.abs(backdropRect.top) <= 1
+        && Math.abs(backdropRect.width - window.innerWidth) <= 1 && Math.abs(backdropRect.height - window.innerHeight) <= 1);
+      const backdropBackground = backdropStyle?.backgroundColor || '';
+      const backdropPosition = backdropStyle?.position || '';
       await new Promise(resolve => setTimeout(resolve, 3900));
       return {
         selectedClass: option?.classList.contains('is-selected') || false,
@@ -422,7 +433,12 @@ async function main() {
         toastCentered,
         toastBackground,
         toastPosition,
-        toastHiddenAfterTimeout: toast?.hidden || false
+        toastHiddenAfterTimeout: toast?.hidden || false,
+        backdropAppeared,
+        backdropCoversViewport,
+        backdropBackground,
+        backdropPosition,
+        backdropHiddenAfterTimeout: backdrop?.hidden || false
       };
     })()`);
     const selectedGreen = interaction.selectedBackground.match(/\d+/g)?.map(Number);
@@ -433,9 +449,15 @@ async function main() {
     assert.match(interaction.toastText, /ස්තුතියි/);
     assert.equal(interaction.toastPosition, 'fixed', 'The thank-you toast should float above page content');
     assert.ok(interaction.toastCentered, 'The thank-you toast should be centered in the viewport, not anchored at the top or bottom');
-    const toastBlue = interaction.toastBackground.match(/\d+/g)?.map(Number);
-    assert.ok(toastBlue && toastBlue.length >= 3 && toastBlue[2] > toastBlue[0] && toastBlue[2] > toastBlue[1], 'The thank-you toast should use a blue background');
+    assert.equal(interaction.toastBackground, 'rgb(16, 53, 40)', 'The thank-you toast should retain its original green appearance');
+    assert.ok(interaction.backdropAppeared, 'The blue backdrop should appear with the thank-you toast');
+    assert.equal(interaction.backdropPosition, 'fixed', 'The blue backdrop should cover the viewport');
+    assert.ok(interaction.backdropCoversViewport, 'The blue backdrop should cover the full viewport');
+    const backdropBlue = interaction.backdropBackground.match(/\d+/g)?.map(Number);
+    assert.ok(backdropBlue && backdropBlue.length >= 3 && backdropBlue[2] > backdropBlue[0] && backdropBlue[2] > backdropBlue[1], 'The full-screen backdrop should be blue');
     assert.ok(interaction.toastHiddenAfterTimeout, 'The thank-you toast should dismiss itself');
+    assert.ok(interaction.backdropHiddenAfterTimeout, 'The blue backdrop should disappear with the thank-you toast');
+    assert.equal(interaction.toastHiddenAfterTimeout, interaction.backdropHiddenAfterTimeout, 'The toast and blue backdrop should be dismissed together');
     interaction.status = 'PASS';
     interaction.fixture = 'isolated local widget; all rating API calls stubbed';
   }
