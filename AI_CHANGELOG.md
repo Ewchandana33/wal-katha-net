@@ -32,7 +32,7 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Verification
 
-- Focused Node tests passed 17/17; JavaScript syntax checks and a SQLite migration/foreign-key smoke test passed. Full Astro build, full CI, and real Preview deployment are pending the branch update; local build dependencies and generated `dist/` assets are not present in this workspace.
+- Focused Node tests passed 17/17; JavaScript syntax checks and SQLite migration/query smoke tests passed. CI run `40681302698` caught strict-null errors in the new comments widget, which were corrected in the follow-up commit. Cloudflare Preview deployment `2e1c3d65-dd5b-42d7-beca-d7e62d0977aa` deployed initial commit `bd18b2ddaaa12e5a70734d0edded8587768eb1c0`, but is not accepted as verification because CI failed. CI and a corrected Preview are pending. Local build dependencies and generated `dist/` assets are not present in this workspace.
 - PR #105 remains an open draft. No merge, `main` update, or Production deployment was performed.
 
 ## 2026-10-28 — Correct story-rating success backdrop

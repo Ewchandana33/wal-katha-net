@@ -441,17 +441,35 @@ const dialogId = `story-comments-${storySlug}`;
     if (widget.dataset.commentsInitialized === "true") return;
     widget.dataset.commentsInitialized = "true";
 
-    const storySlug = widget.dataset.storySlug;
-    const openButton = widget.querySelector<HTMLButtonElement>("[data-comments-open]");
-    const dialog = widget.querySelector<HTMLDialogElement>("[data-comments-dialog]");
-    const closeButton = widget.querySelector<HTMLButtonElement>("[data-comments-close]");
-    const countEl = widget.querySelector<HTMLElement>("[data-comments-count]");
-    const status = widget.querySelector<HTMLElement>("[data-comments-status]");
-    const list = widget.querySelector<HTMLOListElement>("[data-comments-list]");
-    const moreButton = widget.querySelector<HTMLButtonElement>("[data-comments-more]");
-    if (!storySlug || !openButton || !dialog || !closeButton || !countEl || !status || !list || !moreButton) {
+    const storySlugCandidate = widget.dataset.storySlug;
+    const openButtonCandidate = widget.querySelector<HTMLButtonElement>("[data-comments-open]");
+    const dialogCandidate = widget.querySelector<HTMLDialogElement>("[data-comments-dialog]");
+    const closeButtonCandidate = widget.querySelector<HTMLButtonElement>("[data-comments-close]");
+    const countCandidate = widget.querySelector<HTMLElement>("[data-comments-count]");
+    const statusCandidate = widget.querySelector<HTMLElement>("[data-comments-status]");
+    const listCandidate = widget.querySelector<HTMLOListElement>("[data-comments-list]");
+    const moreButtonCandidate = widget.querySelector<HTMLButtonElement>("[data-comments-more]");
+    if (
+      !storySlugCandidate ||
+      !openButtonCandidate ||
+      !dialogCandidate ||
+      !closeButtonCandidate ||
+      !countCandidate ||
+      !statusCandidate ||
+      !listCandidate ||
+      !moreButtonCandidate
+    ) {
       return;
     }
+
+    const storySlug: string = storySlugCandidate;
+    const openButton: HTMLButtonElement = openButtonCandidate;
+    const dialog: HTMLDialogElement = dialogCandidate;
+    const closeButton: HTMLButtonElement = closeButtonCandidate;
+    const countEl: HTMLElement = countCandidate;
+    const status: HTMLElement = statusCandidate;
+    const list: HTMLOListElement = listCandidate;
+    const moreButton: HTMLButtonElement = moreButtonCandidate;
 
     let nextCursor: string | null = null;
     let hasMore = false;
@@ -697,7 +715,10 @@ const dialogId = `story-comments-${storySlug}`;
     }
 
     openButton.addEventListener("click", openDialog);
-    openButton.addEventListener("story-comments-count-refresh", () => void loadCount());
+    openButton.addEventListener("story-comments-count-refresh", () => {
+      void loadCount();
+      if (dialog.open) void loadComments();
+    });
     closeButton.addEventListener("click", () => dialog.close());
     moreButton.addEventListener("click", () => {
       if (hasMore && nextCursor) void loadComments(true);
@@ -718,13 +739,8 @@ const dialogId = `story-comments-${storySlug}`;
     if (!storySlug) return;
     document.querySelectorAll<HTMLElement>("[data-story-comments]").forEach((widget) => {
       if (widget.dataset.storySlug !== storySlug) return;
-      const dialog = widget.querySelector<HTMLDialogElement>("[data-comments-dialog]");
       const button = widget.querySelector<HTMLButtonElement>("[data-comments-open]");
       button?.dispatchEvent(new Event("story-comments-count-refresh"));
-      if (dialog?.open) {
-        const more = widget.querySelector<HTMLButtonElement>("[data-comments-more]");
-        more?.click();
-      }
     });
   });
 
