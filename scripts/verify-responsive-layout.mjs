@@ -403,8 +403,15 @@ async function main() {
       for (let attempt = 0; attempt < 40 && toast?.hidden; attempt += 1) {
         await new Promise(resolve => setTimeout(resolve, 25));
       }
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const toastAppeared = Boolean(toast && !toast.hidden && toast.classList.contains('is-visible'));
       const toastText = toast?.textContent?.trim() || '';
+      const toastRect = toast?.getBoundingClientRect();
+      const toastStyle = toast ? getComputedStyle(toast) : null;
+      const toastCentered = Boolean(toastRect && Math.abs(toastRect.left + toastRect.width / 2 - window.innerWidth / 2) <= 2
+        && Math.abs(toastRect.top + toastRect.height / 2 - window.innerHeight / 2) <= 2);
+      const toastBackground = toastStyle?.backgroundColor || '';
+      const toastPosition = toastStyle?.position || '';
       await new Promise(resolve => setTimeout(resolve, 3900));
       return {
         selectedClass: option?.classList.contains('is-selected') || false,
@@ -412,6 +419,9 @@ async function main() {
         selectedStarColor,
         toastAppeared,
         toastText,
+        toastCentered,
+        toastBackground,
+        toastPosition,
         toastHiddenAfterTimeout: toast?.hidden || false
       };
     })()`);
@@ -421,6 +431,10 @@ async function main() {
     assert.equal(interaction.selectedStarColor, 'rgb(243, 180, 59)', 'The selected star should remain gold');
     assert.ok(interaction.toastAppeared, 'A successful vote should display the thank-you toast');
     assert.match(interaction.toastText, /ස්තුතියි/);
+    assert.equal(interaction.toastPosition, 'fixed', 'The thank-you toast should float above page content');
+    assert.ok(interaction.toastCentered, 'The thank-you toast should be centered in the viewport, not anchored at the top or bottom');
+    const toastBlue = interaction.toastBackground.match(/\d+/g)?.map(Number);
+    assert.ok(toastBlue && toastBlue.length >= 3 && toastBlue[2] > toastBlue[0] && toastBlue[2] > toastBlue[1], 'The thank-you toast should use a blue background');
     assert.ok(interaction.toastHiddenAfterTimeout, 'The thank-you toast should dismiss itself');
     interaction.status = 'PASS';
     interaction.fixture = 'isolated local widget; all rating API calls stubbed';

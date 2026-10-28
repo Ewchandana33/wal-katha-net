@@ -20,6 +20,20 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ## Recent entries
 
+## 2026-10-28 — Center and restyle story-rating feedback
+
+### Request and changes
+
+- Update PR #105's successful rating notice from a top-anchored green toast to a viewport-centered blue success toast, while retaining its accessible live region and 3.5-second auto-dismiss behavior.
+- Refine the rating panel with restrained blue depth, clearer interactive star cards, more distinct summary/action styling, and a proper people icon in place of the unrelated pawn glyph.
+- Extend the isolated responsive Chromium interaction test to assert the toast uses fixed positioning, is centered in the viewport, has a blue background, and still dismisses automatically. API requests remain stubbed in this interaction test.
+
+### Verification
+
+- `yarn test` passed 17/17; `yarn check`, `git diff --check`, and the production `yarn build` passed. The build generated all 51 pages and passed the configured PDF, featured-link, social-image, critical-CSS, homepage-performance, and sitemap checks.
+- Local `node scripts/verify-responsive-layout.mjs` reached the homepage checks through 700px, then Chromium timed out on `Emulation.setDeviceMetricsOverride` at 768px. No assertion failed before that timeout; the isolated toast interaction was not reached locally. GitHub CI and a new Preview are pending the branch update.
+- No Production branch update or deployment was performed.
+
 ## 2026-10-28 — Improve story-rating feedback and audit Google snippets
 
 ### Request and changes
