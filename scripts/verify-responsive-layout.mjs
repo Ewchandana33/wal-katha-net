@@ -136,7 +136,7 @@ async function setViewport(browser, width) {
   await browser.evaluate('(async () => { await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); return true; })()');
 }
 
-async function createRatingHarness(articleSlug) {
+async function createRatingHarness(articleSlug, apiMockScript = '') {
   const articlePath = join(process.cwd(), 'dist', 'blog', articleSlug, 'index.html');
   const articleHtml = await readFile(articlePath, 'utf8');
   const widgetHtml = articleHtml.match(/<section\b(?=[^>]*\bdata-rating-widget\b)[\s\S]*?<\/section>/i)?.[0];
@@ -174,6 +174,7 @@ async function createRatingHarness(articleSlug) {
     '<html lang="si"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
     ...stylesheetPaths.map(path => `<link rel="stylesheet" href="${path}">`),
     ...inlineStyles,
+    '<script src="/__rating-test__/rating-api-mock.js"></script>',
     '</head><body>',
     widgetHtml,
     commentsHtml,
@@ -181,6 +182,7 @@ async function createRatingHarness(articleSlug) {
     '</body></html>'
   ].join('');
   await writeFile(join(ratingHarnessDirectory, 'index.html'), documentHtml);
+  await writeFile(join(ratingHarnessDirectory, 'rating-api-mock.js'), apiMockScript);
 }
 
 async function waitForFeaturedBanner(browser, width) {
@@ -228,9 +230,9 @@ async function main() {
   assert.match(new URL(articleUrl).pathname, /^\/blog\//, 'Article link should use a blog route');
   const articleSlug = decodeURIComponent(new URL(articleUrl).pathname.split('/').filter(Boolean)[1]);
 
+  let ratingApiStubScript = '';
   if (!remoteUrl) {
-    await browser.call('Page.addScriptToEvaluateOnNewDocument', {
-      source: `(() => {
+    ratingApiStubScript = `(() => {
         const nativeFetch = window.fetch.bind(window);
         const makeResponse = (data, status = 200) => new Response(JSON.stringify(data), {
           status,
@@ -241,6 +243,8 @@ async function main() {
           const method = String(init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
           const requestUrl = rawUrl ? new URL(rawUrl, location.href) : null;
           const pathname = requestUrl?.pathname || '';
+          window.__ratingTestFetchTrace = window.__ratingTestFetchTrace || [];
+          window.__ratingTestFetchTrace.push({ method, pathname, url: rawUrl || '' });
           if (pathname === '/api/rating/comments') {
             if (method === 'GET' && requestUrl.searchParams.get('countOnly') === '1') {
               return makeResponse({ total_comments: 1 });
@@ -273,8 +277,8 @@ async function main() {
           }, 201);
           return nativeFetch(input, init);
         };
-      })();`
-    });
+      })();`;
+    await browser.call('Page.addScriptToEvaluateOnNewDocument', { source: ratingApiStubScript });
   }
 
   const homeResults = [];
@@ -413,18 +417,28 @@ async function main() {
     reason: 'Remote Preview checks are read-only; interactive assertions run only in the isolated local fixture.'
   };
   if (!remoteUrl) {
-    await createRatingHarness(articleSlug);
+    await createRatingHarness(articleSlug, ratingApiStubScript);
     await setViewport(browser, 390);
     await navigate(browser, `${baseUrl}/__rating-test__/`);
     const harnessReady = await browser.evaluate(`(async () => {
+      let lastState;
       for (let attempt = 0; attempt < 40; attempt += 1) {
         const widget = document.querySelector('[data-rating-widget]');
-        if (widget?.getAttribute('aria-busy') === 'false') return true;
+        const input = widget?.querySelector('[data-rating-input]');
+        lastState = {
+          ready: widget?.getAttribute('aria-busy') === 'false' && input?.disabled === false,
+          ariaBusy: widget?.getAttribute('aria-busy') || null,
+          inputDisabled: input?.disabled ?? null,
+          retryVisible: widget?.querySelector('[data-rating-retry]')?.hidden === false,
+          message: widget?.querySelector('[data-rating-message]')?.textContent?.trim() || '',
+          fetchTrace: window.__ratingTestFetchTrace || []
+        };
+        if (lastState.ready) return lastState;
         await new Promise(resolve => setTimeout(resolve, 25));
       }
-      return false;
+      return lastState || { ready: false, reason: 'rating widget was not rendered' };
     })()`);
-    assert.ok(harnessReady, 'The isolated rating fixture should initialize against the stub API');
+    assert.ok(harnessReady.ready, 'The isolated fixture should enable ratings with its API mock: ' + JSON.stringify(harnessReady));
 
     interaction = await browser.evaluate(`(async () => {
       const root = document.querySelector('[data-rating-widget]');

@@ -16,9 +16,21 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 67 earlier dated entries from 2026-10-14 through 2026-10-27; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 68 earlier dated entries from 2026-10-14 through 2026-10-28; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-28 — Make rating interaction fixture deterministic
+
+### Changes
+
+- Load the API mock in the isolated fixture before the rating module, and wait for the radio input to become enabled rather than treating an idle `aria-busy` flag as successful initialization. Record mock calls and widget state in failure diagnostics.
+- Archive the oldest complete dated entry to maintain the five-section active-log limit.
+
+### Verification
+
+- GitHub Actions run `40686963030` passed Astro type-check, all 25 tests, the 51-page static build, and homepage/article layout checks at all 11 viewport widths. Its isolated interaction failed with the rating radio still disabled (`checked=false`), so the click never reached the selection assertion. The deterministic fixture update is pending verification.
+- Preview deployment `105f8104-125e-4d23-a89b-c221ab3fa2df` succeeded for commit `300a06a624d4a060fdaa3ab4c13895e96bd7f25a`. Production remains on deployment `6e110384-5552-454c-bc87-8970f98a2305`, commit `05d5ded3cce4a1084c6cba334cac19b7e696c31b`; no live POST or Production deployment occurred.
 
 ## 2026-10-28 — Correct responsive rating selection test timing
 
@@ -73,18 +85,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - `yarn test` passed 17/17; `yarn check`, `git diff --check`, and the production `yarn build` passed. The build generated all 51 pages and passed the configured PDF, featured-link, social-image, critical-CSS, homepage-performance, and sitemap checks.
 - Local `node scripts/verify-responsive-layout.mjs` reached the homepage checks through 700px, then Chromium timed out on `Emulation.setDeviceMetricsOverride` at 768px. No assertion failed before that timeout; the isolated toast interaction was not reached locally. GitHub CI and a new Preview are pending the branch update.
 - No Production branch update or deployment was performed.
-
-## 2026-10-28 — Improve story-rating feedback and audit Google snippets
-
-### Request and changes
-
-- Make a successful story rating show a brief, accessible thank-you toast that dismisses itself; highlight the selected rating tile green while keeping its star gold; remove the duplicate-vote privacy footnote from the widget.
-- Extend the responsive Chromium test to verify the selected color, gold star, success toast, automatic dismissal, and removal of the footnote. The test stubs rating API requests, so it does not write votes to the Preview or Production database.
-- Audited the added request for Google Search stars against Google's current review-snippet guidance. The story page is an Article/BlogPosting; that generic type is not listed as eligible for Google's review-snippet star feature. Do not emit misleading AggregateRating markup or relabel a story as a Book/Episode to try to qualify. Revisit only if a page genuinely represents a Google-supported type and the rating is visible and real; valid markup still does not guarantee a rich result.
-
-### Verification
-
-- `yarn test` passed all 17 tests; `yarn check` passed; the changelog/archive retention tests passed 2/2. Dependencies were installed from the checked-in frozen lockfile. Both full builds attempted in this local 1.6 GiB cgroup were killed with exit 137, including the capped-heap retry.
-- GitHub Actions CI run `40636663470` passed for commit `f50d9ca0725062aab42fdf73caeaa89ad07ae691`: type-check, CI test steps, static production build, responsive Chromium, SEO output, Preview route, and age-gate checks all succeeded.
-- Cloudflare Pages Preview deployment `61ce2c40-7232-44cd-b95f-183b9aebcdf2` completed all five stages successfully for that exact commit: https://61ce2c40.wala-katha.pages.dev. The article and read-only rating API GET returned HTTP 200; the aggregate remained at 0 votes. Direct Preview Chromium checked the article at 280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, and 2560px with no horizontal overflow; all five choices and the toast were present, and the removed footnote was absent. CI's isolated mocked interaction also passed the green selected tile, gold star, success toast, and auto-dismiss assertions. No live POST was sent.
-- PR #105 remains open as a draft. No merge, `main` update, or Production deployment occurred.

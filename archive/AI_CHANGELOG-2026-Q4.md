@@ -2,7 +2,7 @@
 
 Historical entries moved from AI_CHANGELOG.md on 2026-10-15, 2026-10-16, 2026-10-18, 2026-10-23, 2026-10-25, and 2026-10-28 during active-log retention rotations. All dated sections below retain their original wording and chronological order. Read AI_CHANGELOG.md first for active instructions and the latest status; archived statuses may have been superseded by later evidence.
 
-Coverage: 2026-10-14 through 2026-10-27; 67 dated entries.
+Coverage: 2026-10-14 through 2026-10-28; 68 dated entries.
 
 
 ## 2026-10-14 — Complete PR #15 image-variant CI verification
@@ -1353,3 +1353,18 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 - GitHub Actions CI run 40541834937 passed every step for implementation commit 95d67f701035ed2ab91e7b3a5ddb0cd1f1d611b0 in draft PR #105: Astro type-check, tests, build, responsive Chromium at 280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, and 2560px, SEO checks, and Preview route/API/noindex/age-gate verification. The API smoke returned HTTP 200 for methsala-akka-wal-katha with 0 votes and average 0. Existing dependency/action deprecation notices and Astro hints in unrelated files remain.
 - Cloudflare Pages Preview deployment 62f5df25-1a99-401d-93a4-8a503dc3c7e9 completed all five stages successfully for that exact commit: https://62f5df25.wala-katha.pages.dev. A separate read-only smoke returned HTTP 200 for /blog/akkai-nangi-wal-katha/ and /api/rating?story=akkai-nangi-wal-katha; the article contained the widget and five inputs, and the API returned all five zero-count buckets, 0 votes, and average 0. No POST or demo vote was submitted.
 - After the Preview deploy, Cloudflare still reported Production deployment 6e110384-5552-454c-bc87-8970f98a2305 on main commit 05d5ded3cce4a1084c6cba334cac19b7e696c31b; Production D1 binding is null while Preview is bound to the existing rating database. PR #105 remains a draft; no merge or Production deployment occurred.
+
+## 2026-10-28 — Improve story-rating feedback and audit Google snippets
+
+### Request and changes
+
+- Make a successful story rating show a brief, accessible thank-you toast that dismisses itself; highlight the selected rating tile green while keeping its star gold; remove the duplicate-vote privacy footnote from the widget.
+- Extend the responsive Chromium test to verify the selected color, gold star, success toast, automatic dismissal, and removal of the footnote. The test stubs rating API requests, so it does not write votes to the Preview or Production database.
+- Audited the added request for Google Search stars against Google's current review-snippet guidance. The story page is an Article/BlogPosting; that generic type is not listed as eligible for Google's review-snippet star feature. Do not emit misleading AggregateRating markup or relabel a story as a Book/Episode to try to qualify. Revisit only if a page genuinely represents a Google-supported type and the rating is visible and real; valid markup still does not guarantee a rich result.
+
+### Verification
+
+- `yarn test` passed all 17 tests; `yarn check` passed; the changelog/archive retention tests passed 2/2. Dependencies were installed from the checked-in frozen lockfile. Both full builds attempted in this local 1.6 GiB cgroup were killed with exit 137, including the capped-heap retry.
+- GitHub Actions CI run `40636663470` passed for commit `f50d9ca0725062aab42fdf73caeaa89ad07ae691`: type-check, CI test steps, static production build, responsive Chromium, SEO output, Preview route, and age-gate checks all succeeded.
+- Cloudflare Pages Preview deployment `61ce2c40-7232-44cd-b95f-183b9aebcdf2` completed all five stages successfully for that exact commit: https://61ce2c40.wala-katha.pages.dev. The article and read-only rating API GET returned HTTP 200; the aggregate remained at 0 votes. Direct Preview Chromium checked the article at 280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, and 2560px with no horizontal overflow; all five choices and the toast were present, and the removed footnote was absent. CI's isolated mocked interaction also passed the green selected tile, gold star, success toast, and auto-dismiss assertions. No live POST was sent.
+- PR #105 remains open as a draft. No merge, `main` update, or Production deployment occurred.
