@@ -660,7 +660,7 @@ const dialogId = `story-comments-${storySlug}`;
       loading = true;
       moreButton.disabled = true;
       status.textContent = append ? "තවත් අදහස් ලබාගනිමින්…" : "අදහස් ලබාගනිමින්…";
-      if (!append) list.replaceChildren();
+      if (!append && list.childElementCount === 0) list.replaceChildren();
       const query = new URLSearchParams({ story: storySlug });
       if (append && nextCursor) query.set("before", nextCursor);
       try {
@@ -672,6 +672,7 @@ const dialogId = `story-comments-${storySlug}`;
         if (!response.ok) throw new Error("comments_unavailable");
         updateCount(data.total_comments);
         const comments = Array.isArray(data.comments) ? data.comments as CommentRecord[] : [];
+        if (!append) list.replaceChildren();
         for (const comment of comments) {
           const item = document.createElement("li");
           item.append(buildComment(comment));
@@ -684,7 +685,9 @@ const dialogId = `story-comments-${storySlug}`;
           ? "තවම අදහස් නැහැ. මුලින්ම තරු ඇගයීමක් ලබා දී ඔබේ අදහස එක් කරන්න."
           : "";
       } catch {
-        status.textContent = "අදහස් ලබාගැනීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
+        status.textContent = list.childElementCount > 0
+          ? "නවතම අදහස් යාවත්කාලීන කිරීමට නොහැකි විය. දැනට ඇති අදහස් පෙන්වයි."
+          : "අදහස් ලබාගැනීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
         moreButton.hidden = true;
       } finally {
         loading = false;

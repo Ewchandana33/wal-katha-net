@@ -1742,21 +1742,31 @@ const imageObjectSchema = schemaImageUrl
 
     async function loadComments() {
       if (!commentsListHook || !postId || !API_URL) return;
-      if (noCommentsMsg) {
+      const hasServerRenderedComments = Boolean(
+        commentsListHook.querySelector('[data-server-rendered-comment="post"]')
+      );
+      if (noCommentsMsg && !hasServerRenderedComments) {
         noCommentsMsg.style.display = "";
         noCommentsMsg.innerHTML =
           '<p class="text-sm text-white/50 italic mb-3">කමෙන්ට්ස් ලෝඩ් වෙමින් පවතී...</p>' +
           '<div class="loading-bars-wrap" aria-hidden="true"><span class="lbar"></span><span class="lbar"></span><span class="lbar"></span><span class="lbar"></span><span class="lbar"></span></div>';
       }
-      Array.from(commentsListHook.children).forEach((child) => {
-        if ((child as HTMLElement).id !== "no-comments-msg") child.remove();
-      });
+      if (!hasServerRenderedComments) {
+        Array.from(commentsListHook.children).forEach((child) => {
+          if ((child as HTMLElement).id !== "no-comments-msg") child.remove();
+        });
+      } else if (noCommentsMsg) {
+        noCommentsMsg.style.display = "none";
+      }
       commentsList = [];
 
       try {
         const res = await fetch(`${API_URL}?postId=${encodeURIComponent(postId)}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const comments: Array<{ id?: string; content: string; date?: string; created_at?: string }> = await res.json();
+        Array.from(commentsListHook.children).forEach((child) => {
+          if ((child as HTMLElement).id !== "no-comments-msg") child.remove();
+        });
         if (comments.length > 0) {
           if (noCommentsMsg) noCommentsMsg.style.display = "none";
           comments.forEach((c) => {
@@ -1777,6 +1787,7 @@ const imageObjectSchema = schemaImageUrl
         }
       } catch (err) {
         console.error("Comments fetch error:", err);
+        if (hasServerRenderedComments) return;
         if (noCommentsMsg) {
           noCommentsMsg.innerHTML = "";
           noCommentsMsg.style.display = "";

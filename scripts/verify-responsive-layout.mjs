@@ -55,6 +55,76 @@ async function waitForHttp(url, child, label) {
   throw new Error(`${label} did not become ready: ${lastError?.message || 'timeout'}`);
 }
 
+function ratingApiFixture(request) {
+  const url = new URL(request.url);
+  const method = String(request.method || "GET").toUpperCase();
+  if (url.pathname === "/api/rating/comments") {
+    if (method === "GET" && url.searchParams.get("countOnly") === "1") {
+      return { status: 200, body: { total_comments: 1 } };
+    }
+    if (method === "GET") {
+      return {
+        status: 200,
+        body: {
+          total_comments: 1,
+          comments: [{
+            id: 9,
+            body: "පරීක්ෂණ අදහස",
+            created_at: 1800000000,
+            like_count: 0,
+            liked: false,
+            is_mine: false,
+            replies: [],
+          }],
+          has_more: false,
+          next_cursor: null,
+        },
+      };
+    }
+    if (method === "POST") {
+      return {
+        status: 201,
+        body: {
+          comment: { id: 10, parent_id: 9, body: "පරීක්ෂණ පිළිතුර", created_at: 1800000010 },
+          total_comments: 2,
+        },
+      };
+    }
+  }
+  if (/^\/api\/rating\/comments\/\d+\/like$/.test(url.pathname) && method === "POST") {
+    return { status: 200, body: { liked: true, like_count: 1 } };
+  }
+  if (url.pathname === "/api/rating") {
+    if (method === "GET") {
+      return {
+        status: 200,
+        body: {
+          average_rating: 0,
+          total_votes: 0,
+          total_stars: 0,
+          rating_counts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+          has_voted: false,
+        },
+      };
+    }
+    if (method === "POST") {
+      return {
+        status: 201,
+        body: {
+          average_rating: 4,
+          total_votes: 1,
+          total_stars: 4,
+          rating_counts: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 0 },
+          has_voted: true,
+          user_rating: 4,
+          comment_saved: true,
+        },
+      };
+    }
+  }
+  return null;
+}
+
 async function stop(child) {
   if (!child || child.exitCode !== null) return;
   child.kill('SIGTERM');
@@ -82,16 +152,7 @@ async function startBrowser() {
   });
   let nextId = 0;
   const pending = new Map();
-  websocket.addEventListener('message', event => {
-    let message;
-    try { message = JSON.parse(String(event.data)); } catch { return; }
-    if (!message.id || !pending.has(message.id)) return;
-    const { resolve, reject, timer } = pending.get(message.id);
-    clearTimeout(timer);
-    pending.delete(message.id);
-    if (message.error) reject(new Error(message.error.message));
-    else resolve(message);
-  });
+  const fetchTrace = [];
   const call = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++nextId;
     const expressionHint = method === 'Runtime.evaluate' && params.expression
@@ -107,6 +168,33 @@ async function startBrowser() {
     pending.set(id, { resolve, reject, timer });
     websocket.send(JSON.stringify({ id, method, params }));
   });
+  websocket.addEventListener('message', event => {
+    let message;
+    try { message = JSON.parse(String(event.data)); } catch { return; }
+    if (message.method === 'Fetch.requestPaused') {
+      const { requestId, request } = message.params;
+      const fixture = ratingApiFixture(request);
+      if (fixture) {
+        fetchTrace.push({ method: request.method, url: request.url });
+        void call('Fetch.fulfillRequest', {
+          requestId,
+          responseCode: fixture.status,
+          responseHeaders: [{ name: 'Content-Type', value: 'application/json; charset=utf-8' }],
+          body: Buffer.from(JSON.stringify(fixture.body), 'utf8').toString('base64')
+        }).catch(error => console.error('Rating fixture interception failed:', error.message));
+      } else {
+        void call('Fetch.continueRequest', { requestId })
+          .catch(error => console.error('Rating fixture request continuation failed:', error.message));
+      }
+      return;
+    }
+    if (!message.id || !pending.has(message.id)) return;
+    const { resolve, reject, timer } = pending.get(message.id);
+    clearTimeout(timer);
+    pending.delete(message.id);
+    if (message.error) reject(new Error(message.error.message));
+    else resolve(message);
+  });
   const evaluate = async expression => {
     const response = await call('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
     if (response.result?.exceptionDetails) {
@@ -116,7 +204,7 @@ async function startBrowser() {
   };
   await call('Page.enable');
   await call('Runtime.enable');
-  return { call, evaluate };
+  return { call, evaluate, fetchTrace };
 }
 
 async function navigate(browser, url) {
@@ -136,7 +224,7 @@ async function setViewport(browser, width) {
   await browser.evaluate('(async () => { await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); return true; })()');
 }
 
-async function createRatingHarness(articleSlug, apiMockScript = '') {
+async function createRatingHarness(articleSlug) {
   const articlePath = join(process.cwd(), 'dist', 'blog', articleSlug, 'index.html');
   const articleHtml = await readFile(articlePath, 'utf8');
   const widgetHtml = articleHtml.match(/<section\b(?=[^>]*\bdata-rating-widget\b)[\s\S]*?<\/section>/i)?.[0];
@@ -174,7 +262,6 @@ async function createRatingHarness(articleSlug, apiMockScript = '') {
     '<html lang="si"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
     ...stylesheetPaths.map(path => `<link rel="stylesheet" href="${path}">`),
     ...inlineStyles,
-    '<script src="/__rating-test__/rating-api-mock.js"></script>',
     '</head><body>',
     widgetHtml,
     commentsHtml,
@@ -182,7 +269,6 @@ async function createRatingHarness(articleSlug, apiMockScript = '') {
     '</body></html>'
   ].join('');
   await writeFile(join(ratingHarnessDirectory, 'index.html'), documentHtml);
-  await writeFile(join(ratingHarnessDirectory, 'rating-api-mock.js'), apiMockScript);
 }
 
 async function waitForFeaturedBanner(browser, width) {
@@ -229,57 +315,6 @@ async function main() {
   assert.equal(new URL(articleUrl).origin, new URL(baseUrl).origin, 'Article test route must stay on the test origin');
   assert.match(new URL(articleUrl).pathname, /^\/blog\//, 'Article link should use a blog route');
   const articleSlug = decodeURIComponent(new URL(articleUrl).pathname.split('/').filter(Boolean)[1]);
-
-  let ratingApiStubScript = '';
-  if (!remoteUrl) {
-    ratingApiStubScript = `(() => {
-        const nativeFetch = window.fetch.bind(window);
-        const makeResponse = (data, status = 200) => new Response(JSON.stringify(data), {
-          status,
-          headers: { 'Content-Type': 'application/json' }
-        });
-        window.fetch = async (input, init = {}) => {
-          const rawUrl = typeof input === 'string' ? input : input?.url;
-          const method = String(init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
-          const requestUrl = rawUrl ? new URL(rawUrl, location.href) : null;
-          const pathname = requestUrl?.pathname || '';
-          window.__ratingTestFetchTrace = window.__ratingTestFetchTrace || [];
-          window.__ratingTestFetchTrace.push({ method, pathname, url: rawUrl || '' });
-          if (pathname === '/api/rating/comments') {
-            if (method === 'GET' && requestUrl.searchParams.get('countOnly') === '1') {
-              return makeResponse({ total_comments: 1 });
-            }
-            if (method === 'GET') return makeResponse({
-              total_comments: 1,
-              comments: [{
-                id: 9, body: 'පරීක්ෂණ අදහස', created_at: 1800000000,
-                like_count: 0, liked: false, is_mine: false, replies: []
-              }],
-              has_more: false, next_cursor: null
-            });
-            if (method === 'POST') return makeResponse({
-              comment: { id: 10, parent_id: 9, body: 'පරීක්ෂණ පිළිතුර', created_at: 1800000010 },
-              total_comments: 2
-            }, 201);
-          }
-          if (/^\/api\/rating\/comments\/\d+\/like$/.test(pathname) && method === 'POST') {
-            return makeResponse({ liked: true, like_count: 1 });
-          }
-          if (pathname !== '/api/rating') return nativeFetch(input, init);
-          if (method === 'GET') return makeResponse({
-            average_rating: 0, total_votes: 0, total_stars: 0,
-            rating_counts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, has_voted: false
-          });
-          if (method === 'POST') return makeResponse({
-            average_rating: 4, total_votes: 1, total_stars: 4,
-            rating_counts: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 0 },
-            has_voted: true, user_rating: 4, comment_saved: true
-          }, 201);
-          return nativeFetch(input, init);
-        };
-      })();`;
-    await browser.call('Page.addScriptToEvaluateOnNewDocument', { source: ratingApiStubScript });
-  }
 
   const homeResults = [];
   for (let i = 0; i < widths.length; i++) {
@@ -417,7 +452,10 @@ async function main() {
     reason: 'Remote Preview checks are read-only; interactive assertions run only in the isolated local fixture.'
   };
   if (!remoteUrl) {
-    await createRatingHarness(articleSlug, ratingApiStubScript);
+    await createRatingHarness(articleSlug);
+    await browser.call('Fetch.enable', {
+      patterns: [{ urlPattern: '*://*/api/rating*', requestStage: 'Request' }]
+    });
     await setViewport(browser, 390);
     await navigate(browser, `${baseUrl}/__rating-test__/`);
     const harnessReady = await browser.evaluate(`(async () => {
@@ -438,7 +476,15 @@ async function main() {
       }
       return lastState || { ready: false, reason: 'rating widget was not rendered' };
     })()`);
-    assert.ok(harnessReady.ready, 'The isolated fixture should enable ratings with its API mock: ' + JSON.stringify(harnessReady));
+    assert.ok(
+      harnessReady.ready,
+      'The isolated fixture should enable ratings with its API interception: ' +
+        JSON.stringify({ ...harnessReady, interceptedRequests: browser.fetchTrace })
+    );
+    assert.ok(
+      browser.fetchTrace.some(request => new URL(request.url).pathname === '/api/rating'),
+      'The isolated fixture should intercept the rating API request before the widget initializes.'
+    );
 
     interaction = await browser.evaluate(`(async () => {
       const root = document.querySelector('[data-rating-widget]');

@@ -33,9 +33,54 @@ const articleUrl = new URL(articleLink, base);
 assert.equal(articleUrl.origin, base.origin, 'Article route must remain on the Preview origin.');
 const article = await get(articleUrl, 'Preview article');
 const articleRobots = assertNoindex(article, 'Preview article');
+const articleHtml = await article.text();
+const publicCommentsContainer = articleHtml.match(/<div\b(?=[^>]*\bid=["']comments-list-hook["'])[^>]*>/i)?.[0];
+assert.ok(publicCommentsContainer, 'The article should keep the existing public-comments list.');
+assert.match(
+  publicCommentsContainer,
+  /\bdata-server-rendered-comments=["']ready["']/i,
+  'Public comments should be included in the initial article HTML for crawlers.',
+);
+const reviewCommentsContainer = articleHtml.match(/<ol\b(?=[^>]*\bdata-comments-list\b)[^>]*>/i)?.[0];
+assert.ok(reviewCommentsContainer, 'The article should keep the story-review comments list.');
+assert.match(
+  reviewCommentsContainer,
+  /\bdata-server-rendered-comments=["']ready["']/i,
+  'Story-review comments should be server-rendered when the Preview D1 binding is available.',
+);
 const sitemap = await get(new URL('/sitemap-index.xml', base), 'Preview sitemap index');
 const storySlug = decodeURIComponent(articleUrl.pathname.slice('/blog/'.length).replace(/\/+$/, ''));
 assert.match(storySlug, /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/, 'Article URL should provide a valid story ID.');
+const publicCommentsResponse = await fetch(
+  `https://comments.wala-katha.workers.dev/api/comments?postId=${encodeURIComponent(storySlug)}`,
+  { signal: AbortSignal.timeout(20000) }
+);
+assert.equal(publicCommentsResponse.status, 200, `Public-comments API should return HTTP 200, got ${publicCommentsResponse.status}.`);
+const publicComments = await publicCommentsResponse.json();
+assert.ok(Array.isArray(publicComments), 'Public-comments API should return a comment array.');
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+})[character]);
+const boundedEscapedText = (value, maximumLength) =>
+  escapeHtml(Array.from(String(value ?? '').trim()).slice(0, maximumLength).join(''));
+if (publicComments[0]?.content) {
+  assert.ok(
+    articleHtml.includes(boundedEscapedText(publicComments[0].content, 1000)),
+    'A public post comment should be present in the initial article HTML.',
+  );
+}
+const reviewCommentsResponse = await get(
+  new URL(`/api/rating/comments?story=${encodeURIComponent(storySlug)}`, base),
+  'Preview review comments API',
+);
+const reviewData = await reviewCommentsResponse.json();
+assert.ok(Array.isArray(reviewData.comments), 'Preview review-comments API should return a comment array.');
+if (reviewData.comments[0]?.body) {
+  assert.ok(
+    articleHtml.includes(boundedEscapedText(reviewData.comments[0].body, 500)),
+    'A story-review comment should be present in the initial article HTML.',
+  );
+}
 const ratingResponse = await fetch(
   new URL(`/api/rating?story=${encodeURIComponent(storySlug)}`, base),
   { redirect: 'follow', signal: AbortSignal.timeout(20000) }
@@ -68,5 +113,7 @@ console.log(JSON.stringify({
   ratingStorySlug: storySlug,
   ratingVotes: ratingData.total_votes,
   ratingAverage: ratingData.average_rating,
+  serverRenderedPostComments: publicComments.length,
+  serverRenderedReviewComments: reviewData.comments.length,
   ageGatePresentAndUntouched: true
 }, null, 2));
