@@ -566,10 +566,11 @@ async function main() {
       const backdropCoversViewport = Boolean(backdropRect && Math.abs(backdropRect.left) <= 1 && Math.abs(backdropRect.top) <= 1
         && Math.abs(backdropRect.width - window.innerWidth) <= 1 && Math.abs(backdropRect.height - window.innerHeight) <= 1);
       const backdropBackground = backdropStyle?.backgroundColor || '';
-      const backdropFilter = backdropStyle?.backdropFilter
-        || backdropStyle?.webkitBackdropFilter
-        || backdropStyle?.getPropertyValue('-webkit-backdrop-filter')
-        || '';
+      const backdropFilter = [
+        backdropStyle?.backdropFilter,
+        backdropStyle?.webkitBackdropFilter,
+        backdropStyle?.getPropertyValue('-webkit-backdrop-filter'),
+      ].find(value => value && value.trim() !== 'none') || '';
       const backdropPosition = backdropStyle?.position || '';
       await new Promise(resolve => setTimeout(resolve, 3900));
       const commentsButton = document.querySelector('[data-comments-open]');
