@@ -153,6 +153,8 @@ async function startBrowser() {
   let nextId = 0;
   const pending = new Map();
   const fetchTrace = [];
+  const pausedRequests = [];
+  const networkTrace = [];
   const call = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++nextId;
     const expressionHint = method === 'Runtime.evaluate' && params.expression
@@ -171,8 +173,36 @@ async function startBrowser() {
   websocket.addEventListener('message', event => {
     let message;
     try { message = JSON.parse(String(event.data)); } catch { return; }
+    if (message.method === 'Network.requestWillBeSent' && message.params?.request?.url?.includes('/api/rating')) {
+      networkTrace.push({
+        event: 'request',
+        requestId: message.params.requestId,
+        method: message.params.request.method,
+        url: message.params.request.url
+      });
+      return;
+    }
+    if (message.method === 'Network.responseReceived' && message.params?.response?.url?.includes('/api/rating')) {
+      networkTrace.push({
+        event: 'response',
+        status: message.params.response.status,
+        url: message.params.response.url
+      });
+      return;
+    }
+    if (message.method === 'Network.loadingFailed' && message.params?.requestId) {
+      const matchingRequest = networkTrace.findLast?.(entry => entry.event === 'request' && entry.requestId === message.params.requestId);
+      if (matchingRequest) {
+        networkTrace.push({
+          event: 'failed',
+          errorText: message.params.errorText,
+          blockedReason: message.params.blockedReason
+        });
+      }
+    }
     if (message.method === 'Fetch.requestPaused') {
       const { requestId, request } = message.params;
+      pausedRequests.push({ method: request.method, url: request.url });
       const fixture = ratingApiFixture(request);
       if (fixture) {
         fetchTrace.push({ method: request.method, url: request.url });
@@ -202,9 +232,11 @@ async function startBrowser() {
     }
     return response.result?.result?.value;
   };
+  await call('Network.enable');
+  await call('Network.setBypassServiceWorker', { bypass: true });
   await call('Page.enable');
   await call('Runtime.enable');
-  return { call, evaluate, fetchTrace };
+  return { call, evaluate, fetchTrace, pausedRequests, networkTrace };
 }
 
 async function navigate(browser, url) {
@@ -479,7 +511,12 @@ async function main() {
     assert.ok(
       harnessReady.ready,
       'The isolated fixture should enable ratings with its API interception: ' +
-        JSON.stringify({ ...harnessReady, interceptedRequests: browser.fetchTrace })
+        JSON.stringify({
+          ...harnessReady,
+          interceptedRequests: browser.fetchTrace,
+          pausedRequests: browser.pausedRequests,
+          networkRequests: browser.networkTrace
+        })
     );
     assert.ok(
       browser.fetchTrace.some(request => new URL(request.url).pathname === '/api/rating'),
