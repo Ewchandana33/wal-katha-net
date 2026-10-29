@@ -136,7 +136,7 @@ async function startBrowser() {
   const port = await getFreePort();
   profile = await mkdtemp(join(tmpdir(), 'wal-katha-layout-chrome-'));
   chrome = spawn(findBrowser(), [
-    '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
+    '--headless=new', '--no-sandbox', '--disable-dev-shm-usage',
     `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1',
     '--remote-allow-origins=*', `--user-data-dir=${profile}`, 'about:blank'
   ], { stdio: 'ignore' });
@@ -571,6 +571,8 @@ async function main() {
         backdropStyle?.webkitBackdropFilter,
         backdropStyle?.getPropertyValue('-webkit-backdrop-filter'),
       ].find(value => value && value.trim() !== 'none') || '';
+      const backdropFilterSupported = CSS.supports('backdrop-filter', 'blur(1px)')
+        || CSS.supports('-webkit-backdrop-filter', 'blur(1px)');
       const backdropPosition = backdropStyle?.position || '';
       await new Promise(resolve => setTimeout(resolve, 3900));
       const commentsButton = document.querySelector('[data-comments-open]');
@@ -626,6 +628,7 @@ async function main() {
         backdropCoversViewport,
         backdropBackground,
         backdropFilter,
+        backdropFilterSupported,
         backdropPosition,
         backdropHiddenAfterTimeout: backdrop?.hidden || false,
         dialogOpened,
@@ -652,7 +655,11 @@ async function main() {
     assert.equal(interaction.backdropPosition, 'fixed', 'The transparent backdrop should cover the viewport');
     assert.ok(interaction.backdropCoversViewport, 'The transparent backdrop should cover the full viewport');
     assert.equal(interaction.backdropBackground, 'rgba(0, 0, 0, 0)', 'The thank-you backdrop should have no color tint');
-    assert.match(interaction.backdropFilter, /blur\(/, 'The thank-you backdrop should blur the page without tinting it');
+    assert.match(
+      interaction.backdropFilter,
+      /blur\(/,
+      `The thank-you backdrop should blur the page without tinting it (CSS.supports=${interaction.backdropFilterSupported}, computed=${interaction.backdropFilter || 'none'})`,
+    );
     assert.ok(interaction.toastHiddenAfterTimeout, 'The thank-you toast should dismiss itself');
     assert.ok(interaction.backdropHiddenAfterTimeout, 'The transparent backdrop should disappear with the thank-you toast');
     assert.equal(interaction.toastHiddenAfterTimeout, interaction.backdropHiddenAfterTimeout, 'The toast and backdrop should be dismissed together');
