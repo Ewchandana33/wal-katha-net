@@ -27,12 +27,14 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - Fix the root style-scope defect: comment cards, like/reply controls, and textareas are created after Astro renders, so component-scoped selectors did not reach them. Anchor explicit global selectors to the comments dialog and restyle it with black surfaces, red accents, readable section/card separation, wrapping, visible focus, and touch-sized controls.
 - Make the like API accept a validated desired `liked` state, with repeat-safe add/remove operations and legacy requests without that field still setting a like. Update client ARIA state and add API/UI regression coverage.
 - Extend the isolated Chromium fixture to exercise modal fit at all 11 configured viewport widths and verify dynamic card/textarea styles, like/unlike count changes, and reply interaction. All API writes remain stubbed.
+- Correct a test-only async race found in the first hosted run: open the dialog once, wait for its mocked comment fetch to settle, then resize the open modal; wait for the latest fetch before clicking a like.
 
 ### Verification
 
 - `yarn test` passed 29/29; `yarn check`, JavaScript syntax checks, and `git diff --check` passed. Astro reports the existing 20 dependency-resolution warnings and Node.js `url.parse()` deprecation warning.
-- The local `yarn build` reached static route generation but timed out after 300 seconds in this 1.6 GiB sandbox. GitHub CI and a Preview deployment for the changes are pending; use those before treating the build as verified.
-- No live vote or comment POST was sent. Production data/configuration, merge state, and Production deployment were not changed.
+- GitHub Actions run `40834818253` for commit `c8a7ee75d715d400ad5d553c426ca66559e37aee` passed type-check, tests, and the 51-page production build; homepage/article checks passed at all 11 widths. Its isolated dialog interaction then failed because the test read an active-like style from a comment node being replaced by the still-loading mock GET. The follow-up test correction is pending hosted verification.
+- Cloudflare Preview deployment `b0763df7-ac55-470d-b1b0-42f2f35f120d` completed successfully for that exact commit at https://b0763df7.wala-katha.pages.dev. All 176 deployment log records were checked with no warning/error/failure/fatal/exception markers. Read-only smoke checks returned HTTP 200 for homepage, article, sitemap, and rating API; Preview `noindex` was present, 3 public comments and 0 review comments were rendered, and the age gate was left untouched.
+- The follow-up local checks passed; the local full build timed out after 300 seconds in this 1.6 GiB sandbox. No live vote or comment POST was sent. Production data/configuration, merge state, and Production deployment were not changed.
 
 ## 2026-10-29 — Fix story-rating blur and audit search eligibility
 

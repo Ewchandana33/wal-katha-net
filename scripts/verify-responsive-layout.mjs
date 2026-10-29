@@ -533,12 +533,29 @@ async function main() {
     );
 
     const modalResponsiveResults = [];
+    await setViewport(browser, 390);
+    const initialModal = await browser.evaluate(`(async () => {
+      const openButton = document.querySelector('[data-comments-open]');
+      const dialog = document.querySelector('[data-comments-dialog]');
+      openButton?.click();
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        const commentLoaded = Boolean(dialog?.querySelector('[data-comments-list] .story-comment'));
+        const status = dialog?.querySelector('[data-comments-status]')?.textContent || '';
+        if (dialog?.open && commentLoaded && !status.includes('අදහස් ලබාගනිමින්')) break;
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      return {
+        open: Boolean(dialog?.open && dialog.matches(':modal')),
+        commentLoaded: Boolean(dialog?.querySelector('[data-comments-list] .story-comment')),
+        loading: Boolean(dialog?.querySelector('[data-comments-status]')?.textContent?.includes('අදහස් ලබාගනිමින්'))
+      };
+    })()`);
+    assert.ok(initialModal.open && initialModal.commentLoaded && !initialModal.loading,
+      'The isolated comments fixture should finish loading before responsive measurements');
     for (const width of widths) {
       await setViewport(browser, width);
       const modalLayout = await browser.evaluate(`(() => {
-        const openButton = document.querySelector('[data-comments-open]');
         const dialog = document.querySelector('[data-comments-dialog]');
-        openButton?.click();
         const rect = dialog?.getBoundingClientRect();
         const result = {
           open: Boolean(dialog?.open && dialog.matches(':modal')),
@@ -549,9 +566,9 @@ async function main() {
           viewportWidth: innerWidth,
           viewportHeight: innerHeight,
           pageWidth: document.documentElement.scrollWidth,
-          borderColor: dialog ? getComputedStyle(dialog).borderTopColor : ''
+          borderColor: dialog ? getComputedStyle(dialog).borderTopColor : '',
+          commentCardWidth: dialog?.querySelector('.story-comment')?.getBoundingClientRect().width ?? null
         };
-        dialog?.close();
         return result;
       })()`);
       assert.ok(modalLayout.open, `Comments dialog should open as a modal at ${width}px`);
@@ -559,9 +576,13 @@ async function main() {
       assert.ok(modalLayout.height <= modalLayout.viewportHeight + 1, `Comments dialog should fit the ${width}px viewport height`);
       assert.ok(modalLayout.pageWidth <= width + 1, `Comments dialog should not introduce horizontal overflow at ${width}px`);
       assert.equal(modalLayout.borderColor, 'rgb(163, 59, 80)', `Comments dialog should retain its red frame at ${width}px`);
+      assert.ok(modalLayout.commentCardWidth > 0 && modalLayout.commentCardWidth <= modalLayout.width,
+        `Comment cards should fit inside the modal at ${width}px`);
       modalResponsiveResults.push({ width, dialogWidth: Math.round(modalLayout.width), dialogHeight: Math.round(modalLayout.height) });
     }
 
+    await browser.evaluate(`(() => document.querySelector('[data-comments-close]')?.click())()`);
+    await sleep(50);
     await setViewport(browser, 390);
     interaction = await browser.evaluate(`(async () => {
       const root = document.querySelector('[data-rating-widget]');
@@ -618,7 +639,10 @@ async function main() {
       const commentsButton = document.querySelector('[data-comments-open]');
       const dialog = document.querySelector('[data-comments-dialog]');
       commentsButton?.click();
-      for (let attempt = 0; attempt < 40 && !document.querySelector('[data-comments-list] .story-comment'); attempt += 1) {
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        const commentLoaded = Boolean(dialog?.querySelector('[data-comments-list] .story-comment'));
+        const status = dialog?.querySelector('[data-comments-status]')?.textContent || '';
+        if (dialog?.open && commentLoaded && !status.includes('අදහස් ලබාගනිමින්')) break;
         await new Promise(resolve => setTimeout(resolve, 25));
       }
       const dialogOpened = Boolean(dialog?.open && dialog.matches(':modal'));
@@ -640,7 +664,9 @@ async function main() {
       }
       const likeWorked = likeButton?.getAttribute('aria-pressed') === 'true'
         && /1/.test(likeButton.textContent || '');
+      await new Promise(resolve => setTimeout(resolve, 180));
       const likedBackground = likeButton ? getComputedStyle(likeButton).backgroundColor : '';
+      const likeButtonConnected = Boolean(likeButton?.isConnected);
       likeButton?.click();
       for (let attempt = 0; attempt < 40 && likeButton?.getAttribute('aria-pressed') !== 'false'; attempt += 1) {
         await new Promise(resolve => setTimeout(resolve, 25));
@@ -699,6 +725,7 @@ async function main() {
         likeBorderColor,
         likeTapHeight,
         likedBackground,
+        likeButtonConnected,
         likeWorked,
         likeToggleWorked,
         replyInputWidth,
@@ -741,6 +768,7 @@ async function main() {
     assert.match(interaction.commentCardBackground, /linear-gradient/, 'Comment cards should keep their separate dark surfaces');
     assert.equal(interaction.likeBorderColor, 'rgb(116, 49, 63)', 'Dynamically created like buttons should receive their red accent styles');
     assert.ok(interaction.likeTapHeight >= 44, 'The like action should have a comfortable touch target');
+    assert.ok(interaction.likeButtonConnected, 'The like control should remain attached while its request completes');
     assert.equal(interaction.likedBackground, 'rgb(74, 24, 35)', 'A liked comment should receive a visible pressed state');
     assert.ok(interaction.likeWorked, 'A comment like should update its pressed state and count');
     assert.ok(interaction.likeToggleWorked, 'Clicking an active like should remove it and update its count');
