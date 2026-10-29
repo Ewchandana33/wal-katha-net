@@ -1,4 +1,5 @@
 import { PUBLISHED_STORY_SLUGS } from "../_shared/published-story-slugs.generated.js";
+import { containsDisallowedLink } from "../../shared/comment-link-policy.js";
 
 const COOKIE_NAME = "wk-rating-voter";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
@@ -236,6 +237,9 @@ async function handlePost(context) {
       (typeof body.comment !== "string" || commentLength > MAX_COMMENT_LENGTH))
   ) {
     return jsonResponse({ error: "invalid_rating" }, 400);
+  }
+  if (commentText && containsDisallowedLink(commentText)) {
+    return jsonResponse({ error: "links_not_allowed" }, 422);
   }
 
   const slugStatus = storySlugStatus(body.storySlug);

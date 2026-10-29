@@ -10,6 +10,7 @@ import {
   storySlugStatus,
   voterCookieHeader,
 } from "../../../_shared/story-review-utils.js";
+import { containsDisallowedLink } from "../../../../shared/comment-link-policy.js";
 import {
   fetchPublicPostComments,
   stablePostCommentId,
@@ -48,6 +49,7 @@ export async function onRequest(context) {
   if (slugStatus === "missing") return jsonResponse({ error: "story_not_found" }, 404);
   const text = body.body.trim();
   if (!text || Array.from(text).length > MAX_REPLY_LENGTH) return jsonResponse({ error: "invalid_comment" }, 400);
+  if (containsDisallowedLink(text)) return jsonResponse({ error: "links_not_allowed" }, 422);
 
   const db = context.env?.DB;
   if (!db) return jsonResponse({ error: "comments_unavailable" }, 503);

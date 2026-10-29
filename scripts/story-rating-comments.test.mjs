@@ -226,6 +226,30 @@ test("comment list returns top-level comments and their replies with safe viewer
   assert.match(newViewer.headers.get("Set-Cookie"), /Path=\/api\/rating;/);
 });
 
+test("review comments and replies reject links and legacy API output removes existing links", async () => {
+  const db = new MemoryD1();
+  db.comments[0].body = "මගේ අදහස https://example.com";
+  const listed = await commentsHandler(context(
+    makeRequest(`/api/rating/comments?story=${STORY_SLUG}`),
+    db,
+  ));
+  const listedData = await listed.json();
+  assert.equal(listed.status, 200);
+  assert.equal(listedData.comments[0].body, "මගේ අදහස");
+  assert.doesNotMatch(JSON.stringify(listedData), /https:\/\/example\.com/);
+
+  const rejected = await commentsHandler(context(
+    makeRequest("/api/rating/comments", {
+      method: "POST",
+      body: { storySlug: STORY_SLUG, body: "https://example.com", parentId: 1 },
+    }),
+    db,
+  ));
+  assert.equal(rejected.status, 422);
+  assert.deepEqual(await rejected.json(), { error: "links_not_allowed" });
+  assert.equal(db.comments.length, 3);
+});
+
 test("reply endpoint stores one-level replies and rejects replies to replies", async () => {
   const db = new MemoryD1();
   const request = makeRequest("/api/rating/comments", {

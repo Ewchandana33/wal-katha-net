@@ -77,3 +77,22 @@ test("server-rendered legacy replies show a count and remain collapsed while ret
   assert.match(html, /පිළිතුර &lt;script&gt;නොදුවන්න&lt;\/script&gt;/);
   assert.doesNotMatch(html, /<script>/);
 });
+
+test("server-rendered comments remove old link targets but keep the opinion text", () => {
+  const html = renderPostComments([
+    { content: "හොඳ කතාවක් https://example.com වැඩිදියුණු කළ හැක." },
+    { content: "https://only-a-link.example" },
+  ]) + renderReviewComments([
+    {
+      body: "මගේ සමාලෝචනය https://example.com",
+      replies: [{ body: "පිළිතුර www.example.org" }],
+    },
+  ]);
+
+  assert.doesNotMatch(html, /https:\/\/example\.com|www\.example\.org/);
+  assert.match(html, /හොඳ කතාවක්/);
+  assert.match(html, /වැඩිදියුණු කළ හැක/);
+  assert.match(html, /මගේ සමාලෝචනය/);
+  assert.match(html, /පිළිතුර/);
+  assert.match(html, /සබැඳිය අඩංගු වූ අදහසක් ඉවත් කර ඇත/);
+});

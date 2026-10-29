@@ -11,6 +11,7 @@ import {
   storySlugStatus,
   voterCookieHeader,
 } from "../../_shared/story-review-utils.js";
+import { containsDisallowedLink, sanitizeCommentText } from "../../../shared/comment-link-policy.js";
 
 const MAX_BODY_BYTES = 4096;
 const COMMENT_PAGE_SIZE = 20;
@@ -30,7 +31,7 @@ async function getCommentCount(db, storySlug) {
 function publicComment(row) {
   return {
     id: Number(row.id),
-    body: String(row.body),
+    body: sanitizeCommentText(String(row.body)),
     created_at: Number(row.created_at),
     like_count: Number(row.like_count) || 0,
     liked: Number(row.viewer_liked) === 1 || row.viewer_liked === true,
@@ -158,6 +159,9 @@ async function handlePost(context) {
     Array.from(commentText).length > MAX_REVIEW_COMMENT_LENGTH
   ) {
     return jsonResponse({ error: "invalid_comment" }, 400);
+  }
+  if (containsDisallowedLink(commentText)) {
+    return jsonResponse({ error: "links_not_allowed" }, 422);
   }
 
   const slugStatus = storySlugStatus(body.storySlug);

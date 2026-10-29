@@ -868,6 +868,39 @@ async function main() {
     assert.ok(postCommentInteractions.newReplyHighlighted, 'A newly added legacy reply should be highlighted');
     assert.equal(postCommentInteractions.replyCount, 'පිළිතුරු 2', 'Adding a legacy reply should update its count');
     assert.ok(postCommentInteractions.repliesExpandedAfterPost, 'A new legacy reply should open its reply list');
+    const blockedReplyTest = await browser.evaluate(`(async () => {
+      document.querySelector('#comment-floating-btn')?.click();
+      const modal = document.querySelector('#comment-popup-modal');
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        const loadedCard = modal?.querySelector('#comments-list-hook .post-comment-card');
+        if (loadedCard?.querySelector('.post-comment-action')) break;
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      const card = modal?.querySelector('#comments-list-hook .post-comment-card');
+      const disclosure = card?.querySelector('.post-comment-replies');
+      const before = disclosure?.querySelector('summary')?.textContent?.trim() || '';
+      const replyButton = [...(card?.querySelectorAll('.post-comment-action') || [])]
+        .find(button => button.textContent?.includes('පිළිතුරක්'));
+      replyButton?.click();
+      const form = card?.querySelector('.post-comment-reply-form');
+      const input = form?.querySelector('textarea');
+      if (input) input.value = 'https://example.com';
+      form?.requestSubmit();
+      const toast = document.querySelector('#comment-link-toast');
+      for (let attempt = 0; attempt < 40 && !toast?.classList.contains('is-visible'); attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      const shown = Boolean(toast?.classList.contains('is-visible')
+        && toast.textContent?.includes('සබැඳි පළ කිරීම තහනම්'));
+      const unchanged = (disclosure?.querySelector('summary')?.textContent?.trim() || '') === before;
+      await new Promise(resolve => setTimeout(resolve, 4300));
+      const dismissed = Boolean(toast?.hidden);
+      document.querySelector('#comment-close-btn')?.click();
+      return { shown, unchanged, dismissed };
+    })()`);
+    assert.ok(blockedReplyTest.shown, 'A link in a reply should show the Sinhala moderation popup');
+    assert.ok(blockedReplyTest.unchanged, 'A blocked link reply should not be submitted');
+    assert.ok(blockedReplyTest.dismissed, 'The link moderation popup should disappear automatically');
     assert.deepEqual(postModalResponsiveResults.map(result => result.width), widths);
     interaction.postComments = postCommentInteractions;
     interaction.postModalResponsiveResults = postModalResponsiveResults;

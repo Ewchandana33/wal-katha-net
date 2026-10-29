@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { onRequest as postComments } from "../functions/api/post-comments.js";
 import { onRequest as getComments } from "../functions/api/post-comments.js";
 import { onRequest as likeComment } from "../functions/api/post-comments/[commentId]/like.js";
 import { onRequest as replyToComment } from "../functions/api/post-comments/[commentId]/replies.js";
@@ -96,6 +97,7 @@ class MemoryD1 {
   }
 
   async run(query, params) {
+    if (query.startsWith("delete from story_rating_rate_limits")) return { meta: {} };
     if (query.startsWith("insert into legacy_post_comment_replies")) {
       const [postId, parentId, authorHash, body] = params;
       const id = this.nextReplyId++;
@@ -130,18 +132,25 @@ class MemoryD1 {
   }
 }
 
-function installWorkerFixture(t) {
+function installWorkerFixture(t, record = sourceComment) {
   const originalFetch = globalThis.fetch;
+  const calls = [];
   globalThis.fetch = async (input, init) => {
     if (String(input).startsWith("https://comments.wala-katha.workers.dev/api/comments")) {
-      return new Response(JSON.stringify([sourceComment]), {
-        status: 200,
+      const method = init?.method || "GET";
+      calls.push({
+        method,
+        body: typeof init?.body === "string" ? JSON.parse(init.body) : null,
+      });
+      return new Response(JSON.stringify([record]), {
+        status: method === "POST" ? 201 : 200,
         headers: { "Content-Type": "application/json" },
       });
     }
     return originalFetch(input, init);
   };
   t.after(() => { globalThis.fetch = originalFetch; });
+  return calls;
 }
 
 function makeRequest(path, method = "GET", body, origin = "https://www.walakatha.net") {
@@ -189,6 +198,76 @@ test("legacy post comments receive stable IDs and expose counts and likes", asyn
   assert.match(firstVisitor.headers.get("Set-Cookie") || "", /Path=\/api\/post-comments;/);
 });
 
+test("same-origin post-comment proxy rejects links and forwards clean opinions only", async (t) => {
+  const calls = installWorkerFixture(t);
+  const db = new MemoryD1();
+
+  const wrongOrigin = await postComments(context(
+    makeRequest("/api/post-comments", "POST", {
+      postId: POST_ID,
+      content: "සාමාන්‍ය අදහස",
+    }, "https://attacker.example"),
+    db,
+  ));
+  assert.equal(wrongOrigin.status, 403);
+  assert.equal(calls.length, 0);
+
+  const rejected = await postComments(context(
+    makeRequest("/api/post-comments", "POST", {
+      postId: POST_ID,
+      content: "මගේ අදහස https://example.com",
+    }),
+    db,
+  ));
+  assert.equal(rejected.status, 422);
+  assert.deepEqual(await rejected.json(), { error: "links_not_allowed" });
+  assert.equal(calls.length, 0, "rejected content must never reach the legacy Worker");
+  assert.equal(db.rateCount, 0, "link attempts do not consume the clean-comment rate limit");
+
+  const accepted = await postComments(context(
+    makeRequest("/api/post-comments", "POST", {
+      postId: POST_ID,
+      content: "කතාව ගැන මගේ අදහස",
+    }),
+    db,
+  ));
+  assert.equal(accepted.status, 201);
+  assert.deepEqual(calls, [{
+    method: "POST",
+    body: { postId: POST_ID, content: "කතාව ගැන මගේ අදහස" },
+  }]);
+  assert.equal(db.rateCount, 1);
+});
+
+test("post-comment API removes old links without changing stable IDs", async (t) => {
+  const oldComment = {
+    ...sourceComment,
+    content: "පැරණි අදහස https://example.com",
+  };
+  installWorkerFixture(t, oldComment);
+  const db = new MemoryD1();
+  const parentId = await stablePostCommentId(POST_ID, oldComment);
+  db.replies.push({
+    id: 9,
+    post_id: POST_ID,
+    parent_comment_id: parentId,
+    author_hash: "old-reader",
+    body: "පිළිතුර www.example.org",
+    created_at: 1_800_000_000,
+  });
+
+  const response = await getComments(context(
+    makeRequest("/api/post-comments?postId=" + POST_ID),
+    db,
+  ));
+  const data = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(data.comments[0].id, parentId);
+  assert.equal(data.comments[0].content, "පැරණි අදහස");
+  assert.equal(data.comments[0].replies[0].content, "පිළිතුර");
+  assert.doesNotMatch(JSON.stringify(data), /https:\/\/example\.com|www\.example\.org/);
+});
+
 test("readers can add a reply and toggle likes on both comment levels", async (t) => {
   installWorkerFixture(t);
   const db = new MemoryD1();
@@ -219,6 +298,23 @@ test("readers can add a reply and toggle likes on both comment levels", async (t
   ));
   assert.equal(replyLike.status, 200);
   assert.deepEqual(await replyLike.json(), { liked: true, like_count: 1 });
+});
+
+test("post-comment replies reject links before storing them", async (t) => {
+  installWorkerFixture(t);
+  const db = new MemoryD1();
+  const parentId = await stablePostCommentId(POST_ID, sourceComment);
+  const response = await replyToComment(context(
+    makeRequest("/api/post-comments/" + parentId + "/replies", "POST", {
+      postId: POST_ID,
+      body: "https://example.com",
+    }),
+    db,
+    parentId,
+  ));
+  assert.equal(response.status, 422);
+  assert.deepEqual(await response.json(), { error: "links_not_allowed" });
+  assert.equal(db.replies.length, 0);
 });
 
 test("invalid origins, comments, and payloads cannot create interactions", async (t) => {

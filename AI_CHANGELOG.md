@@ -16,9 +16,22 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 70 earlier dated entries from 2026-10-14 through 2026-10-28; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 70 earlier dated entries from 2026-10-14 through 2026-10-29; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-29 — Block links in comments and remove legacy links from display
+
+### Changes
+
+- Add one shared, normalization-aware link policy for article comments, post-comment replies, rating reviews, and review replies. Reject link submissions in both the browser and Pages APIs; route article-comment writes through a same-origin, rate-limited endpoint before forwarding them.
+- Show an accessible Sinhala warning popup that disappears automatically. Sanitize historical comment and reply text in APIs and server-rendered pages so links are not displayed while safe surrounding opinion text remains.
+- Fix the undefined interaction API variable in the existing comment client.
+- Restore all 22 dated sections missing from this branch's Q4 archive, retain the three branch-only archive entries, and rotate the oldest active entry so all 70 archived sections are unique and the active log retains five entries.
+
+### Verification
+
+- `yarn test` passed 43/43. `node --check` passed for the changed JavaScript API/helper modules, and `git diff --check` passed. Hosted CI/build and the new Cloudflare Preview are pending; no live comment, rating, or reply POST was sent, and Production was not changed.
 
 ## 2026-10-29 — Repair responsive review comments and like toggling
 
@@ -74,18 +87,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - GitHub Actions run `40681777229` attempt 1 failed before responsive assertions because Chrome DevTools did not become reachable. Attempt 2 passed Astro type-check, all 25 unit tests, the 51-page static build, and homepage/article layout checks at 11 viewport widths, then failed the selected-tile assertion. The assertion previously read the class after the later interaction sequence; this branch update is pending CI verification.
 - Interactive checks use isolated API stubs; no live rating/comment POST was made. No Production code, data, or deployment was changed.
-
-## 2026-10-28 — Complete story comments and colorless toast
-
-### Request and changes
-
-- Complete draft PR #105 with a rating-gated optional Sinhala comment, a separate accessible comments dialog, paginated top-level comments, one-level replies, and idempotent likes. The dialog uses the browser's modal layer and restores page scrolling/focus when closed.
-- Add same-origin validation, strict request parsing, a 500-character limit, hashed anonymous voter/IP identities, the existing write rate limit, safe text rendering, and atomic D1 insertion for a rating with its optional review.
-- Add the additive comments/likes migration matching the already-present Preview schema. Do not apply a migration, alter Production data/configuration, merge the PR, or deploy Production.
-- Supersede “Correct story-rating success backdrop”: use a colorless transparent backdrop with blur, paired with the existing green thank-you toast.
-- Add API/UI regression tests, including the comments dialog, likes/replies, scroll lock, toast appearance, and paired dismissal.
-
-### Verification
-
-- Focused Node tests passed 17/17; JavaScript syntax checks and SQLite migration/query smoke tests passed. CI run `40681302698` caught strict-null errors in the new comments widget, which were corrected in the follow-up commit. Cloudflare Preview deployment `2e1c3d65-dd5b-42d7-beca-d7e62d0977aa` deployed initial commit `bd18b2ddaaa12e5a70734d0edded8587768eb1c0`, but is not accepted as verification because CI failed. CI and a corrected Preview are pending. Local build dependencies and generated `dist/` assets are not present in this workspace.
-- PR #105 remains an open draft. No merge, `main` update, or Production deployment was performed.

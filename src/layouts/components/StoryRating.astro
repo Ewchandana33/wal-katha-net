@@ -763,6 +763,8 @@ const ratings = [
 </style>
 
 <script>
+  import { containsDisallowedLink } from "../../../shared/comment-link-policy.js";
+
   const RATING_API = "/api/rating";
 
   function setMessage(root: HTMLElement, message: string, state: "info" | "success" | "error" = "info") {
@@ -933,6 +935,12 @@ const ratings = [
     submit.addEventListener("click", async () => {
       const selected = inputs.find((input) => input.checked);
       if (!selected || hasVoted || submitting) return;
+      const commentText = commentInput?.value.trim() || "";
+      if (containsDisallowedLink(commentText)) {
+        document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+        commentInput?.focus();
+        return;
+      }
       submitting = true;
       submit.disabled = true;
       inputs.forEach((input) => (input.disabled = true));
@@ -946,7 +954,7 @@ const ratings = [
           body: JSON.stringify({
             storySlug,
             rating: Number(selected.value),
-            comment: commentInput?.value.trim() || "",
+            comment: commentText,
           }),
         });
         const data = await response.json();
@@ -958,6 +966,10 @@ const ratings = [
           return;
         }
         if (!response.ok) {
+          if (data.error === "links_not_allowed") {
+            document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+            throw new Error("links_not_allowed");
+          }
           if (response.status === 429) {
             throw new Error("rate_limited");
           }
@@ -979,7 +991,9 @@ const ratings = [
         const message =
           error instanceof Error && error.message === "rate_limited"
             ? "ඉල්ලීම් සීමාව ඉක්මවා ඇත. මිනිත්තු කිහිපයකින් නැවත උත්සාහ කරන්න."
-            : "ඇගයීම සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
+            : error instanceof Error && error.message === "links_not_allowed"
+              ? "සබැඳිය ඉවත් කර නැවත උත්සාහ කරන්න."
+              : "ඇගයීම සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
         setMessage(root, message, "error");
         inputs.forEach((input) => (input.disabled = false));
         updateCommentField();

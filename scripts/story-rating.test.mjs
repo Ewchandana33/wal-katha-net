@@ -295,6 +295,23 @@ test("comment validation rejects non-text and overlong feedback", async () => {
   assert.equal(db.comments.length, 0);
 });
 
+test("rating review comments containing links are rejected before a vote or comment is stored", async () => {
+  const db = new MemoryD1();
+  const response = await onRequest(makePostContext({
+    db,
+    body: JSON.stringify({
+      storySlug: STORY_SLUG,
+      rating: 5,
+      comment: "මගේ සමාලෝචනය https://example.com",
+    }),
+  }));
+  assert.equal(response.status, 422);
+  assert.deepEqual(await response.json(), { error: "links_not_allowed" });
+  assert.equal(db.votes.length, 0);
+  assert.equal(db.comments.length, 0);
+  assert.equal(db.rateLimits.size, 0);
+});
+
 test("failed comment insertion rolls the rating back with its D1 batch", async () => {
   const db = new MemoryD1();
   db.failCommentInsert = true;

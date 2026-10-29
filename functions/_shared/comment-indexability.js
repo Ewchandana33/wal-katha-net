@@ -1,3 +1,5 @@
+import { sanitizeCommentText } from "../../shared/comment-link-policy.js";
+
 const MAX_INDEXED_TEXT_LENGTH = 1000;
 const MAX_INDEXED_REVIEW_LENGTH = 500;
 const MAX_INDEXED_REPLIES_PER_REVIEW = 100;
@@ -18,7 +20,7 @@ function escapeHtml(value) {
 
 function boundedText(value, maximumLength) {
   if (typeof value !== "string") return "";
-  const trimmed = value.trim();
+  const trimmed = sanitizeCommentText(value);
   return Array.from(trimmed).slice(0, maximumLength).join("");
 }
 

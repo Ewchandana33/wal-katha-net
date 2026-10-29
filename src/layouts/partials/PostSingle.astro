@@ -54,7 +54,7 @@ if (!smartSimilarPosts.length) {
 }
 const finalSimilarPosts = smartSimilarPosts.slice(0, 6);
 
-const WORKER_API = "https://comments.wala-katha.workers.dev/api/comments";
+const POST_COMMENTS_API = "/api/post-comments";
 
 // NEW: Like feature API endpoint. This targets the SAME Cloudflare
 // Worker origin that already powers the comment system above
@@ -634,7 +634,7 @@ const imageObjectSchema = schemaImageUrl
     aria-modal="true"
     aria-labelledby="comment-modal-title"
     data-post-id={post.id}
-    data-api-url={WORKER_API}
+    data-api-url={POST_COMMENTS_API}
     data-interactions-api="/api/post-comments"
   >
     <div class="relative w-full max-w-2xl bg-[#0c0d10] border border-white/10 rounded-2xl shadow-[0_10px_50px_rgba(0,0,0,0.8)] flex flex-col max-h-[85vh]">
@@ -728,6 +728,14 @@ const imageObjectSchema = schemaImageUrl
     </svg>
     <span>ස්තූතියි! ඔබේ අදහස සාර්ථකව දැමුණා 🙏</span>
   </div>
+  <div
+    id="comment-link-toast"
+    class="comment-link-toast"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+    hidden
+  ></div>
 </section>
 
 {finalSimilarPosts.length > 0 && (
@@ -884,6 +892,35 @@ const imageObjectSchema = schemaImageUrl
     box-shadow: 0 0 0 1px rgba(239,68,68,0.08), inset 0 1px 0 rgba(239,68,68,0.1), 0 4px 20px rgba(0,0,0,0.5);
     position: relative;
     overflow: hidden;
+  }
+  .comment-link-toast {
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    width: min(36rem, calc(100vw - 2rem));
+    padding: 0.9rem 1.1rem;
+    transform: translate(-50%, 0.75rem);
+    border: 1px solid rgba(248, 113, 113, 0.8);
+    border-radius: 0.9rem;
+    background: rgba(18, 10, 13, 0.97);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(239, 68, 68, 0.12);
+    color: #ffe4e6;
+    font-size: 0.92rem;
+    font-weight: 750;
+    line-height: 1.55;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+  .comment-link-toast.is-visible {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+  .comment-link-toast[hidden] { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .comment-link-toast { transition: none; }
   }
   .comment-warning-notice::before {
     content: "";
@@ -1690,7 +1727,32 @@ const imageObjectSchema = schemaImageUrl
 </script>
 
 <script>
+  import { containsDisallowedLink } from "../../../shared/comment-link-policy.js";
+
   let warningTypewriterDone = false;
+  let linkToastHideTimer: ReturnType<typeof setTimeout> | null = null;
+  let linkToastRemoveTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function showLinkBlockedToast() {
+    const toast = document.getElementById("comment-link-toast");
+    if (!toast) return;
+    if (linkToastHideTimer) clearTimeout(linkToastHideTimer);
+    if (linkToastRemoveTimer) clearTimeout(linkToastRemoveTimer);
+
+    toast.textContent = "සබැඳි පළ කිරීම තහනම්. සබැඳිය ඉවත් කර ඔබේ අදහස පමණක් පළ කරන්න.";
+    toast.hidden = false;
+    toast.classList.add("is-visible");
+    linkToastHideTimer = setTimeout(() => {
+      toast.classList.remove("is-visible");
+      linkToastRemoveTimer = setTimeout(() => {
+        toast.hidden = true;
+        linkToastHideTimer = null;
+        linkToastRemoveTimer = null;
+      }, 200);
+    }, 4000);
+  }
+
+  document.addEventListener("comment-link-blocked", showLinkBlockedToast);
 
   function runWarningTypewriter() {
     if (warningTypewriterDone) return;
@@ -1732,17 +1794,7 @@ const imageObjectSchema = schemaImageUrl
 
     const postId = modal?.getAttribute("data-post-id") ?? "";
     const API_URL = modal?.getAttribute("data-api-url") ?? "";
-
-    const linkRegex = new RegExp(
-      "https?:\\/\\/" + "|ftp:\\/\\/" + "|www\\." +
-      "|bit\\.ly|t\\.co|goo\\.gl|tinyurl\\.com|youtu\\.be|ow\\.ly|is\\.gd|buff\\.ly" +
-      "|t\\.me|wa\\.me|tg:" +
-      "|\\b[a-zA-Z0-9][a-zA-Z0-9\\-]{1,61}[a-zA-Z0-9]\\." +
-      "(?:com|lk|net|org|io|info|co|tv|me|biz|in|uk|edu|gov|app|dev|xyz|site|online|store|shop|news|blog|tech|ai)" +
-      "(?:\\/|\\b)" +
-      "|\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b",
-      "i"
-    );
+    const INTERACTIONS_API = modal?.getAttribute("data-interactions-api") ?? "/api/post-comments";
 
     type PostCommentRecord = {
       id: string;
@@ -1935,6 +1987,11 @@ const imageObjectSchema = schemaImageUrl
             event.preventDefault();
             const text = input.value.trim();
             if (!text || Array.from(text).length > 1000 || submit.disabled) return;
+            if (containsDisallowedLink(text)) {
+              document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+              input.focus();
+              return;
+            }
             submit.disabled = true;
             error.textContent = "";
             try {
@@ -1945,7 +2002,13 @@ const imageObjectSchema = schemaImageUrl
                 body: JSON.stringify({ postId, body: text }),
               });
               const data = await response.json();
-              if (!response.ok || !data.reply) throw new Error("reply_failed");
+              if (!response.ok || !data.reply) {
+                if (data.error === "links_not_allowed") {
+                  document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+                  return;
+                }
+                throw new Error("reply_failed");
+              }
               const savedReply = data.reply as PostCommentRecord;
               const replyItem = document.createElement("li");
               replyItem.className = "post-comment-reply-new";
@@ -2072,8 +2135,8 @@ const imageObjectSchema = schemaImageUrl
         textarea?.focus();
         return;
       }
-      if (linkRegex.test(content)) {
-        showValidation("🔗 ලින්ක් දැමීමට අවසර නැහැ. කරුණාකර ලින්ක් ඉවත් කර ඔබේ අදහස දක්වන්න.");
+      if (containsDisallowedLink(content)) {
+        document.dispatchEvent(new CustomEvent("comment-link-blocked"));
         textarea?.focus();
         return;
       }
@@ -2105,6 +2168,11 @@ const imageObjectSchema = schemaImageUrl
           showSuccessToast();
         } else {
           const err = await res.json().catch(() => ({})) as { error?: string };
+          if (err.error === "links_not_allowed") {
+            if (validationMsg) validationMsg.classList.add("hidden");
+            document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+            return;
+          }
           showValidation(err.error ?? "කමෙන්ට් එක ඉදිරිපත් කිරීමට නොහැකි වුණා. නැවත උත්සාහ කරන්න.");
         }
       } catch (err) {

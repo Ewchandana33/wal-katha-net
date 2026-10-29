@@ -541,6 +541,8 @@ const dialogId = `story-comments-${storySlug}`;
 </style>
 
 <script>
+  import { containsDisallowedLink } from "../../../shared/comment-link-policy.js";
+
   const COMMENTS_API = "/api/rating/comments";
 
   type CommentRecord = {
@@ -778,6 +780,11 @@ const dialogId = `story-comments-${storySlug}`;
           event.preventDefault();
           const replyText = textarea.value.trim();
           if (!replyText || Array.from(replyText).length > 500 || sendButton.disabled) return;
+          if (containsDisallowedLink(replyText)) {
+            document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+            textarea.focus();
+            return;
+          }
           sendButton.disabled = true;
           error.textContent = "";
           try {
@@ -788,7 +795,13 @@ const dialogId = `story-comments-${storySlug}`;
               body: JSON.stringify({ storySlug, parentId: record.id, body: replyText }),
             });
             const data = await response.json();
-            if (!response.ok) throw new Error("reply_failed");
+            if (!response.ok) {
+              if (data.error === "links_not_allowed") {
+                document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+                return;
+              }
+              throw new Error("reply_failed");
+            }
             const replyItem = document.createElement("li");
             replyItem.className = "story-comment-new-reply";
             const savedReply: CommentRecord = {

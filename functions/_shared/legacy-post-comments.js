@@ -1,4 +1,5 @@
 import { sha256 } from "./story-review-utils.js";
+import { sanitizeCommentText } from "../../shared/comment-link-policy.js";
 
 export const PUBLIC_POST_COMMENTS_API = "https://comments.wala-katha.workers.dev/api/comments";
 const MAX_PUBLIC_POST_COMMENTS = 100;
@@ -29,7 +30,7 @@ export async function stablePostCommentId(postId, record) {
 function emptyInteractionState(record, id) {
   return {
     id,
-    content: String(record.content).slice(0, 1000),
+    content: sanitizeCommentText(String(record.content).slice(0, 1000)),
     date: typeof record.date === "string" ? record.date.slice(0, 80) : "",
     created_at: record.created_at ?? null,
     like_count: 0,
@@ -96,7 +97,7 @@ export async function preparePostComments(db, postId, records, voterHash = "") {
             const replyLike = likesByReply.get(Number(row.id));
             return {
               id: "r-" + String(row.id),
-              content: String(row.body).slice(0, 1000),
+              content: sanitizeCommentText(String(row.body).slice(0, 1000)),
               created_at: Number(row.created_at) || 0,
               like_count: Number(replyLike?.like_count) || 0,
               liked: Number(replyLike?.viewer_liked) === 1 || replyLike?.viewer_liked === true,
