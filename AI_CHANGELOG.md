@@ -16,9 +16,24 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 68 earlier dated entries from 2026-10-14 through 2026-10-28; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 69 earlier dated entries from 2026-10-14 through 2026-10-28; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-29 — Fix story-rating blur and audit search eligibility
+
+### Changes
+
+- Preserve the unprefixed backdrop-filter: blur(6px) in minified CSS by placing the WebKit fallback first. Keep the Chromium assertion strict; remove --disable-gpu from the headless harness and read the first non-none computed filter value.
+- Validate the existing server-rendered comment paths: article comments and rating-review comments are included in initial HTML (escaped and bounded), while the separate modal continues to provide paginated interaction. The current bounds are 100 public comments and 20 top-level review comments per story; content beyond those bounds is not guaranteed in the first response.
+- Audit the star-snippet request against Google's current review-snippet rules. Keep the story schema as BlogPosting; do not add misleading AggregateRating markup or relabel a story as another content type. Search engines decide whether to index content or display rich results.
+
+### Verification
+
+- GitHub Actions run 40827541807 passed for code commit c77b766bfd95a8a9bbf669d82f4cd39297725153: type-check, test suites, the 51-page build and SEO checks, and responsive Chromium/UI checks at all 11 configured widths. The toast test read backdropFilter: blur(6px), confirmed a transparent backdrop, paired dismissal, and comments modal/like/reply/scroll-lock interactions.
+- Cloudflare Preview deployment 27d2adde-71d6-4215-9443-d925fb28ccf4 completed successfully for that commit: https://27d2adde.wala-katha.pages.dev. The home and article routes returned HTTP 200 with Preview noindex (expected); the built CSS included standard backdrop-filter. The article's initial HTML contained all 3 public comments currently returned by the post-comment API; the Preview review-comment API currently reports 0 records. No live vote or comment POST was sent.
+- Production remains on deployment 6e110384-5552-454c-bc87-8970f98a2305, main commit 05d5ded3cce4a1084c6cba334cac19b7e696c31b. PR #105 remains an open draft; no merge, Production configuration/data change, or Production deployment occurred.
+
 
 ## 2026-10-28 — Make rating interaction fixture deterministic
 
@@ -72,16 +87,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - `yarn test` passed 17/17; `yarn check`, `node --check scripts/verify-responsive-layout.mjs`, and `git diff --check` passed. `yarn check` reports the existing 20 dependency-resolution warnings and Node.js `url.parse()` deprecation warning.
 - PR #105 branch update, GitHub CI, and Cloudflare Preview checks are pending. No Production branch update or deployment was performed.
 
-## 2026-10-28 — Center and restyle story-rating feedback
-
-### Request and changes
-
-- Update PR #105's successful rating notice from a top-anchored green toast to a viewport-centered blue success toast, while retaining its accessible live region and 3.5-second auto-dismiss behavior.
-- Refine the rating panel with restrained blue depth, clearer interactive star cards, more distinct summary/action styling, and a proper people icon in place of the unrelated pawn glyph.
-- Extend the isolated responsive Chromium interaction test to assert the toast uses fixed positioning, is centered in the viewport, has a blue background, and still dismisses automatically. API requests remain stubbed in this interaction test.
-
-### Verification
-
-- `yarn test` passed 17/17; `yarn check`, `git diff --check`, and the production `yarn build` passed. The build generated all 51 pages and passed the configured PDF, featured-link, social-image, critical-CSS, homepage-performance, and sitemap checks.
-- Local `node scripts/verify-responsive-layout.mjs` reached the homepage checks through 700px, then Chromium timed out on `Emulation.setDeviceMetricsOverride` at 768px. No assertion failed before that timeout; the isolated toast interaction was not reached locally. GitHub CI and a new Preview are pending the branch update.
-- No Production branch update or deployment was performed.
