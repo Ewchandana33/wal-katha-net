@@ -16,9 +16,23 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 69 earlier dated entries from 2026-10-14 through 2026-10-28; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 70 earlier dated entries from 2026-10-14 through 2026-10-28; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-29 — Repair responsive review comments and like toggling
+
+### Changes
+
+- Fix the root style-scope defect: comment cards, like/reply controls, and textareas are created after Astro renders, so component-scoped selectors did not reach them. Anchor explicit global selectors to the comments dialog and restyle it with black surfaces, red accents, readable section/card separation, wrapping, visible focus, and touch-sized controls.
+- Make the like API accept a validated desired `liked` state, with repeat-safe add/remove operations and legacy requests without that field still setting a like. Update client ARIA state and add API/UI regression coverage.
+- Extend the isolated Chromium fixture to exercise modal fit at all 11 configured viewport widths and verify dynamic card/textarea styles, like/unlike count changes, and reply interaction. All API writes remain stubbed.
+
+### Verification
+
+- `yarn test` passed 29/29; `yarn check`, JavaScript syntax checks, and `git diff --check` passed. Astro reports the existing 20 dependency-resolution warnings and Node.js `url.parse()` deprecation warning.
+- The local `yarn build` reached static route generation but timed out after 300 seconds in this 1.6 GiB sandbox. GitHub CI and a Preview deployment for the changes are pending; use those before treating the build as verified.
+- No live vote or comment POST was sent. Production data/configuration, merge state, and Production deployment were not changed.
 
 ## 2026-10-29 — Fix story-rating blur and audit search eligibility
 
@@ -73,17 +87,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - Focused Node tests passed 17/17; JavaScript syntax checks and SQLite migration/query smoke tests passed. CI run `40681302698` caught strict-null errors in the new comments widget, which were corrected in the follow-up commit. Cloudflare Preview deployment `2e1c3d65-dd5b-42d7-beca-d7e62d0977aa` deployed initial commit `bd18b2ddaaa12e5a70734d0edded8587768eb1c0`, but is not accepted as verification because CI failed. CI and a corrected Preview are pending. Local build dependencies and generated `dist/` assets are not present in this workspace.
 - PR #105 remains an open draft. No merge, `main` update, or Production deployment was performed.
-
-## 2026-10-28 — Correct story-rating success backdrop
-
-### Correction and changes
-
-- Correction to “Center and restyle story-rating feedback”: the user asked for a full-screen blue backdrop behind the original thank-you notice, not a blue notice.
-- Restore the original dark-green toast appearance and keep it centered. Add a fixed blue-tinted, blurred viewport backdrop that appears and auto-dismisses together with the toast after 3.5 seconds.
-- Update the isolated responsive Chromium test to verify full-viewport backdrop coverage, its blue color, the unchanged green toast, and the paired automatic dismissal.
-
-### Verification
-
-- `yarn test` passed 17/17; `yarn check`, `node --check scripts/verify-responsive-layout.mjs`, and `git diff --check` passed. `yarn check` reports the existing 20 dependency-resolution warnings and Node.js `url.parse()` deprecation warning.
-- PR #105 branch update, GitHub CI, and Cloudflare Preview checks are pending. No Production branch update or deployment was performed.
-

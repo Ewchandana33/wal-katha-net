@@ -38,11 +38,14 @@ export async function onRequest(context) {
 
   const body = parsed.value;
   if (
-    Object.keys(body).some((key) => key !== "storySlug") ||
-    typeof body.storySlug !== "string"
+    Object.keys(body).some((key) => !["storySlug", "liked"].includes(key)) ||
+    typeof body.storySlug !== "string" ||
+    (body.liked !== undefined && typeof body.liked !== "boolean")
   ) {
     return jsonResponse({ error: "invalid_comment" }, 400);
   }
+  // Omitted `liked` keeps older callers' POST behavior: set the like to true.
+  const shouldBeLiked = body.liked !== false;
   const slugStatus = storySlugStatus(body.storySlug);
   if (slugStatus === "invalid") return jsonResponse({ error: "invalid_story" }, 400);
   if (slugStatus === "missing") return jsonResponse({ error: "story_not_found" }, 404);
@@ -63,13 +66,23 @@ export async function onRequest(context) {
     const rateLimitResponse = await enforceWriteRateLimit(request, db);
     if (rateLimitResponse) return rateLimitResponse;
 
-    await db
-      .prepare(
-        `INSERT OR IGNORE INTO story_rating_comment_likes (comment_id, voter_hash)
-         VALUES (?, ?)`,
-      )
-      .bind(commentId, voterHash)
-      .run();
+    if (shouldBeLiked) {
+      await db
+        .prepare(
+          `INSERT OR IGNORE INTO story_rating_comment_likes (comment_id, voter_hash)
+           VALUES (?, ?)`,
+        )
+        .bind(commentId, voterHash)
+        .run();
+    } else {
+      await db
+        .prepare(
+          `DELETE FROM story_rating_comment_likes
+           WHERE comment_id = ? AND voter_hash = ?`,
+        )
+        .bind(commentId, voterHash)
+        .run();
+    }
 
     const [countRow, viewerLike] = await Promise.all([
       db

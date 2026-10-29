@@ -47,6 +47,10 @@ const dialogId = `story-comments-${storySlug}`;
     box-sizing: border-box;
   }
 
+  .story-comments-dialog :global(*) {
+    box-sizing: border-box;
+  }
+
   .story-comments {
     margin: -0.9rem 0 2rem;
   }
@@ -57,30 +61,31 @@ const dialogId = `story-comments-${storySlug}`;
     align-items: center;
     gap: 0.6rem;
     padding: 0.55rem 0.9rem;
-    border: 1px solid #34445b;
+    border: 1px solid #74313f;
     border-radius: 999px;
-    background: #0b1727;
-    color: #ecf2fa;
+    background: #111014;
+    color: #fff2f3;
     font: inherit;
     font-size: 0.86rem;
     font-weight: 700;
     cursor: pointer;
-    transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
+    transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease, transform 140ms ease;
   }
 
   .story-comments-open:hover {
-    border-color: #7895ba;
-    background: #12233a;
+    border-color: #ff5368;
+    background: #241116;
+    color: #ffffff;
     transform: translateY(-1px);
   }
 
   .story-comments-open:focus-visible,
   .story-comments-close:focus-visible,
   .story-comments-more:focus-visible,
-  .story-comment-action:focus-visible,
-  .story-reply-submit:focus-visible,
-  .story-reply-cancel:focus-visible {
-    outline: 2px solid #8ec3ff;
+  .story-comments-dialog :global(.story-comment-action:focus-visible),
+  .story-comments-dialog :global(.story-reply-submit:focus-visible),
+  .story-comments-dialog :global(.story-reply-cancel:focus-visible) {
+    outline: 2px solid #ff667a;
     outline-offset: 3px;
   }
 
@@ -91,38 +96,40 @@ const dialogId = `story-comments-${storySlug}`;
     place-items: center;
     padding: 0 0.35rem;
     border-radius: 999px;
-    background: #1b2d44;
-    color: #b8d7ff;
+    background: #3a1720;
+    color: #ffb6c0;
     font-size: 0.72rem;
     font-variant-numeric: tabular-nums;
   }
 
   .story-comments-dialog {
-    width: min(42rem, calc(100vw - 1.5rem));
+    width: min(46rem, calc(100vw - 1rem));
     max-width: none;
-    max-height: min(84vh, 52rem);
+    max-height: min(88vh, 48rem);
     margin: auto;
     padding: 0;
     overflow: hidden;
-    border: 1px solid #34445b;
+    border: 1px solid #a33b50;
     border-radius: 1.15rem;
-    background: #091321;
-    color: #edf2f8;
-    box-shadow: 0 28px 90px rgb(0 0 0 / 58%);
+    background: #09090c;
+    color: #f7f3f4;
+    box-shadow: 0 0 0 1px rgb(231 61 87 / 14%), 0 28px 90px rgb(0 0 0 / 72%);
   }
 
   .story-comments-dialog::backdrop {
-    background: rgb(0 0 0 / 72%);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
+    background: rgb(0 0 0 / 82%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
   }
 
   .story-comments-panel {
     display: flex;
-    max-height: min(84vh, 52rem);
+    max-height: min(88vh, 48rem);
     flex-direction: column;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     overscroll-behavior: contain;
+    scrollbar-color: #71303d #100d10;
   }
 
   .story-comments-header {
@@ -134,13 +141,20 @@ const dialogId = `story-comments-${storySlug}`;
     justify-content: space-between;
     gap: 1rem;
     padding: 1.3rem 1.4rem 1.1rem;
-    border-bottom: 1px solid #263448;
-    background: #0b1727;
+    border-bottom: 1px solid #54232e;
+    background: linear-gradient(135deg, #171015, #100e12 72%);
   }
 
   .story-comments-eyebrow {
     margin: 0 0 0.25rem;
-    color: #9abbe0;
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.45rem;
+    padding: 0.15rem 0.55rem;
+    border: 1px solid #6c2c3a;
+    border-radius: 999px;
+    background: #281117;
+    color: #ff9aa9;
     font-size: 0.72rem;
     font-weight: 750;
     letter-spacing: 0.08em;
@@ -149,7 +163,7 @@ const dialogId = `story-comments-${storySlug}`;
 
   .story-comments-header h2 {
     margin: 0;
-    color: #f4f7fb;
+    color: #fff7f8;
     font-size: clamp(1.1rem, 3vw, 1.45rem);
     line-height: 1.4;
   }
@@ -157,7 +171,7 @@ const dialogId = `story-comments-${storySlug}`;
   .story-comments-intro {
     max-width: 33rem;
     margin: 0.4rem 0 0;
-    color: #aab7c8;
+    color: #c0b4b8;
     font-size: 0.84rem;
     line-height: 1.6;
   }
@@ -168,10 +182,10 @@ const dialogId = `story-comments-${storySlug}`;
     height: 2.4rem;
     flex: 0 0 auto;
     place-items: center;
-    border: 1px solid #35445a;
+    border: 1px solid #71303d;
     border-radius: 50%;
-    background: #101e30;
-    color: #f0f4fa;
+    background: #1b1014;
+    color: #fff1f3;
     font: inherit;
     font-size: 1.7rem;
     line-height: 1;
@@ -179,9 +193,13 @@ const dialogId = `story-comments-${storySlug}`;
   }
 
   .story-comments-status {
-    margin: 0;
-    padding: 1rem 1.4rem 0;
-    color: #aab7c8;
+    margin: 1rem 1.4rem 0;
+    padding: 0.75rem 1rem;
+    border: 1px solid #48232b;
+    border-left: 3px solid #e7445b;
+    border-radius: 0.65rem;
+    background: #120d10;
+    color: #d3c4c8;
     font-size: 0.84rem;
     line-height: 1.6;
   }
@@ -198,16 +216,22 @@ const dialogId = `story-comments-${storySlug}`;
     list-style: none;
   }
 
-  .story-comment {
+  .story-comments-dialog :global(.story-comments-list > li) {
+    min-width: 0;
+  }
+
+  .story-comments-dialog :global(.story-comment) {
     min-width: 0;
     padding: 1rem;
-    border: 1px solid #253348;
+    border: 1px solid #542a34;
+    border-left: 3px solid #d94158;
     border-radius: 0.9rem;
-    background: #0c1929;
+    background: linear-gradient(145deg, #171216, #0e0d11 72%);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
     overflow-wrap: anywhere;
   }
 
-  .story-comment-header {
+  .story-comments-dialog :global(.story-comment-header) {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -215,147 +239,174 @@ const dialogId = `story-comments-${storySlug}`;
     margin-bottom: 0.55rem;
   }
 
-  .story-comment-author {
-    color: #dce8f6;
+  .story-comments-dialog :global(.story-comment-author) {
+    color: #f6e9ec;
     font-size: 0.79rem;
     font-weight: 750;
   }
 
-  .story-comment-date {
-    color: #8c9bb0;
+  .story-comments-dialog :global(.story-comment-date) {
+    color: #b5a5aa;
     font-size: 0.7rem;
   }
 
-  .story-comment-body {
+  .story-comments-dialog :global(.story-comment-body) {
     margin: 0;
-    color: #d4dce7;
+    color: #e2d9dc;
     font-size: 0.88rem;
     line-height: 1.75;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
   }
 
-  .story-comment-actions {
+  .story-comments-dialog :global(.story-comment-actions) {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.75rem;
   }
 
-  .story-comment-action {
-    min-height: 2rem;
-    padding: 0.35rem 0.65rem;
-    border: 1px solid #33445a;
+  .story-comments-dialog :global(.story-comment-action) {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid #74313f;
     border-radius: 999px;
-    background: #101e30;
-    color: #b9c7d8;
+    background: #1b1014;
+    color: #eadde0;
     font: inherit;
-    font-size: 0.74rem;
+    font-size: 0.8rem;
+    font-weight: 700;
     cursor: pointer;
+    transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease;
   }
 
-  .story-comment-action[aria-pressed="true"] {
-    border-color: #a83d5a;
-    background: #351c2a;
-    color: #ff9db2;
+  .story-comments-dialog :global(.story-comment-action:hover:not(:disabled)) {
+    border-color: #c7445b;
+    background: #2c151c;
+    color: #fff5f6;
   }
 
-  .story-comment-action:disabled {
+  .story-comments-dialog :global(.story-comment-action[aria-pressed="true"]) {
+    border-color: #f0526b;
+    background: #4a1823;
+    color: #ffb0bd;
+    box-shadow: inset 0 0 0 1px rgb(240 82 107 / 16%);
+  }
+
+  .story-comments-dialog :global(.story-comment-action:disabled) {
     cursor: wait;
     opacity: 0.65;
   }
 
-  .story-comment-replies {
+  .story-comments-dialog :global(.story-comment-replies) {
     display: grid;
     gap: 0.6rem;
     margin: 0.8rem 0 0 0.55rem;
     padding-left: 0.8rem;
-    border-left: 2px solid #344760;
+    border-left: 2px solid #8c3445;
     list-style: none;
   }
 
-  .story-comment-replies .story-comment {
+  .story-comments-dialog :global(.story-comment-replies .story-comment) {
     padding: 0.8rem;
-    background: #0a1522;
+    border-left-width: 2px;
+    background: #100c10;
   }
 
-  .story-reply-form {
+  .story-comments-dialog :global(.story-reply-form) {
     display: grid;
     gap: 0.55rem;
     margin-top: 0.75rem;
   }
 
-  .story-reply-form[hidden] {
+  .story-comments-dialog :global(.story-reply-form[hidden]) {
     display: none;
   }
 
-  .story-reply-form label {
-    color: #cbd6e3;
+  .story-comments-dialog :global(.story-reply-form label) {
+    color: #e7d7dc;
     font-size: 0.78rem;
     font-weight: 700;
   }
 
-  .story-reply-form textarea {
+  .story-comments-dialog :global(.story-reply-form textarea) {
     width: 100%;
-    min-height: 4.25rem;
+    min-height: 5.25rem;
     resize: vertical;
-    padding: 0.65rem 0.75rem;
-    border: 1px solid #35445a;
-    border-radius: 0.65rem;
-    background: #07111e;
-    color: #f1f5fa;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid #71303d;
+    border-radius: 0.7rem;
+    background: #0b090c;
+    color: #fff7f8;
+    color-scheme: dark;
     font: inherit;
-    font-size: 0.84rem;
+    font-size: 0.9rem;
     line-height: 1.6;
+    overflow-wrap: anywhere;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
   }
 
-  .story-reply-form textarea:focus-visible {
-    border-color: #8ec3ff;
-    outline: 2px solid #8ec3ff;
-    outline-offset: 2px;
+  .story-comments-dialog :global(.story-reply-form textarea::placeholder) {
+    color: #8c777d;
   }
 
-  .story-reply-error {
+  .story-comments-dialog :global(.story-reply-form textarea:focus-visible) {
+    border-color: #ff5b70;
+    outline: 2px solid rgb(255 91 112 / 35%);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 3px rgb(255 91 112 / 10%);
+  }
+
+  .story-comments-dialog :global(.story-reply-error) {
     margin: 0;
     color: #ff9dab;
     font-size: 0.76rem;
   }
 
-  .story-reply-error:empty {
+  .story-comments-dialog :global(.story-reply-error:empty) {
     display: none;
   }
 
-  .story-reply-controls {
+  .story-comments-dialog :global(.story-reply-controls) {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
 
-  .story-reply-submit,
-  .story-reply-cancel,
+  .story-comments-dialog :global(.story-reply-submit),
+  .story-comments-dialog :global(.story-reply-cancel),
   .story-comments-more {
-    min-height: 2.25rem;
-    padding: 0.45rem 0.8rem;
-    border: 1px solid #405875;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid #8b394b;
     border-radius: 0.6rem;
-    background: #142740;
-    color: #eef5ff;
+    background: #32131a;
+    color: #fff0f2;
     font: inherit;
-    font-size: 0.77rem;
+    font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;
   }
 
-  .story-reply-submit:disabled,
+  .story-comments-dialog :global(.story-reply-submit:disabled),
   .story-comments-more:disabled {
     cursor: wait;
     opacity: 0.6;
   }
 
-  .story-reply-cancel {
-    border-color: #35445a;
-    background: #101e30;
-    color: #b9c7d8;
+  .story-comments-dialog :global(.story-reply-submit:hover:not(:disabled)),
+  .story-comments-more:hover:not(:disabled) {
+    border-color: #ff5368;
+    background: #4a1823;
+  }
+
+  .story-comments-dialog :global(.story-reply-cancel) {
+    border-color: #514047;
+    background: #171216;
+    color: #ddcfd3;
   }
 
   .story-comments-more {
@@ -380,12 +431,12 @@ const dialogId = `story-comments-${storySlug}`;
 
     .story-comments-dialog {
       width: calc(100vw - 1rem);
-      max-height: 88vh;
+      max-height: calc(100vh - 1rem);
       border-radius: 0.9rem;
     }
 
     .story-comments-panel {
-      max-height: 88vh;
+      max-height: calc(100vh - 1rem);
     }
 
     .story-comments-header {
@@ -399,11 +450,57 @@ const dialogId = `story-comments-${storySlug}`;
     .story-comments-list {
       padding: 0.85rem 1rem 1rem;
     }
+
+    .story-comments-status {
+      margin-right: 1rem;
+      margin-left: 1rem;
+    }
+
+    .story-comments-dialog :global(.story-comment) {
+      padding: 0.85rem;
+    }
+
+    .story-comments-dialog :global(.story-comment-header) {
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .story-comments-dialog :global(.story-comment-date) {
+      flex: 0 0 auto;
+      text-align: right;
+    }
+
+    .story-comments-dialog :global(.story-comment-replies) {
+      margin-left: 0.2rem;
+      padding-left: 0.55rem;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .story-comments-open {
+    .story-comments-open,
+    .story-comments-dialog :global(.story-comment-action),
+    .story-comments-dialog :global(.story-reply-form textarea) {
       transition: none;
+    }
+  }
+
+  @supports (height: 100dvh) {
+    .story-comments-dialog {
+      max-height: min(88dvh, 48rem);
+    }
+
+    .story-comments-panel {
+      max-height: min(88dvh, 48rem);
+    }
+
+    @media (max-width: 480px) {
+      .story-comments-dialog {
+        max-height: calc(100dvh - 1rem);
+      }
+
+      .story-comments-panel {
+        max-height: calc(100dvh - 1rem);
+      }
     }
   }
 </style>
@@ -527,28 +624,39 @@ const dialogId = `story-comments-${storySlug}`;
       const likeButton = document.createElement("button");
       likeButton.className = "story-comment-action";
       likeButton.type = "button";
-      likeButton.setAttribute("aria-pressed", String(record.liked === true));
-      likeButton.textContent = `♥ කැමතියි · ${Number(record.like_count) || 0}`;
+      const syncLikeButton = () => {
+        const liked = record.liked === true;
+        likeButton.setAttribute("aria-pressed", String(liked));
+        likeButton.setAttribute(
+          "aria-label",
+          liked ? "මෙම අදහසට දැක්වූ කැමැත්ත ඉවත් කරන්න" : "මෙම අදහසට කැමැත්ත දක්වන්න",
+        );
+        likeButton.textContent = `♥ කැමතියි · ${Number(record.like_count) || 0}`;
+      };
+      syncLikeButton();
       likeButton.addEventListener("click", async () => {
         if (likeButton.disabled) return;
+        const desiredLiked = record.liked !== true;
         likeButton.disabled = true;
+        likeButton.setAttribute("aria-busy", "true");
         try {
           const response = await fetch(`${COMMENTS_API}/${encodeURIComponent(String(record.id))}/like`, {
             method: "POST",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ storySlug }),
+            body: JSON.stringify({ storySlug, liked: desiredLiked }),
           });
           const data = await response.json();
-          if (!response.ok) throw new Error("like_failed");
-          record.liked = data.liked === true;
+          if (!response.ok || data.liked !== desiredLiked) throw new Error("like_failed");
+          record.liked = desiredLiked;
           record.like_count = Number(data.like_count) || 0;
-          likeButton.setAttribute("aria-pressed", String(record.liked));
-          likeButton.textContent = `♥ කැමතියි · ${record.like_count}`;
+          syncLikeButton();
+          status.textContent = "";
         } catch {
           status.textContent = "කැමැත්ත සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
         } finally {
           likeButton.disabled = false;
+          likeButton.removeAttribute("aria-busy");
         }
       });
       actions.append(likeButton);

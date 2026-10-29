@@ -55,6 +55,9 @@ async function waitForHttp(url, child, label) {
   throw new Error(`${label} did not become ready: ${lastError?.message || 'timeout'}`);
 }
 
+let fixtureLikeCount = 0;
+let fixtureLiked = false;
+
 function ratingApiFixture(request) {
   const url = new URL(request.url);
   const method = String(request.method || "GET").toUpperCase();
@@ -71,8 +74,8 @@ function ratingApiFixture(request) {
             id: 9,
             body: "පරීක්ෂණ අදහස",
             created_at: 1800000000,
-            like_count: 0,
-            liked: false,
+            like_count: fixtureLikeCount,
+            liked: fixtureLiked,
             is_mine: false,
             replies: [],
           }],
@@ -92,7 +95,13 @@ function ratingApiFixture(request) {
     }
   }
   if (/^\/api\/rating\/comments\/\d+\/like$/.test(url.pathname) && method === "POST") {
-    return { status: 200, body: { liked: true, like_count: 1 } };
+    const body = JSON.parse(request.postData || "{}");
+    const nextLiked = body.liked === true;
+    if (nextLiked !== fixtureLiked) {
+      fixtureLikeCount += nextLiked ? 1 : -1;
+      fixtureLiked = nextLiked;
+    }
+    return { status: 200, body: { liked: fixtureLiked, like_count: fixtureLikeCount } };
   }
   if (url.pathname === "/api/rating") {
     if (method === "GET") {
@@ -523,6 +532,37 @@ async function main() {
       'The isolated fixture should intercept the rating API request before the widget initializes.'
     );
 
+    const modalResponsiveResults = [];
+    for (const width of widths) {
+      await setViewport(browser, width);
+      const modalLayout = await browser.evaluate(`(() => {
+        const openButton = document.querySelector('[data-comments-open]');
+        const dialog = document.querySelector('[data-comments-dialog]');
+        openButton?.click();
+        const rect = dialog?.getBoundingClientRect();
+        const result = {
+          open: Boolean(dialog?.open && dialog.matches(':modal')),
+          left: rect?.left ?? null,
+          right: rect?.right ?? null,
+          width: rect?.width ?? null,
+          height: rect?.height ?? null,
+          viewportWidth: innerWidth,
+          viewportHeight: innerHeight,
+          pageWidth: document.documentElement.scrollWidth,
+          borderColor: dialog ? getComputedStyle(dialog).borderTopColor : ''
+        };
+        dialog?.close();
+        return result;
+      })()`);
+      assert.ok(modalLayout.open, `Comments dialog should open as a modal at ${width}px`);
+      assert.ok(modalLayout.left >= -1 && modalLayout.right <= width + 1, `Comments dialog should stay within the ${width}px viewport`);
+      assert.ok(modalLayout.height <= modalLayout.viewportHeight + 1, `Comments dialog should fit the ${width}px viewport height`);
+      assert.ok(modalLayout.pageWidth <= width + 1, `Comments dialog should not introduce horizontal overflow at ${width}px`);
+      assert.equal(modalLayout.borderColor, 'rgb(163, 59, 80)', `Comments dialog should retain its red frame at ${width}px`);
+      modalResponsiveResults.push({ width, dialogWidth: Math.round(modalLayout.width), dialogHeight: Math.round(modalLayout.height) });
+    }
+
+    await setViewport(browser, 390);
     interaction = await browser.evaluate(`(async () => {
       const root = document.querySelector('[data-rating-widget]');
       const input = root?.querySelector('[data-rating-input][value="4"]');
@@ -585,18 +625,38 @@ async function main() {
       const pageLocked = Boolean(document.documentElement.classList.contains('story-comments-open')
         && document.body.classList.contains('story-comments-open')
         && document.body.style.overflow === 'hidden');
+      const commentCard = dialog?.querySelector('.story-comment');
+      const commentCardStyle = commentCard ? getComputedStyle(commentCard) : null;
+      const commentCardBorderColor = commentCardStyle?.borderLeftColor || '';
+      const commentCardBackground = commentCardStyle?.backgroundImage || '';
+      const dialogBorderColor = dialog ? getComputedStyle(dialog).borderTopColor : '';
       const likeButton = dialog?.querySelector('.story-comment-action[aria-pressed]');
+      const likeButtonStyle = likeButton ? getComputedStyle(likeButton) : null;
+      const likeBorderColor = likeButtonStyle?.borderTopColor || '';
+      const likeTapHeight = likeButton?.getBoundingClientRect().height || 0;
       likeButton?.click();
       for (let attempt = 0; attempt < 40 && likeButton?.getAttribute('aria-pressed') !== 'true'; attempt += 1) {
         await new Promise(resolve => setTimeout(resolve, 25));
       }
       const likeWorked = likeButton?.getAttribute('aria-pressed') === 'true'
         && /1/.test(likeButton.textContent || '');
+      const likedBackground = likeButton ? getComputedStyle(likeButton).backgroundColor : '';
+      likeButton?.click();
+      for (let attempt = 0; attempt < 40 && likeButton?.getAttribute('aria-pressed') !== 'false'; attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      const likeToggleWorked = likeButton?.getAttribute('aria-pressed') === 'false'
+        && /0/.test(likeButton.textContent || '');
       const replyButton = [...(dialog?.querySelectorAll('.story-comment-action') || [])]
         .find(button => button.textContent?.includes('පිළිතුරු'));
       replyButton?.click();
       const replyForm = dialog?.querySelector('.story-reply-form');
       const replyInput = replyForm?.querySelector('textarea');
+      const replyInputStyle = replyInput ? getComputedStyle(replyInput) : null;
+      const replyInputWidth = replyInput?.getBoundingClientRect().width || 0;
+      const replyFormWidth = replyForm?.getBoundingClientRect().width || 0;
+      const replyInputBackground = replyInputStyle?.backgroundColor || '';
+      const replyInputBorderColor = replyInputStyle?.borderTopColor || '';
       if (replyInput) replyInput.value = 'පරීක්ෂණ පිළිතුර';
       replyForm?.requestSubmit();
       for (let attempt = 0; attempt < 40 && !dialog?.querySelector('.story-comment-replies .story-comment'); attempt += 1) {
@@ -633,7 +693,18 @@ async function main() {
         backdropHiddenAfterTimeout: backdrop?.hidden || false,
         dialogOpened,
         pageLocked,
+        dialogBorderColor,
+        commentCardBorderColor,
+        commentCardBackground,
+        likeBorderColor,
+        likeTapHeight,
+        likedBackground,
         likeWorked,
+        likeToggleWorked,
+        replyInputWidth,
+        replyFormWidth,
+        replyInputBackground,
+        replyInputBorderColor,
         replyWorked,
         dialogClosed,
         pageUnlocked
@@ -665,9 +736,22 @@ async function main() {
     assert.equal(interaction.toastHiddenAfterTimeout, interaction.backdropHiddenAfterTimeout, 'The toast and backdrop should be dismissed together');
     assert.ok(interaction.dialogOpened, 'The separate comments dialog should open as a modal');
     assert.ok(interaction.pageLocked, 'The open modal should lock background scrolling and interaction');
+    assert.equal(interaction.dialogBorderColor, 'rgb(163, 59, 80)', 'The modal should show the red accent frame');
+    assert.equal(interaction.commentCardBorderColor, 'rgb(217, 65, 88)', 'Dynamically created comment cards should receive the red border styles');
+    assert.match(interaction.commentCardBackground, /linear-gradient/, 'Comment cards should keep their separate dark surfaces');
+    assert.equal(interaction.likeBorderColor, 'rgb(116, 49, 63)', 'Dynamically created like buttons should receive their red accent styles');
+    assert.ok(interaction.likeTapHeight >= 44, 'The like action should have a comfortable touch target');
+    assert.equal(interaction.likedBackground, 'rgb(74, 24, 35)', 'A liked comment should receive a visible pressed state');
     assert.ok(interaction.likeWorked, 'A comment like should update its pressed state and count');
+    assert.ok(interaction.likeToggleWorked, 'Clicking an active like should remove it and update its count');
+    assert.ok(interaction.replyInputWidth > 0 && Math.abs(interaction.replyInputWidth - interaction.replyFormWidth) <= 2,
+      'The dynamically created reply textarea should fill its card without overflowing');
+    assert.equal(interaction.replyInputBackground, 'rgb(11, 9, 12)', 'The reply textarea should use the dark themed surface');
+    assert.equal(interaction.replyInputBorderColor, 'rgb(113, 48, 61)', 'The reply textarea should use the red accent border');
     assert.ok(interaction.replyWorked, 'A reply should appear under its parent comment');
     assert.ok(interaction.dialogClosed && interaction.pageUnlocked, 'Closing the comments dialog should restore page interaction');
+    assert.deepEqual(modalResponsiveResults.map(result => result.width), widths);
+    interaction.modalResponsiveResults = modalResponsiveResults;
     interaction.status = 'PASS';
     interaction.fixture = 'isolated local rating and comments UI; all API calls stubbed';
   }

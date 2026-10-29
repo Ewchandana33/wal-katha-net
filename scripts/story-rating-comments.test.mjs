@@ -150,6 +150,14 @@ class MemoryD1 {
           }
           return { success: true, meta: { changes: 1 } };
         }
+        if (normalized.startsWith("DELETE FROM story_rating_comment_likes")) {
+          const [comment_id, voter_hash] = p;
+          const previousLength = db.likes.length;
+          db.likes = db.likes.filter((like) =>
+            like.comment_id !== comment_id || like.voter_hash !== voter_hash
+          );
+          return { success: true, meta: { changes: previousLength - db.likes.length } };
+        }
         throw new Error(`Unexpected run() query: ${normalized}`);
       },
     };
@@ -239,25 +247,44 @@ test("reply endpoint stores one-level replies and rejects replies to replies", a
   assert.equal(nested.status, 404);
 });
 
-test("like endpoint is idempotent and scopes a comment to its story", async () => {
+test("like endpoint adds and removes likes idempotently and scopes a comment to its story", async () => {
   const db = new MemoryD1();
   const request = makeRequest("/api/rating/comments/1/like", {
     method: "POST",
-    body: { storySlug: STORY_SLUG },
+    body: { storySlug: STORY_SLUG, liked: true },
   });
   const first = await likeHandler(context(request, db, 1));
   assert.deepEqual(await first.json(), { liked: true, like_count: 1 });
 
   const repeated = await likeHandler(context(makeRequest("/api/rating/comments/1/like", {
     method: "POST",
-    body: { storySlug: STORY_SLUG },
+    body: { storySlug: STORY_SLUG, liked: true },
   }), db, 1));
   assert.deepEqual(await repeated.json(), { liked: true, like_count: 1 });
   assert.equal(db.likes.length, 1);
 
+  const unlike = await likeHandler(context(makeRequest("/api/rating/comments/1/like", {
+    method: "POST",
+    body: { storySlug: STORY_SLUG, liked: false },
+  }), db, 1));
+  assert.deepEqual(await unlike.json(), { liked: false, like_count: 0 });
+  assert.equal(db.likes.length, 0);
+
+  const repeatedUnlike = await likeHandler(context(makeRequest("/api/rating/comments/1/like", {
+    method: "POST",
+    body: { storySlug: STORY_SLUG, liked: false },
+  }), db, 1));
+  assert.deepEqual(await repeatedUnlike.json(), { liked: false, like_count: 0 });
+
+  const legacyLike = await likeHandler(context(makeRequest("/api/rating/comments/1/like", {
+    method: "POST",
+    body: { storySlug: STORY_SLUG },
+  }), db, 1));
+  assert.deepEqual(await legacyLike.json(), { liked: true, like_count: 1 });
+
   const wrongStory = await likeHandler(context(makeRequest("/api/rating/comments/1/like", {
     method: "POST",
-    body: { storySlug: OTHER_STORY },
+    body: { storySlug: OTHER_STORY, liked: false },
   }), db, 1));
   assert.equal(wrongStory.status, 404);
 });
@@ -283,4 +310,10 @@ test("write endpoints reject cross-origin and malformed requests", async () => {
     body: { storySlug: STORY_SLUG, remove: true },
   }), db, 1));
   assert.equal(unknownProperty.status, 400);
+
+  const invalidDesiredState = await likeHandler(context(makeRequest("/api/rating/comments/1/like", {
+    method: "POST",
+    body: { storySlug: STORY_SLUG, liked: "false" },
+  }), db, 1));
+  assert.equal(invalidDesiredState.status, 400);
 });
