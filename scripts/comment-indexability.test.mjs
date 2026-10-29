@@ -43,6 +43,8 @@ test("server-rendered story-review comments include replies and escape user text
   ]);
 
   assert.equal((html.match(/data-server-rendered-comment="review"/g) || []).length, 2);
+  assert.match(html, /<summary>පිළිතුරු 1<\/summary>/);
+  assert.doesNotMatch(html, /<details[^>]*\sopen(?:\s|>)/);
   assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
   assert.match(html, /පිළිතුර &amp; තවත්/);
   assert.doesNotMatch(html, /<img/);
@@ -54,4 +56,24 @@ test("review SSR is bounded to avoid unbounded page output", () => {
   );
 
   assert.equal((html.match(/data-server-rendered-comment="review"/g) || []).length, 100);
+});
+
+test("server-rendered legacy replies show a count and remain collapsed while retaining indexable text", () => {
+  const html = renderPostComments([
+    {
+      id: "p-" + "a".repeat(64),
+      content: "මූලික අදහස",
+      reply_count: 1,
+      replies: [
+        { id: "r-1", content: "පිළිතුර <script>නොදුවන්න</script>", created_at: 1800000010 },
+      ],
+    },
+  ]);
+
+  assert.match(html, /<details class="post-comment-replies" data-post-replies>/);
+  assert.match(html, /<summary>පිළිතුරු 1<\/summary>/);
+  assert.doesNotMatch(html, /<details[^>]*\sopen(?:\s|>)/);
+  assert.match(html, /data-server-rendered-comment="post-reply"/);
+  assert.match(html, /පිළිතුර &lt;script&gt;නොදුවන්න&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<script>/);
 });

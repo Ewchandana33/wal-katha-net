@@ -503,6 +503,41 @@ const dialogId = `story-comments-${storySlug}`;
       }
     }
   }
+  .story-comments-dialog :global(.story-comment-reply-disclosure) {
+    margin: 0.5rem 0 0.25rem;
+    border: 1px solid rgba(163, 59, 80, 0.28);
+    border-radius: 0.75rem;
+    background: rgba(18, 9, 12, 0.55);
+    overflow: hidden;
+  }
+  .story-comments-dialog :global(.story-comment-reply-disclosure > summary) {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 0.8rem;
+    color: #f0b8c2;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    list-style: none;
+  }
+  .story-comments-dialog :global(.story-comment-reply-disclosure > summary::-webkit-details-marker) { display: none; }
+  .story-comments-dialog :global(.story-comment-reply-disclosure > summary::before) {
+    content: "＋";
+    margin-right: 0.5rem;
+    color: #ef7185;
+  }
+  .story-comments-dialog :global(.story-comment-reply-disclosure[open] > summary::before) { content: "−"; }
+  .story-comments-dialog :global(.story-comment-new-reply .story-comment) {
+    animation: story-comment-reply-highlight 2.2s ease-out;
+  }
+  @keyframes story-comment-reply-highlight {
+    0%, 100% { background-color: rgba(127, 29, 29, 0.16); border-color: rgba(163, 59, 80, 0.42); }
+    28% { background-color: rgba(239, 68, 68, 0.24); border-color: rgba(248, 113, 113, 0.9); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .story-comments-dialog :global(.story-comment-new-reply .story-comment) { animation: none; outline: 2px solid rgba(248, 113, 113, 0.7); }
+  }
 </style>
 
 <script>
@@ -516,6 +551,7 @@ const dialogId = `story-comments-${storySlug}`;
     liked: boolean;
     is_mine: boolean;
     replies?: CommentRecord[];
+    reply_count?: number;
   };
 
   function safeText(value: unknown) {
@@ -677,7 +713,22 @@ const dialogId = `story-comments-${storySlug}`;
           replyItem.append(buildComment(reply, true));
           replyList.append(replyItem);
         }
-        if (replyList.childElementCount > 0) article.append(replyList);
+        record.reply_count = Math.max(Number(record.reply_count) || 0, replyList.childElementCount);
+        const replyDisclosure = document.createElement("details");
+        replyDisclosure.className = "story-comment-reply-disclosure";
+        const replySummary = document.createElement("summary");
+        const syncReplyCount = () => {
+          replySummary.textContent = "පිළිතුරු " + (Number(record.reply_count) || 0);
+        };
+        syncReplyCount();
+        if (replyList.childElementCount === 0) {
+          const empty = document.createElement("li");
+          empty.dataset.emptyReplies = "true";
+          empty.textContent = "තවම පිළිතුරු නැහැ.";
+          replyList.append(empty);
+        }
+        replyDisclosure.append(replySummary, replyList);
+        article.append(replyDisclosure);
 
         const form = document.createElement("form");
         form.className = "story-reply-form";
@@ -739,15 +790,29 @@ const dialogId = `story-comments-${storySlug}`;
             const data = await response.json();
             if (!response.ok) throw new Error("reply_failed");
             const replyItem = document.createElement("li");
-            replyItem.append(buildComment({
+            replyItem.className = "story-comment-new-reply";
+            const savedReply: CommentRecord = {
               ...data.comment,
               like_count: 0,
               liked: false,
               is_mine: true,
-            }, true));
+            };
+            replyItem.append(buildComment(savedReply, true));
+            replyList.querySelector("[data-empty-replies]")?.remove();
             replyList.append(replyItem);
-            if (!article.contains(replyList)) article.insertBefore(replyList, form);
+            record.replies = [...(record.replies || []), savedReply];
+            record.reply_count = Math.max(
+              (Number(record.reply_count) || 0) + 1,
+              Number(data.reply_count) || 0,
+            );
+            syncReplyCount();
+            replyDisclosure.open = true;
             updateCount(data.total_comments);
+            replyItem.scrollIntoView({
+              behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+              block: "nearest",
+            });
+            window.setTimeout(() => replyItem.classList.remove("story-comment-new-reply"), 2200);
             textarea.value = "";
             form.hidden = true;
             replyButton.setAttribute("aria-expanded", "false");

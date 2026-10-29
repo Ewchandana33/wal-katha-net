@@ -3,6 +3,10 @@ import {
   renderPostComments,
   renderReviewComments,
 } from "./_shared/comment-indexability.js";
+import {
+  fetchPublicPostComments,
+  preparePostComments,
+} from "./_shared/legacy-post-comments.js";
 
 // Cloudflare Pages global middleware (runs before static assets are
 // served, at the edge, independent of Astro's static build). This is
@@ -13,8 +17,7 @@ import {
 // and trailing slash (matches src/lib/utils/urlHelper.ts convention).
 const CANONICAL_HOST = "www.walakatha.net";
 const APEX_HOST = "walakatha.net";
-const PUBLIC_COMMENTS_API = "https://comments.wala-katha.workers.dev/api/comments";
-const MAX_SERVER_RENDERED_REVIEWS = 20;
+const MAX_SERVER_RENDERED_REVIEWS = 100;
 // Ad-network / third-party site-verification files (ExoClick, Ezoic,
 // Google Search Console alternate methods, etc.) are commonly issued
 // WITHOUT a file extension and MUST be served at the exact literal
@@ -45,23 +48,15 @@ function storySlugFromPath(pathname) {
   return PUBLISHED_STORY_SLUGS.has(slug) ? slug : null;
 }
 
-async function loadPublicComments(storySlug) {
+async function loadPublicComments(storySlug, database) {
   try {
-    const url = new URL(PUBLIC_COMMENTS_API);
-    url.searchParams.set("postId", storySlug);
-    const response = await fetch(url, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!response.ok) return { status: "unavailable", html: "", count: 0 };
-
-    const records = await response.json();
-    if (!Array.isArray(records)) return { status: "unavailable", html: "", count: 0 };
-    const html = renderPostComments(records);
+    const records = await fetchPublicPostComments(storySlug);
+    const prepared = await preparePostComments(database, storySlug, records);
+    const html = renderPostComments(prepared.comments);
     return {
       status: "ready",
       html,
-      count: records.filter((record) => typeof record?.content === "string" && record.content.trim()).length,
+      count: prepared.comments.length,
     };
   } catch {
     return { status: "unavailable", html: "", count: 0 };
@@ -128,7 +123,7 @@ async function renderIndexableComments(context, response, storySlug) {
   }
 
   const [postComments, reviewComments] = await Promise.all([
-    loadPublicComments(storySlug),
+    loadPublicComments(storySlug, context.env?.DB),
     loadReviewComments(context.env?.DB, storySlug),
   ]);
 

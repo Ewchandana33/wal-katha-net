@@ -1,6 +1,7 @@
 const MAX_INDEXED_TEXT_LENGTH = 1000;
 const MAX_INDEXED_REVIEW_LENGTH = 500;
-const MAX_INDEXED_REPLIES_PER_REVIEW = 20;
+const MAX_INDEXED_REPLIES_PER_REVIEW = 100;
+const MAX_INDEXED_POST_REPLIES = 100;
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (character) => {
@@ -56,16 +57,35 @@ export function renderPostComments(records) {
     .map((record) => {
       const body = boundedText(record?.content, MAX_INDEXED_TEXT_LENGTH);
       if (!body) return "";
-
+      const id = typeof record.id === "string" && /^p-[a-f0-9]{64}$/.test(record.id) ? record.id : "";
       const date = renderDate(record.date ?? record.created_at);
+      const replyCount = Math.max(0, Number(record.reply_count) || (Array.isArray(record.replies) ? record.replies.length : 0));
+      const replies = Array.isArray(record.replies)
+        ? record.replies.slice(0, MAX_INDEXED_POST_REPLIES).map((reply) => {
+            const replyBody = boundedText(reply?.content ?? reply?.body, MAX_INDEXED_TEXT_LENGTH);
+            if (!replyBody) return "";
+            const replyId = typeof reply.id === "string" && /^r-[1-9][0-9]{0,14}$/.test(reply.id) ? reply.id : "";
+            const replyDate = renderDate(reply.created_at ?? reply.date);
+            return [
+              '<li><article class="post-comment-reply" data-server-rendered-comment="post-reply" data-comment-id="' + escapeHtml(replyId) + '">',
+              '<div class="post-comment-meta"><span>Anonymous Reader</span><time>' + replyDate + '</time></div>',
+              '<p>' + escapeHtml(replyBody) + '</p>',
+              '</article></li>',
+            ].join("");
+          }).join("")
+        : "";
+      const disclosure = [
+        '<details class="post-comment-replies" data-post-replies>',
+        '<summary>පිළිතුරු ' + String(replyCount) + '</summary>',
+        '<ol class="post-comment-reply-list">' + replies + '</ol>',
+        '</details>',
+      ].join("");
       return [
-        '<article class="p-3.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-left shadow-sm" data-server-rendered-comment="post">',
-        '<div class="flex items-center justify-between mb-1.5">',
-        '<span class="text-xs font-bold text-[#01AD9F]">Anonymous Reader</span>',
-        `<time class="text-[11px] text-white/30">${date}</time>`,
-        "</div>",
-        `<p class="text-sm text-white/80 leading-relaxed">${escapeHtml(body)}</p>`,
-        "</article>",
+        '<article class="post-comment-card" data-server-rendered-comment="post" data-comment-id="' + escapeHtml(id) + '">',
+        '<div class="post-comment-meta"><span>Anonymous Reader</span><time>' + date + '</time></div>',
+        '<p class="post-comment-body">' + escapeHtml(body) + '</p>',
+        disclosure,
+        '</article>',
       ].join("");
     })
     .join("");
@@ -88,17 +108,27 @@ function renderReview(record, isReply = false) {
 
   if (isReply) return article;
 
+  const replyCount = Math.max(
+    Number(record.reply_count) || 0,
+    Array.isArray(record.replies) ? record.replies.length : 0,
+  );
   const replies = Array.isArray(record.replies)
     ? record.replies
         .slice(0, MAX_INDEXED_REPLIES_PER_REVIEW)
         .map((reply) => {
           const renderedReply = renderReview(reply, true);
-          return renderedReply ? `<li>${renderedReply}</li>` : "";
+          return renderedReply ? "<li>" + renderedReply + "</li>" : "";
         })
         .join("")
     : "";
+  const disclosure = [
+    '<details class="story-comment-reply-disclosure" data-review-replies>',
+    '<summary>පිළිතුරු ' + String(replyCount) + '</summary>',
+    '<ol class="story-comment-replies">' + replies + '</ol>',
+    '</details>',
+  ].join("");
 
-  return `<li>${article}${replies ? `<ol class="story-comment-replies">${replies}</ol>` : ""}</li>`;
+  return "<li>" + article + disclosure + "</li>";
 }
 
 export function renderReviewComments(records) {

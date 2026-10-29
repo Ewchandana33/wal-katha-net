@@ -49,8 +49,8 @@ export async function sha256(value) {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-export function voterCookieHeader(token) {
-  return `${STORY_REVIEW_COOKIE}=${token}; Path=/api/rating; Max-Age=${STORY_REVIEW_COOKIE_MAX_AGE}; Secure; HttpOnly; SameSite=Lax`;
+export function voterCookieHeader(token, path = "/api/rating") {
+  return `${STORY_REVIEW_COOKIE}=${token}; Path=${path}; Max-Age=${STORY_REVIEW_COOKIE_MAX_AGE}; Secure; HttpOnly; SameSite=Lax`;
 }
 
 export function hasSameOrigin(request) {

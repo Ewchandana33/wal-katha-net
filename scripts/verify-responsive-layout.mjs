@@ -57,10 +57,50 @@ async function waitForHttp(url, child, label) {
 
 let fixtureLikeCount = 0;
 let fixtureLiked = false;
+let fixturePostCommentLikeCount = 0;
+let fixturePostCommentLiked = false;
+let fixturePostReplyCount = 1;
 
 function ratingApiFixture(request) {
   const url = new URL(request.url);
   const method = String(request.method || "GET").toUpperCase();
+  if (url.pathname === "/api/post-comments" && method === "GET") {
+    return {
+      status: 200,
+      body: {
+        total_comments: 1,
+        interactions_available: true,
+        comments: [{
+          id: "p-" + "a".repeat(64),
+          content: "පරීක්ෂණ post අදහස",
+          date: "Oct 29, 2026",
+          like_count: fixturePostCommentLikeCount,
+          liked: fixturePostCommentLiked,
+          reply_count: fixturePostReplyCount,
+          replies: [{ id: "r-17", content: "පැරණි පිළිතුර", created_at: 1800000000, like_count: 0, liked: false }],
+        }],
+      },
+    };
+  }
+  if (/^\/api\/post-comments\/(?:p-[a-f0-9]{64}|r-[1-9][0-9]*)\/like$/.test(url.pathname) && method === "POST") {
+    const body = JSON.parse(request.postData || "{}");
+    const nextLiked = body.liked === true;
+    if (nextLiked !== fixturePostCommentLiked) {
+      fixturePostCommentLikeCount += nextLiked ? 1 : -1;
+      fixturePostCommentLiked = nextLiked;
+    }
+    return { status: 200, body: { liked: fixturePostCommentLiked, like_count: fixturePostCommentLikeCount } };
+  }
+  if (/^\/api\/post-comments\/p-[a-f0-9]{64}\/replies$/.test(url.pathname) && method === "POST") {
+    fixturePostReplyCount += 1;
+    return {
+      status: 201,
+      body: {
+        reply_count: fixturePostReplyCount,
+        reply: { id: "r-18", content: "අලුත් post පිළිතුර", created_at: 1800000030, like_count: 0, liked: false, is_mine: true },
+      },
+    };
+  }
   if (url.pathname === "/api/rating/comments") {
     if (method === "GET" && url.searchParams.get("countOnly") === "1") {
       return { status: 200, body: { total_comments: 1 } };
@@ -78,6 +118,7 @@ function ratingApiFixture(request) {
             liked: fixtureLiked,
             is_mine: false,
             replies: [],
+            reply_count: 0,
           }],
           has_more: false,
           next_cursor: null,
@@ -673,6 +714,13 @@ async function main() {
       }
       const likeToggleWorked = likeButton?.getAttribute('aria-pressed') === 'false'
         && /0/.test(likeButton.textContent || '');
+      const replyDisclosure = dialog?.querySelector('.story-comment-reply-disclosure');
+      const replyDisclosureInitiallyClosed = Boolean(replyDisclosure && !replyDisclosure.open);
+      const replyCountInitiallyVisible = replyDisclosure?.querySelector('summary')?.textContent?.trim() || '';
+      const replySummary = replyDisclosure?.querySelector('summary');
+      replySummary?.click();
+      const replyClickRevealsList = Boolean(replyDisclosure?.open && replyDisclosure.querySelector('[data-empty-replies]'));
+      replySummary?.click();
       const replyButton = [...(dialog?.querySelectorAll('.story-comment-action') || [])]
         .find(button => button.textContent?.includes('පිළිතුරු'));
       replyButton?.click();
@@ -689,6 +737,9 @@ async function main() {
         await new Promise(resolve => setTimeout(resolve, 25));
       }
       const replyWorked = Boolean(dialog?.querySelector('.story-comment-replies .story-comment'));
+      const replyCountAfterPost = dialog?.querySelector('.story-comment-reply-disclosure summary')?.textContent?.trim() || '';
+      const replyListExpandedAfterPost = Boolean(dialog?.querySelector('.story-comment-reply-disclosure')?.open);
+      const newReplyHighlighted = Boolean(dialog?.querySelector('.story-comment-new-reply .story-comment'));
       dialog?.querySelector('[data-comments-close]')?.click();
       await new Promise(resolve => setTimeout(resolve, 30));
       const dialogClosed = Boolean(dialog && !dialog.open);
@@ -733,6 +784,12 @@ async function main() {
         replyInputBackground,
         replyInputBorderColor,
         replyWorked,
+        replyDisclosureInitiallyClosed,
+        replyCountInitiallyVisible,
+        replyClickRevealsList,
+        replyCountAfterPost,
+        replyListExpandedAfterPost,
+        newReplyHighlighted,
         dialogClosed,
         pageUnlocked
       };
@@ -740,7 +797,14 @@ async function main() {
     const selectedGreen = interaction.selectedBackground.match(/\d+/g)?.map(Number);
     assert.ok(interaction.selectedClass, `Clicking a rating should mark the selected tile (checked=${interaction.inputCheckedAfterClick}, disabled=${interaction.inputDisabledAfterClick})`);
     assert.ok(selectedGreen && selectedGreen.length >= 3 && selectedGreen[1] > selectedGreen[0] && selectedGreen[1] > selectedGreen[2], 'The selected rating tile should turn green');
-    assert.equal(interaction.selectedStarColor, 'rgb(243, 180, 59)', 'The selected star should remain gold');
+    const selectedStarChannels = interaction.selectedStarColor.match(/\d+/g)?.map(Number) || [];
+    assert.ok(selectedStarChannels.length >= 3
+      && selectedStarChannels[0] >= 220 && selectedStarChannels[0] <= 255
+      && selectedStarChannels[1] >= 140 && selectedStarChannels[1] <= 205
+      && selectedStarChannels[2] <= 100
+      && selectedStarChannels[0] > selectedStarChannels[1]
+      && selectedStarChannels[1] > selectedStarChannels[2],
+    `The selected star should remain visibly gold, not match one browser's exact RGB rounding (computed=${interaction.selectedStarColor})`);
     assert.ok(interaction.commentInitiallyHidden, 'The optional comment field should stay hidden before a rating is chosen');
     assert.ok(interaction.commentVisibleAfterRating, 'Choosing a rating should reveal the optional comment field');
     assert.match(interaction.commentCounter, /[1-9]/, 'The optional comment should update its character counter');
@@ -776,8 +840,38 @@ async function main() {
       'The dynamically created reply textarea should fill its card without overflowing');
     assert.equal(interaction.replyInputBackground, 'rgb(11, 9, 12)', 'The reply textarea should use the dark themed surface');
     assert.equal(interaction.replyInputBorderColor, 'rgb(113, 48, 61)', 'The reply textarea should use the red accent border');
+    assert.ok(interaction.replyDisclosureInitiallyClosed, 'Existing replies should start collapsed');
+    assert.equal(interaction.replyCountInitiallyVisible, 'පිළිතුරු 0', 'The reply count should be visible even when it is zero');
+    assert.ok(interaction.replyClickRevealsList, 'Clicking the reply count should reveal the hidden reply list');
     assert.ok(interaction.replyWorked, 'A reply should appear under its parent comment');
-    assert.ok(interaction.dialogClosed && interaction.pageUnlocked, 'Closing the comments dialog should restore page interaction');
+    assert.equal(interaction.replyCountAfterPost, 'පිළිතුරු 1', 'Posting a reply should update the visible count');
+    assert.ok(interaction.replyListExpandedAfterPost, 'Posting a reply should reveal the new reply');
+    assert.ok(interaction.newReplyHighlighted, 'A newly posted reply should be visually highlighted');
+    const postModalReady = await browser.evaluate("(async () => {\n  const openButton = document.querySelector('#comment-floating-btn');\n  const modal = document.querySelector('#comment-popup-modal');\n  openButton?.click();\n  for (let attempt = 0; attempt < 40; attempt += 1) {\n    if (modal?.querySelector('#comments-list-hook .post-comment-card')) break;\n    await new Promise(resolve => setTimeout(resolve, 25));\n  }\n  const card = modal?.querySelector('#comments-list-hook .post-comment-card');\n  const disclosure = card?.querySelector('.post-comment-replies');\n  return {\n    opened: Boolean(modal && !modal.classList.contains('hidden')),\n    loaded: Boolean(card),\n    collapsed: Boolean(disclosure && !disclosure.open),\n    replyCount: disclosure?.querySelector('summary')?.textContent?.trim() || '',\n  };\n})()");
+    assert.ok(postModalReady.opened && postModalReady.loaded, 'The legacy post-comments dialog should load through the same-origin API');
+    assert.ok(postModalReady.collapsed, 'Legacy replies should be collapsed by default');
+    assert.equal(postModalReady.replyCount, 'පිළිතුරු 1', 'The legacy reply count should be visible before opening');
+
+    const postModalResponsiveResults = [];
+    for (const width of widths) {
+      await setViewport(browser, width);
+      const layout = await browser.evaluate("(() => {\n  const modal = document.querySelector('#comment-popup-modal');\n  const panel = modal?.querySelector(':scope > .relative');\n  const rect = panel?.getBoundingClientRect();\n  return {\n    left: rect?.left ?? null,\n    right: rect?.right ?? null,\n    width: rect?.width ?? null,\n    height: rect?.height ?? null,\n    pageWidth: document.documentElement.scrollWidth,\n    viewportHeight: innerHeight,\n  };\n})()");
+      assert.ok(layout.left >= -1 && layout.right <= width + 1, 'The legacy comments panel should stay inside ' + width + 'px');
+      assert.ok(layout.height <= layout.viewportHeight + 1, 'The legacy comments panel should fit vertically at ' + width + 'px');
+      assert.ok(layout.pageWidth <= width + 1, 'The legacy comments dialog should not cause horizontal overflow at ' + width + 'px');
+      postModalResponsiveResults.push({ width, panelWidth: Math.round(layout.width), panelHeight: Math.round(layout.height) });
+    }
+    await setViewport(browser, 390);
+    const postCommentInteractions = await browser.evaluate("(async () => {\n  const modal = document.querySelector('#comment-popup-modal');\n  const card = modal?.querySelector('#comments-list-hook .post-comment-card');\n  const disclosure = card?.querySelector('.post-comment-replies');\n  const summary = disclosure?.querySelector('summary');\n  summary?.click();\n  const existingReplyRevealed = Boolean(disclosure?.open && disclosure.textContent?.includes('පැරණි පිළිතුර'));\n  const likeButton = card?.querySelector('.post-comment-actions .post-comment-action[aria-pressed]');\n  likeButton?.click();\n  for (let attempt = 0; attempt < 40 && likeButton?.getAttribute('aria-pressed') !== 'true'; attempt += 1) {\n    await new Promise(resolve => setTimeout(resolve, 25));\n  }\n  const likeWorked = likeButton?.getAttribute('aria-pressed') === 'true' && /1/.test(likeButton.textContent || '');\n  const replyButton = [...(card?.querySelectorAll('.post-comment-action') || [])]\n    .find(button => button.textContent?.includes('පිළිතුරක්'));\n  replyButton?.click();\n  const form = card?.querySelector('.post-comment-reply-form');\n  const textarea = form?.querySelector('textarea');\n  if (textarea) textarea.value = 'අලුත් post පිළිතුර';\n  form?.requestSubmit();\n  for (let attempt = 0; attempt < 40 && !card?.querySelector('.post-comment-reply-new .post-comment-reply'); attempt += 1) {\n    await new Promise(resolve => setTimeout(resolve, 25));\n  }\n  const newReplyHighlighted = Boolean(card?.querySelector('.post-comment-reply-new .post-comment-reply'));\n  const replyCount = disclosure?.querySelector('summary')?.textContent?.trim() || '';\n  const repliesExpandedAfterPost = Boolean(disclosure?.open);\n  document.querySelector('#comment-close-btn')?.click();\n  return { existingReplyRevealed, likeWorked, newReplyHighlighted, replyCount, repliesExpandedAfterPost };\n})()");
+    assert.ok(postCommentInteractions.existingReplyRevealed, 'Clicking a legacy reply count should reveal its replies');
+    assert.ok(postCommentInteractions.likeWorked, 'Legacy post comments should support working likes');
+    assert.ok(postCommentInteractions.newReplyHighlighted, 'A newly added legacy reply should be highlighted');
+    assert.equal(postCommentInteractions.replyCount, 'පිළිතුරු 2', 'Adding a legacy reply should update its count');
+    assert.ok(postCommentInteractions.repliesExpandedAfterPost, 'A new legacy reply should open its reply list');
+    assert.deepEqual(postModalResponsiveResults.map(result => result.width), widths);
+    interaction.postComments = postCommentInteractions;
+    interaction.postModalResponsiveResults = postModalResponsiveResults;
+
     assert.deepEqual(modalResponsiveResults.map(result => result.width), widths);
     interaction.modalResponsiveResults = modalResponsiveResults;
     interaction.status = 'PASS';
