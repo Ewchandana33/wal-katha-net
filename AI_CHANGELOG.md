@@ -29,7 +29,8 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Verification
 
-- `yarn test` passed 45/45. `node --check` passed for the changed JavaScript modules and browser test; `git diff --check` passed. Hosted CI, production build, responsive Chromium, and the updated Cloudflare Preview are pending. No live comment, review, like, or reply POST was sent; Production was not changed.
+- Local `yarn test` passed 45/45; `node --test scripts/ai-changelog.test.mjs`, JavaScript syntax checks, and `git diff --check` passed. GitHub Actions run `41002880981` passed for code commit `1f568fb9249eaa60e425ba5304a6b9f46fed56a8`: Astro type-check, CI test suites, the 51-page production build, responsive Chromium/UI, pagination and homepage SEO, and Preview route/noindex/age-gate checks.
+- Cloudflare Preview deployment `6048bdcf-acd6-4c3f-9642-2cd593e88f0a` completed all five stages successfully for that exact commit: https://6048bdcf.wala-katha.pages.dev. Production remains on deployment `6e110384-5552-454c-bc87-8970f98a2305`, main commit `05d5ded3cce4a1084c6cba334cac19b7e696c31b`; PR #105 remains open as a draft. No live comment, review, like, or reply POST was sent, and no merge or Production change occurred.
 
 ## 2026-10-29 — Block links in comments and remove legacy links from display
 
