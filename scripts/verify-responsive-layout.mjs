@@ -313,6 +313,8 @@ async function createRatingHarness(articleSlug) {
   assert.ok(widgetHtml, `Built article ${articleSlug} should contain the story rating widget`);
   const commentsHtml = articleHtml.match(/<div\b(?=[^>]*\bdata-story-comments\b)[\s\S]*?<\/dialog>\s*<\/div>/i)?.[0];
   assert.ok(commentsHtml, `Built article ${articleSlug} should contain the separate story comments dialog`);
+  const legacyPostCommentsHtml = articleHtml.match(/<button\b(?=[^>]*\bid=["']comment-floating-btn["'])[\s\S]*?<\/section>/i)?.[0];
+  assert.ok(legacyPostCommentsHtml, `Built article ${articleSlug} should contain the legacy post-comments dialog`);
 
   const localOrigin = new URL(baseUrl).origin;
   const localizeAsset = value => {
@@ -347,6 +349,8 @@ async function createRatingHarness(articleSlug) {
     '</head><body>',
     widgetHtml,
     commentsHtml,
+    '<section>',
+    legacyPostCommentsHtml,
     ...modulePaths.map(path => `<script type="module" src="${path}"></script>`),
     '</body></html>'
   ].join('');
@@ -850,8 +854,15 @@ async function main() {
     assert.equal(interaction.replyCountAfterPost, 'පිළිතුරු 1', 'Posting a reply should update the visible count');
     assert.ok(interaction.replyListExpandedAfterPost, 'Posting a reply should reveal the new reply');
     assert.ok(interaction.newReplyHighlighted, 'A newly posted reply should be visually highlighted');
-    const postModalReady = await browser.evaluate("(async () => {\n  const openButton = document.querySelector('#comment-floating-btn');\n  const modal = document.querySelector('#comment-popup-modal');\n  openButton?.click();\n  for (let attempt = 0; attempt < 40; attempt += 1) {\n    if (modal?.querySelector('#comments-list-hook .post-comment-card')) break;\n    await new Promise(resolve => setTimeout(resolve, 25));\n  }\n  const card = modal?.querySelector('#comments-list-hook .post-comment-card');\n  const disclosure = card?.querySelector('.post-comment-replies');\n  return {\n    opened: Boolean(modal && !modal.classList.contains('hidden')),\n    loaded: Boolean(card),\n    collapsed: Boolean(disclosure && !disclosure.open),\n    replyCount: disclosure?.querySelector('summary')?.textContent?.trim() || '',\n  };\n})()");
-    assert.ok(postModalReady.opened && postModalReady.loaded, 'The legacy post-comments dialog should load through the same-origin API');
+    const postModalReady = await browser.evaluate("(async () => {\n  const openButton = document.querySelector('#comment-floating-btn');\n  const modal = document.querySelector('#comment-popup-modal');\n  openButton?.click();\n  for (let attempt = 0; attempt < 40; attempt += 1) {\n    if (modal?.querySelector('#comments-list-hook .post-comment-card')) break;\n    await new Promise(resolve => setTimeout(resolve, 25));\n  }\n  const card = modal?.querySelector('#comments-list-hook .post-comment-card');\n  const disclosure = card?.querySelector('.post-comment-replies');\n  return {\n    opened: Boolean(modal && !modal.classList.contains('hidden')),\n    apiUrl: modal?.getAttribute('data-interactions-api') || '',\n    loaded: Boolean(card),\n    collapsed: Boolean(disclosure && !disclosure.open),\n    replyCount: disclosure?.querySelector('summary')?.textContent?.trim() || '',\n  };\n})()");
+    assert.equal(postModalReady.apiUrl, '/api/post-comments', 'The legacy comments dialog should use the same-origin API');
+    assert.ok(
+      postModalReady.opened && postModalReady.loaded,
+      `The legacy post-comments dialog should load through the same-origin API: ${JSON.stringify({
+        postModalReady,
+        interceptedRequests: browser.fetchTrace.filter(({ url }) => url.includes('/api/post-comments')),
+      })}`
+    );
     assert.ok(postModalReady.collapsed, 'Legacy replies should be collapsed by default');
     assert.equal(postModalReady.replyCount, 'පිළිතුරු 1', 'The legacy reply count should be visible before opening');
 
