@@ -133,7 +133,7 @@ function ratingApiFixture(request) {
       };
     }
     if (method === "POST") {
-      fixtureReviewReplySubmission = JSON.parse(request.postData || "{}").comment ?? null;
+      fixtureReviewReplySubmission = JSON.parse(request.postData || "{}").body ?? null;
       return {
         status: 201,
         body: {
