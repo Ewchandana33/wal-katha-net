@@ -13,5 +13,25 @@
 {
   "name": "walakatha",
   "compatibility_date": "2026-03-01",
-  "pages_build_output_dir": "./dist"
+  "pages_build_output_dir": "./dist",
+  "env": {
+    "preview": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "walakatha-rating-preview",
+          "database_id": "c9a6c189-c29e-4627-8596-774733427e6b"
+        }
+      ]
+    },
+    "production": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "walakatha-rating-production",
+          "database_id": "61e1e5cf-832f-4dca-95f6-31f85fcb5dcd"
+        }
+      ]
+    }
+  }
 }

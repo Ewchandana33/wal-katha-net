@@ -1,9 +1,8 @@
 # Archived AI Change Log — 2026 Q4
 
-Historical entries moved from AI_CHANGELOG.md on 2026-10-15, 2026-10-16, 2026-10-18, 2026-10-23, and 2026-10-25 during active-log retention rotations. All dated sections below retain their original wording and chronological order. Read AI_CHANGELOG.md first for active instructions and the latest status; archived statuses may have been superseded by later evidence.
+Historical entries moved from AI_CHANGELOG.md on 2026-10-15, 2026-10-16, 2026-10-18, 2026-10-23, 2026-10-25, 2026-10-28, 2026-10-29, and 2026-10-30 during active-log retention rotations. All dated sections below retain their original wording and chronological order. Read AI_CHANGELOG.md first for active instructions and the latest status; archived statuses may have been superseded by later evidence.
 
-Coverage: 2026-10-14 through 2026-10-24; 60 dated entries.
-
+Coverage: 2026-10-14 through 2026-10-28; 71 dated entries.
 
 ## 2026-10-14 — Complete PR #15 image-variant CI verification
 
@@ -36,8 +35,6 @@ variants; production was still on the preceding `main` commit.
   `a2312ecb3f522cb9530572a465c76c4890979065`.
 - Final release status must be verified against the latest PR checks and
   Cloudflare production deployment logs after this change.
-
-
 
 ## 2026-10-14 — Remove Astro Markdown and Vite build warnings
 
@@ -92,9 +89,6 @@ dependencies and processor API rather than hide their warnings.
   Cloudflare preview checks must be rerun on the final head before merge.
 - The production deployment recorded above is the pre-change baseline; this PR
   has not changed production at the time of this entry.
-
-
-
 
 ## 2026-10-14 — Verify PR #23 production release; automate SEO/locale checks
 
@@ -152,8 +146,6 @@ regression-testable and adds a scheduled live technical SEO audit.
   run appears; do not claim Google ranking improvement without Search Console
   data.
 
-
-
 ## 2026-10-14 — Restore GitHub Actions registration for Search Console keyword sync
 
 ### Why
@@ -172,8 +164,6 @@ The GSC sync workflow is tracked on `main`, but GitHub Actions does not list or 
 - Re-run `actionlint` on the changed workflow.
 - Required GitHub CI and Cloudflare Pages preview checks must pass before merge.
 - After merge, confirm GitHub registers and runs the GSC workflow, inspect the run result, and check Cloudflare production logs for the resulting main commit.
-
-
 
 ## 2026-10-14 — Recover Search Console keyword sync and close the PR automation gap
 
@@ -199,8 +189,6 @@ The first post-registration sync (GitHub Actions run 38560956796, attempt 1) suc
 - The post-merge sync generated data-only PR #27 and queued squash auto-merge. At the time of this record its required CI run was held at action_required under repository policy first_time_contributors; keep main protected and require its checks to pass before considering that subsequent snapshot published.
 - A Google ranking position is not guaranteed by this work.
 
-
-
 ## 2026-10-14 — PR #27 and production deployment follow-up
 
 This follow-up supersedes the pending-state note above. It records release verification only; it does not claim a new Search Console sync or ranking change.
@@ -209,17 +197,12 @@ This follow-up supersedes the pending-state note above. It records release verif
 - Cloudflare production deployment 8c5e4451-802e-4d9d-80a7-1c1ffcc5e852 matches that main commit and completed queued, initialize, clone, build, and deploy stages successfully. All 153 available production log entries were checked; none matched warning, deprecation, error, failure, or fatal diagnostics.
 - The latest successful Sync GSC Keywords run visible in the queried Actions history was run 38568052535 on main commit 05004713c13dc6b6cfad7720fd1aed4588501658, which generated PR #27. The later successful CI dispatch 38570049383 ran on bot/gsc-keywords / 006f37c; it was a CI run, not a Search Console sync.
 
-
-
 ## 2026-10-14 — PR #19 dependency update and production release
 
 - Refreshed Dependabot PR #19 from its stale base onto main commit 3ca5218484a3281faa0138af87753f4c6f9e0aea (updated PR head: 9d9209195cfbebeb77bbd8983923410d3f725043). GitHub's trusted same-repository workflow enabled squash auto-merge; main branch protection was left intact.
 - The final PR head passed the required GitHub Type-check and production build and Cloudflare Pages preview checks. Cloudflare preview deployment f9b94638-c936-405a-b75d-58e458bc051f completed queued, initialize, clone_repo, build, and deploy stages successfully; all 155 available build/deployment log entries were checked, with no warning, error, failure, fatal, or deprecation matches.
 - PR #19 merged at 2026-10-14T14:18:17Z as main commit 9ec8c14cb1d0c36b2d67b8a543fd5f638f22de5c. Its Cloudflare production deployment e29a16a4-1ad9-4a0f-a16b-bbbf690c6832 matches that SHA and completed every stage successfully; all 155 available logs were checked with no warning/error/failure/fatal/deprecation matches.
 - Live homepage, robots.txt, and sitemap-index.xml each returned HTTP 200 after release. This dependency update does not guarantee or claim a Google ranking change.
-
-
-
 
 ## 2026-10-14 — PR #29 production verification and live SEO checks
 
@@ -242,9 +225,6 @@ This entry closes the release verification opened above. It records observed rel
 - The checked-in src/data/gsc-keywords.json snapshot was generated 2026-10-14 and covers 2026-07-14 through 2026-10-11; it contains 500 global query rows, 395 usable queries, and 47 pages. This release check did not run a fresh Search Console query, so the snapshot is not a live ranking report.
 - Search positions and Google rankings are not guaranteed by these checks or by the deployment.
 
-
-
-
 ## 2026-10-14 — Correct the reported age and restore discovery
 
 ### Change
@@ -265,8 +245,6 @@ This entry closes the release verification opened above. It records observed rel
 - Independent HTTP smoke checks also returned 200 for the homepage, robots.txt, sitemap endpoints, image sitemap, RSS, corrected article, and flagged Bus-Jack article. The corrected article returned `index,follow` with its matching canonical; Bus-Jack returned `noindex,follow` with its matching canonical.
 - This verifies crawl eligibility and technical signals only. It does not guarantee Google recrawling, indexing, or a ranking position.
 
-
-
 ## 2026-10-15 — Complete Search Console sync follow-up
 
 ### Changes on the PR branch
@@ -283,9 +261,6 @@ This entry closes the release verification opened above. It records observed rel
 ### Release gate at the time of this follow-up (pre-merge; superseded by the final verification below)
 - At the time this note was first written, this follow-up was committed only to the PR branch; the release was still pending required checks and the workflow-approval gate. Branch protection was not bypassed.
 
-
-
-
 ## 2026-10-15 — PR #33 production release verification
 
 ### Release completion
@@ -298,9 +273,6 @@ This entry closes the release verification opened above. It records observed rel
 - Subsequent GSC runner and live SEO audit results are recorded in the 2026-10-15 post-release workflow verification section below; the package warning and GSC authentication outcome are now observed, not assumed.
 - This verifies deployment and technical crawl signals only. It cannot guarantee Google recrawl, indexing, or a ranking position.
 
-
-
-
 ## 2026-10-15 — Post-release GSC and live SEO workflow verification
 
 ### Search Console sync follow-up
@@ -312,9 +284,6 @@ This entry closes the release verification opened above. It records observed rel
 ### Live SEO and locale audit
 - Audit run `38684362854` passed on main SHA `fdb95f7c7c6d1e3fc4b26836bd1075dcebc7cb6e`: homepage, 26 indexable pages, canonical URLs, `si-LK` hreflang, Sinhala language/locale, sitemap and corrected-article feed discovery, and exclusion of the configured noindex article all passed.
 - The audit runner also emitted Node/Yarn setup deprecation warnings (`punycode` and `url.parse()`). They did not fail the audit and were emitted by the Node 24 / inferred Yarn cache setup, not by the site build. Cloudflare production build logs remain a separate check and were clean for the recorded production deployment.
-
-
-
 
 ## 2026-10-15 — PR #35 production deployment and audit-runner cleanup
 
@@ -333,8 +302,6 @@ This entry closes the release verification opened above. It records observed rel
 - The run confirmed 26 indexable pages, canonical URLs, `si-LK` hreflang, Sinhala language/locale, sitemap/feed discovery, and noindex exclusion. Its logs no longer contained the Node `punycode` or Yarn `url.parse()` deprecations; only Git's standard default-branch initialization hint remained. The scheduled daily audit is still configured.
 - This verifies the runner cleanup; it does not repair the independent GSC authentication failure or the `node-domexception@1.0.0` install deprecation recorded above.
 
-
-
 ## 2026-10-15 — PR #37 production release and live verification
 
 ### GitHub and Cloudflare release checks
@@ -351,9 +318,6 @@ This entry closes the release verification opened above. It records observed rel
 - GitHub's repository Actions metadata lists the secret name `GOOGLE_INDEXING_KEY`, but not `GSC_SERVICE_ACCOUNT_JSON`, and lists no repository Actions variables (including `GSC_SITE_URL`). Secret values are not readable through this audit and were not inspected. The workflow can fall back from `GSC_SERVICE_ACCOUNT_JSON` to `GOOGLE_INDEXING_KEY`, so the missing dedicated secret name alone does not establish the cause. The effective value's service-account JSON shape and its Search Console property permission still need a safe operator-side check; do not paste credentials into chat.
 - No GSC credential, Search Console permission, or repository setting was changed. Do not mark keyword sync healthy until it completes successfully and writes fresh data. The technical SEO audit verifies crawl signals only; it does not guarantee Google indexing or rankings.
 
-
-
-
 ## 2026-10-15 — GSC auth compatibility validation
 
 ### Diagnosis and change on the fix branch
@@ -366,8 +330,6 @@ This entry closes the release verification opened above. It records observed rel
 - Cloudflare preview deployment `cf25934a-e453-4c79-9825-c0b18fa84c53` for branch commit `233ba121` completed all five stages. All 158 returned log entries (including container logs) were scanned; none matched warning, deprecation, error, fatal, or failure terms.
 - Current production is still main commit `848c1034`, deployment `2dd393f2-f784-427d-97d8-bf48a1e63541`; all five stages succeeded and all 156 returned log entries were scanned with no warning/deprecation/error/fatal/failure matches. The live SEO/locale audit `38698866861` passed on that main SHA: 26 indexable pages, canonical URLs, Sinhala and `si-LK` locale signals, corrected-article discovery, and noindex exclusions.
 - The GSC compatibility change is not in `main` yet. Do not call production GSC sync restored until the fix passes protected-branch checks, is merged, and a main-branch run completes; do not claim ranking improvements from technical checks.
-
-
 
 ## 2026-10-15 — PR #39/#40 GSC release and production verification
 
@@ -389,8 +351,6 @@ This entry closes the release verification opened above. It records observed rel
 - This entry supersedes the earlier pre-merge note stating that the GSC fix was not yet in `main`. The post-merge main-branch sync and production verification above are now complete.
 - The GSC run confirms data retrieval and the protected PR flow; this specific snapshot had no keyword-row changes, only a refreshed timestamp. Technical crawl checks do not guarantee Google indexing or ranking position.
 
-
-
 ## 2026-10-15 — GSC-led homepage low-CTR snippet update
 
 ### Evidence and scope
@@ -410,18 +370,12 @@ This entry closes the release verification opened above. It records observed rel
 - Live checks on 2026-10-15 returned HTTP 200 for the homepage, `/robots.txt`, `/sitemap-index.xml`, and `/sitemap-0.xml`. The live homepage serves the title and description above, canonical `https://www.walakatha.net/`, `lang=si`, and `hreflang=si-LK` plus `x-default`.
 - This verifies release completion and technical crawl metadata only. It does not establish a CTR or ranking improvement; compare Search Console after Google recrawls and enough comparable impressions accrue.
 
-
-
-
 ## 2026-10-15 — Full live SEO and Sri Lanka locale re-audit
 
 - Manually dispatched the existing `Live SEO and Sri Lanka locale audit` workflow after PR #43. Run [38717622478](https://github.com/Ewchandana33/wal-katha-net/actions/runs/38717622478) on exact main SHA `54786e62bce6ab2dff609a4fdca5d54663a8f6fc` completed successfully.
 - The live audit covered the homepage, robots and sitemap/feed discovery, all 26 indexable sitemap pages, corrected-article discovery in XML/image/RSS, and configured noindex-page exclusions. Its page assertions include canonical URLs, Sinhala language, `si-LK` hreflang, and `si_LK` Open Graph locale. No audit failure was reported.
 - The Search Console snapshot currently in `src/data/gsc-keywords.json` was generated at `2026-10-15T07:42:57Z` for `2026-07-15` through `2026-10-12` (three-day data lag). It predates the homepage snippet release on `2026-10-15`; therefore there is not yet a valid post-release CTR comparison or evidence of a ranking change.
 - `Sync GSC Keywords` already runs on a weekly schedule (Mondays at 04:00 UTC). Allow later snapshots and Google recrawl data to mature before evaluating the `වැල්` homepage query; technical-audit success is not a ranking or CTR guarantee. This audit found no verified issue requiring another source-code or metadata change.
-
-
-
 
 ## 2026-10-15 — Automated post-recrawl homepage CTR measurement
 
@@ -801,12 +755,10 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 - Before this follow-up, the live sample PDFs returned HTTP 200 as application/pdf and X-Robots-Tag: noindex, nofollow. The 13-page, 5-page, and 23-page files were checked across all 41 pages: the centered watermark appeared on every page at 18% on the cover/final page and 30% on interior pages. Pages 1, 7, and 13 of the 13-page PDF were rendered and visually reviewed.
 - PR #65 merged at 2026-10-17T03:28:45Z as commit 098d654405032ad3c4ba7eb03e3b8a98bde955b9. The Type-check and production build check (GitHub Actions run 38998719644) and Cloudflare Pages PR check succeeded.
 - Cloudflare preview deployment 806aac5e-d3d9-40fe-b364-b4ed5d055579 and production deployment a3dbc699-120c-4fb5-8ac7-31711abdaf53 completed all five stages successfully. All 173 returned log entries for each deployment, including container logs, were scanned; no warning, deprecation, error, fatal, failure, or exception matches were found.
-- The post-deploy Akkai Nangi production PDF (13 pages) returned HTTP 200 as application/pdf with X-Robots-Tag: noindex, nofollow. PDF.js checks confirmed zero centered 22pt URL watermarks on pages 1 and 13, exactly one on pages 2–12, and the 8pt footer URL plus page number on all 13 pages. PyMuPDF confirmed 30% opacity on every interior centered watermark.
-- Production pages 1, 7, and 13 were rendered and visually reviewed; the requested cover/final-page removal and interior-page watermark are confirmed.
-
-### SEO boundary
-
-- This changes PDF rendering and its build verifier only. HTML metadata, canonical URLs, sitemap, and indexing rules are unchanged; no Google ranking outcome is claimed.
+- The post-deploy Akkai Nangi production PDF (13 pages) returned HTTP 200 as application/pdf with X-Robots-Tag: noindex, nofollow. PDF.js checks confirmed zero centered 22pt URL watermarks on pages 1 and 13, exactly one on pages 2–12, and the 8pt footer URL plus page number on all 13 pages. PyMuPDF confirmed article rendered five choices with the canonical lowercase slug. Local Chromium runs were unreliable in this Replit sandbox with about 204 MB available memory; the hosted CI browser test below passed on the same implementation commit.
+- GitHub Actions CI run 40541834937 passed every step for implementation commit 95d67f701035ed2ab91e7b3a5ddb0cd1f1d611b0 in draft PR #105: Astro type-check, tests, build, responsive Chromium at 280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, and 2560px, SEO checks, and Preview route/API/noindex/age-gate verification. The API smoke returned HTTP 200 for methsala-akka-wal-katha with 0 votes and average 0. Existing dependency/action deprecation notices and Astro hints in unrelated files remain.
+- Cloudflare Pages Preview deployment 62f5df25-1a99-401d-93a4-8a503dc3c7e9 completed all five stages successfully for that exact commit: https://62f5df25.wala-katha.pages.dev. A separate read-only smoke returned HTTP 200 for /blog/akkai-nangi-wal-katha/ and /api/rating?story=akkai-nangi-wal-katha; the article contained the widget and five inputs, and the API returned all five zero-count buckets, 0 votes, and average 0. No POST or demo vote was submitted.
+- After the Preview deploy, Cloudflare still reported Production deployment 6e110384-5552-454c-bc87-8970f98a2305 on main commit 05d5ded3cce4a1084c6cba334cac19b7e696c31b; Production D1 binding is null while Preview is bound to the existing rating database. PR #105 remains a draft; no merge or Production deployment occurred.
 
 ## 2026-10-17 — Add author-rights banner and complete usage terms to reader PDFs
 
@@ -1032,7 +984,6 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 - Direct HTTP GET of the preview returned 200. The rendered title region kept the exact Sinhala H1, included the CSS-drawn figure, omitted “WAL KATHA”, and contained no img/svg/picture/canvas markup. The downloaded compiled CSS contains the figure selectors, red title rule, and the responsive 480px media rule.
 - PR #89 remains a draft; no merge or production deployment was performed.
 
-
 ## 2026-10-23 — Replace the abstract title ornament with a white side silhouette
 
 ### Request and changes
@@ -1047,7 +998,6 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 - Cloudflare Pages preview deployment `906e66ec-5649-43d5-9d1d-eb342e5e1a64` completed all five stages successfully for that commit. Preview URL: https://906e66ec.wala-katha.pages.dev; branch alias: https://design-homepage-title-text-o.wala-katha.pages.dev.
 - Direct HTTP GET of the preview returned 200. The rendered title kept the exact Sinhala H1, included the solid white CSS silhouette beside it, omitted “WAL KATHA”, and contained no img/svg/picture/canvas markup in the title region. The downloaded compiled CSS contains the white gradient silhouette, CSS path clip, right-side title column, and responsive 480px rule.
 - PR #89 remains a draft; no merge or production deployment was performed.
-
 
 ## 2026-10-23 — Tighten the homepage title layout and redraw its feminine silhouette
 
@@ -1158,7 +1108,6 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 - The Cloudflare Browser Rendering API returned HTTP 429 for a multi-viewport request; local Chromium screenshots were used for the viewport review instead.
 - PR #91 remains a draft; its auto-merge workflow was skipped. No merge or Production deployment occurred.
 
-
 ## 2026-10-23 — Match the homepage title to the gold/red reference
 
 ### Request and changes
@@ -1174,7 +1123,6 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 - The final Preview returned HTTP 200. All 174 available deployment-log records, including container logs, were checked; none matched error, failure, warning, fatal, or exception markers.
 - Local headless Chromium measurements at 320, 360, 390, 430, 768, and 1024px found no horizontal overflow. The 18+ badge stayed visible in the viewport, did not overlap the title, and shared its final text line; the title used two lines only at 320 and 360px and one line at 390px and wider. The screenshot remained behind the site's existing age-confirmation overlay; the review did not bypass it.
 - PR #91 remains a draft; auto-merge was skipped. No merge or Production deployment occurred.
-
 
 ## 2026-10-23 — Use the exact reference artwork for the homepage title
 
@@ -1233,3 +1181,176 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 - Cloudflare Pages Preview deployment `1d01ee11-5d0f-47d3-874f-b49ff42036a5` succeeded through all five stages for the same commit: https://1d01ee11.wala-katha.pages.dev. All 185 available deployment-log records were checked; none matched warning, error, failed, fatal, or exception markers.
 - Preview article URL returned HTTP 200 with the requested title, description, canonical URL, CTA, and 18+ banner; the WebP returned HTTP 200. Desktop (1365×900) and mobile (390×844) Chromium captures showed the site's existing 18+ confirmation gate at both sizes. Did not confirm/bypass the age gate. The Preview response is noindex, as expected; Production remains unchanged pending explicit approval.
 .
+
+## 2026-10-25 — Make the homepage banner fill its frame
+
+### Request and change
+
+- Follow-up to “Remove black gutters from the homepage featured banner”: the brighter blurred backdrop still left the original artwork visually inset on the supplied mobile screenshot.
+- Change only the first featured image from `object-contain` to a top-aligned `object-cover`. This removes the side gutters while keeping the embedded Sinhala heading, 18+ badge, and PDF/audio icons in view; it crops some lower bedding. Other slides, assets, routes, and frame dimensions remain unchanged.
+- Update the responsive Chromium assertions to require the cover fit, top crop, working image decode, and equal slide heights at all 11 viewport widths.
+
+### Verification status
+
+- Local `git diff --check`, `node --check scripts/verify-responsive-layout.mjs`, and `yarn check` passed; `yarn test` passed (8/8). The local `yarn build` timed out during static route generation, but GitHub Actions CI run `40213794263` passed the Type-check and production-build job for code commit `ab40138288791f7243bb050803aaaed8c35a0f5e` in draft PR #102.
+- Cloudflare Pages Preview deployment `83aea326-5994-492c-8d9d-0b70adc9aa62` completed successfully for that exact commit: https://83aea326.wala-katha.pages.dev. The responsive Chromium test passed at 280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, and 2560px: the banner image decoded from the expected mobile/desktop sources, used `object-fit: cover` and `object-position: 50% 0%`, retained equal slide heights, and the homepage/article checks found no horizontal overflow. The age gate was not interacted with.
+- All 175 returned Cloudflare deployment-log entries, including container logs, were checked; no warning, error, failed, failure, fatal, or exception markers were found.
+- Production remains on deployment `543a827d-6f9d-44df-a19c-9f346558de18`, commit `d92b2a507bfc920fd6bb7c36eb824e308390a878`. PR #102 remains a draft; no merge or Production deployment was performed.
+
+## 2026-10-25 — Repair the homepage banner desktop WebP
+
+### Correction and root cause
+
+- Follow-up to “Remove black gutters from the homepage featured banner”: a separate desktop-only image-decoding failure was not covered by the earlier CSS-only diagnosis.
+- The desktop asset returned HTTP 200 and `Content-Type: image/webp`, but its 61,414 bytes lacked the `RIFF/WEBP` signature and ImageMagick could not decode them. The page’s `?v=391572ab64` version matched the SHA-256 of those bad bytes, so cache-busting was working; the committed asset itself was invalid. Both Production and PR Preview served those same bytes.
+- The original JPEG is intact at 2400×1219, and its `.jpg.hash` matches the source plus the optimizer’s configured version. Re-encoded it to a valid 1200×610 WebP (62,794 bytes) without enlarging the mobile asset; the existing 700×356 mobile WebP remains unchanged.
+- Extend the Chromium responsive test to await image decoding and verify selected image path plus intrinsic dimensions at all 11 viewport widths (mobile through 767px; desktop from 768px). The prior object-fit, backdrop, slide-height, and page-overflow checks remain.
+- This correction is included in PR #101 only. Production remains unchanged; merge and release still require the user’s explicit approval.
+
+### Verification status
+
+- Before the change, confirmed the live PR Preview and Production both returned HTTP 200 for the invalid 61,414-byte desktop asset; `file` identified it only as generic data. The source JPEG and its optimizer sidecar were verified, and the replacement candidate decoded as 1200×610 WebP.
+- GitHub Actions CI run #221 (`40191654568`) passed for implementation commit `501cd93670f0a03446bc829c024a7a885ebe679b`: type-check, tests, Astro production build, responsive Chromium at all 11 widths, SEO verifiers, and Cloudflare Preview route/noindex/age-gate checks. The new browser assertions verified the expected desktop/mobile source selection and natural dimensions after `img.decode()`.
+- Cloudflare Pages Preview deployment `9d76bda6-37d4-4d3a-a45d-84f4bb83e7a3` completed all five stages successfully for that exact commit: https://9d76bda6.wala-katha.pages.dev. All 175 returned deployment-log records, including container logs, were checked; no warning, error, failure, fatal, or exception markers were found.
+- The live Preview homepage references desktop `online-wal-katha-audio-pdf.webp?v=79a153f3a8`; its response decoded as 1200×610 WebP (62,794 bytes) and the version matches its SHA-256 prefix. The unchanged mobile URL decoded as 700×356 WebP (35,694 bytes). Cloudflare still identifies Production deployment `c0a0d04d-6c08-403c-aa78-806b009049c8` on `main` commit `39ed65f0cb7818379a260a97eabcee768485acf3`; no merge or Production deployment was performed.
+
+## 2026-10-25 — Remove black gutters from the homepage featured banner
+
+### Root cause and change
+
+- The first carousel artwork has a 700×356 mobile aspect ratio and uses object-contain in the shared wider 21:8/24:8 frame. The empty side area is meant to be filled by a blurred copy of the artwork, but its 40% opacity and 50% brightness made it appear nearly black on the supplied Android screenshot.
+- Keep the original image fully visible and uncropped, retain the shared slide frame and carousel height, and raise only the blurred backdrop's visibility. Sinhala text, the 18+ badge, story-slide crop, assets, and routes remain unchanged.
+- Extend the responsive Chromium check to cover the supplied 461px screenshot width and the 640/700px frame breakpoint, asserting the visible full-bleed backdrop, uncropped foreground, and equal slide heights.
+
+### Verification status
+
+- Implementation commit: `ed8f89a980d4ae3899b604e76a3d6a567387bdd6` in [PR #101](https://github.com/Ewchandana33/wal-katha-net/pull/101), based on main `39ed65f0cb7818379a260a97eabcee768485acf3`.
+- GitHub Actions run `40186676321` (run #219, attempt 2) passed. Type-check/build, responsive Chromium at 11 widths (280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, 2560), homepage/pagination SEO checks, and Cloudflare Preview route/noindex/age-gate checks all passed. Attempt 1 failed before layout assertions because Chrome DevTools did not become ready; attempt 2 succeeded.
+- Cloudflare Pages Preview deployment `e4837acf-8bd9-416e-9708-aa9399dce588` completed successfully for the implementation commit: https://e4837acf.wala-katha.pages.dev. Browser smoke checks confirmed object-fit: contain, backdrop cover/blur/0.8 opacity, and equal frame heights at 461, 640, 700, and 768px. The age-gate overlay prevented a visual screenshot confirmation without interacting with it.
+- Production remains on deployment `c0a0d04d-6c08-403c-aa78-806b009049c8`, main commit `39ed65f0cb7818379a260a97eabcee768485acf3`. No merge or Production deployment was performed; explicit approval is still required.
+- A documentation-only follow-up commit records these implementation checks; its own CI and Preview results are tracked separately.
+
+## 2026-10-25 — Center the article cover image responsively
+
+### Request and changes
+
+- Addressed the report that the primary post cover was left-aligned on desktop and the request to center it across device sizes while checking related responsive image layout.
+- Root cause: Astro rendered the cover image as `inline-block`; its existing `mx-auto` could not center a `max-w-4xl` image once it became narrower than the wide article column. Added `block` to the cover image classes in `src/layouts/partials/PostSingle.astro`. It remains full available width on smaller screens and is centered at its existing 896px maximum on desktop.
+- Audited the homepage post-card thumbnails and article layout at eight viewport widths; no additional card-image, row-gutter, or horizontal-overflow issue was found in the tested pages.
+
+### Verification
+
+- Code commit `228ad4d5f38210867fe0836dc0f2499d2338aa1d` passed GitHub Actions CI run `40172972916`: Astro type-check, the middleware/logic/changelog tests, static site build, and homepage/pagination SEO checks all succeeded.
+- Cloudflare Pages Preview deployment `c062e4c9-e04b-4787-af9c-c7e167c11f29` completed all five stages successfully; the article page returned HTTP 200. All 175 deployment logs, including container logs, were checked; no warning, error, failure, fatal, or exception markers were found.
+- Headless Chromium checked the article and homepage at 280, 320, 390, 768, 1024, 1440, 1920, and 2560px. The article cover center offset was 0px at all eight widths; the homepage grid stayed at 2, 2, 2, 3, 4, 4, 5, and 6 columns, with card images inside their frames. No document-root horizontal overflow or `.row` edge bleed was observed. The age-confirmation overlay stayed active; the test did not bypass it.
+- PR #99 remains a draft; no merge or Production deployment occurred.
+
+## 2026-10-25 — Make the site layout fluid across devices
+
+### Request and changes
+
+- Addressed the request to remove the narrow fixed page frame and make the existing site use available screen width from mobile through ultrawide desktop.
+- The shared `.container` had a 1000px maximum; the responsive layout change removes that cap, sets post cards to 2–6 columns by screen width, and lets article sections use the full 12-column grid.
+- Browser verification then found a 4px narrow-screen bleed: the Bootstrap-style `.row` uses 2rem total gutters (−1rem side margins), while the page frame used 0.75rem minimum padding. Raised the minimum page-frame padding to 1rem in `src/styles/components.css` and `src/styles/small-screen-fixes.css` so row gutters align with the viewport.
+- Kept all work on `fix/full-width-responsive-layout-20261025` in draft PR #99; no merge or Production release.
+
+### Verification
+
+- Final code commit `1a423724bd4b2656815380e89eaeb1f9d810dc69` passed GitHub Actions CI run `40169965473` (Astro type-check, tests, and production build).
+- Cloudflare Pages Preview deployment `90d470c6-a2a8-4363-98fe-935b18c89f4e` completed build and deploy successfully for that exact commit. Preview returned HTTP 200 at https://90d470c6.wala-katha.pages.dev. All 175 available deployment log records, including container logs, had no error, failure, fatal, exception, or warning matches.
+- Headless Chromium 152 checked the homepage and article page at 280, 320, 390, 768, 1024, 1440, 1920, and 2560px. No document-root horizontal overflow or row-edge bleed was observed. Homepage grid columns were 2, 2, 2, 3, 4, 4, 5, and 6 at those widths; article content filled the available frame. The site's age-confirmation overlay remained active; the test did not bypass it.
+- PR #99 remains open as a draft; its auto-merge workflow was skipped. No merge, Production deployment, or live-site code change occurred.
+
+## 2026-10-24 — Correct the feature placement as a standalone page
+
+### Request and changes
+
+- Supersedes the placement described in the earlier entry “Add online, audio, and PDF feature article.” The user clarified that this must be a standalone page like Privacy Policy, not a blog post.
+- Removed the entry from src/content/posts and added it to src/content/pages/online-wal-katha-audio-pdf.md. Its direct route is /online-wal-katha-audio-pdf/. Moved the supplied banner to public/images/pages/online-wal-katha-audio-pdf.webp. No homepage, menu, or footer link was added; the homepage loads only posts.
+- Added explicit legacy redirects from both /blog/online-wal-katha-audio-pdf/ and the non-trailing-slash variant to the standalone page. The build-time redirect fixer initially sent the deleted post URL to /categories/wal-katha/; the explicit rule corrects that destination.
+- During this Preview-verification stage, the work remained on feature branch content/online-wal-katha-audio-pdf-20261024 in draft PR #92, pending the author's explicit Production approval; the subsequent Production rollout is recorded below.
+
+### Verification
+
+- Final code commit 0317f857c3347d3dbd5c2543d51045621e5b380c passed GitHub Actions CI run 40088184523. Astro check reported 0 errors, 0 warnings, and 27 hints. CI logs still contain existing Node DEP0040/DEP0169 deprecations and warnings in unchanged source files; none identify this page or redirect rule.
+- Cloudflare Pages Preview deployment 70b81d1c-9ac7-4c45-868e-e91f2cc62652 completed all five stages successfully for that commit: https://70b81d1c.wala-katha.pages.dev. All 175 available deployment-log records, including container logs, were checked; none matched warning, error, failed, fatal, or exception markers.
+- Direct page returned HTTP 200 with the expected canonical URL, title, and description; the banner returned HTTP 200 image/webp. The former blog URL returned 301 to /online-wal-katha-audio-pdf/, and the no-slash page URL returned 308 to its canonical trailing-slash URL. The Preview homepage HTML contained neither the page slug nor its title.
+- Desktop (1365×900) and mobile (390×844) captures showed the site's 18+ confirmation gate at both sizes; it was not bypassed. Preview responses are noindex. At this stage Production main was bb5215476fa976a3a1983299dd218fc641f0c56f; the later approval and rollout are recorded below.
+
+
+### Production rollout after explicit approval (2026-10-24)
+
+- After the user explicitly approved release, draft PR #92 was marked ready through GitHub GraphQL and squash-merged into main as commit 1a0c52bc1b196f926684c8307b410e31660f67c1.
+- GitHub Actions CI run 40091530019 passed on the merge commit. Cloudflare Pages Production deployment 3845e72b-08cb-453f-b40d-ea780c59b3d0 completed all five stages successfully for that same commit. All 175 available deployment-log records were checked; none matched warning, error, failed, fatal, or exception markers.
+- https://www.walakatha.net/online-wal-katha-audio-pdf/ returned HTTP 200 with the expected canonical URL, index/follow robots metadata, and the existing 18+ confirmation gate. The banner returned HTTP 200 image/webp. The homepage HTML contained neither the page slug nor its title.
+- The legacy trailing-slash blog URL redirected to the standalone page with one 301; the legacy no-slash URL reached the same HTTP 200 destination after two redirects. The no-slash standalone URL redirected to its canonical trailing-slash URL with HTTP 301. The non-www hostname redirected to www.
+- PR #92 is closed and merged. Production main now points to 1a0c52bc1b196f926684c8307b410e31660f67c1. No age-gate bypass or separate visual redesign was performed during Production verification.
+
+## 2026-10-28 — Improve story-rating feedback and audit Google snippets
+
+### Request and changes
+
+- Make a successful story rating show a brief, accessible thank-you toast that dismisses itself; highlight the selected rating tile green while keeping its star gold; remove the duplicate-vote privacy footnote from the widget.
+- Extend the responsive Chromium test to verify the selected color, gold star, success toast, automatic dismissal, and removal of the footnote. The test stubs rating API requests, so it does not write votes to the Preview or Production database.
+- Audited the added request for Google Search stars against Google's current review-snippet guidance. The story page is an Article/BlogPosting; that generic type is not listed as eligible for Google's review-snippet star feature. Do not emit misleading AggregateRating markup or relabel a story as a Book/Episode to try to qualify. Revisit only if a page genuinely represents a Google-supported type and the rating is visible and real; valid markup still does not guarantee a rich result.
+
+### Verification
+
+- `yarn test` passed all 17 tests; `yarn check` passed; the changelog/archive retention tests passed 2/2. Dependencies were installed from the checked-in frozen lockfile. Both full builds attempted in this local 1.6 GiB cgroup were killed with exit 137, including the capped-heap retry.
+- GitHub Actions CI run `40636663470` passed for commit `f50d9ca0725062aab42fdf73caeaa89ad07ae691`: type-check, CI test steps, static production build, responsive Chromium, SEO output, Preview route, and age-gate checks all succeeded.
+- Cloudflare Pages Preview deployment `61ce2c40-7232-44cd-b95f-183b9aebcdf2` completed all five stages successfully for that exact commit: https://61ce2c40.wala-katha.pages.dev. The article and read-only rating API GET returned HTTP 200; the aggregate remained at 0 votes. Direct Preview Chromium checked the article at 280, 320, 390, 461, 640, 700, 768, 1024, 1440, 1920, and 2560px with no horizontal overflow; all five choices and the toast were present, and the removed footnote was absent. CI's isolated mocked interaction also passed the green selected tile, gold star, success toast, and auto-dismiss assertions. No live POST was sent.
+- PR #105 remains open as a draft. No merge, `main` update, or Production deployment occurred.
+
+## 2026-10-28 — Center and restyle story-rating feedback
+
+### Request and changes
+
+- Update PR #105's successful rating notice from a top-anchored green toast to a viewport-centered blue success toast, while retaining its accessible live region and 3.5-second auto-dismiss behavior.
+- Refine the rating panel with restrained blue depth, clearer interactive star cards, more distinct summary/action styling, and a proper people icon in place of the unrelated pawn glyph.
+- Extend the isolated responsive Chromium interaction test to assert the toast uses fixed positioning, is centered in the viewport, has a blue background, and still dismisses automatically. API requests remain stubbed in this interaction test.
+
+### Verification
+
+- `yarn test` passed 17/17; `yarn check`, `git diff --check`, and the production `yarn build` passed. The build generated all 51 pages and passed the configured PDF, featured-link, social-image, critical-CSS, homepage-performance, and sitemap checks.
+- Local `node scripts/verify-responsive-layout.mjs` reached the homepage checks through 700px, then Chromium timed out on `Emulation.setDeviceMetricsOverride` at 768px. No assertion failed before that timeout; the isolated toast interaction was not reached locally. GitHub CI and a new Preview are pending the branch update.
+- No Production branch update or deployment was performed.
+
+## 2026-10-28 — Correct story-rating success backdrop
+
+### Correction and changes
+
+- Correction to “Center and restyle story-rating feedback”: the user asked for a full-screen blue backdrop behind the original thank-you notice, not a blue notice.
+- Restore the original dark-green toast appearance and keep it centered. Add a fixed blue-tinted, blurred viewport backdrop that appears and auto-dismisses together with the toast after 3.5 seconds.
+- Update the isolated responsive Chromium test to verify full-viewport backdrop coverage, its blue color, the unchanged green toast, and the paired automatic dismissal.
+
+### Verification
+
+- `yarn test` passed 17/17; `yarn check`, `node --check scripts/verify-responsive-layout.mjs`, and `git diff --check` passed. `yarn check` reports the existing 20 dependency-resolution warnings and Node.js `url.parse()` deprecation warning.
+- PR #105 branch update, GitHub CI, and Cloudflare Preview checks are pending. No Production branch update or deployment was performed.
+
+## 2026-10-28 — Complete story comments and colorless toast
+
+### Request and changes
+
+- Complete draft PR #105 with a rating-gated optional Sinhala comment, a separate accessible comments dialog, paginated top-level comments, one-level replies, and idempotent likes. The dialog uses the browser's modal layer and restores page scrolling/focus when closed.
+- Add same-origin validation, strict request parsing, a 500-character limit, hashed anonymous voter/IP identities, the existing write rate limit, safe text rendering, and atomic D1 insertion for a rating with its optional review.
+- Add the additive comments/likes migration matching the already-present Preview schema. Do not apply a migration, alter Production data/configuration, merge the PR, or deploy Production.
+- Supersede “Correct story-rating success backdrop”: use a colorless transparent backdrop with blur, paired with the existing green thank-you toast.
+- Add API/UI regression tests, including the comments dialog, likes/replies, scroll lock, toast appearance, and paired dismissal.
+
+### Verification
+
+- Focused Node tests passed 17/17; JavaScript syntax checks and SQLite migration/query smoke tests passed. CI run `40681302698` caught strict-null errors in the new comments widget, which were corrected in the follow-up commit. Cloudflare Preview deployment `2e1c3d65-dd5b-42d7-beca-d7e62d0977aa` deployed initial commit `bd18b2ddaaa12e5a70734d0edded8587768eb1c0`, but is not accepted as verification because CI failed. CI and a corrected Preview are pending. Local build dependencies and generated `dist/` assets are not present in this workspace.
+- PR #105 remains an open draft. No merge, `main` update, or Production deployment was performed.
+
+## 2026-10-28 — Correct responsive rating selection test timing
+
+### Changes
+
+- Snapshot the selected tile class and radio checked/disabled state immediately after the rating click in `scripts/verify-responsive-layout.mjs`, before subsequent vote, toast, and comments interactions. Include radio state in failure diagnostics.
+- Archive the oldest complete dated changelog section to keep the five-entry active history and update its coverage/count.
+
+### Verification
+
+- GitHub Actions run `40681777229` attempt 1 failed before responsive assertions because Chrome DevTools did not become reachable. Attempt 2 passed Astro type-check, all 25 unit tests, the 51-page static build, and homepage/article layout checks at 11 viewport widths, then failed the selected-tile assertion. The assertion previously read the class after the later interaction sequence; this branch update is pending CI verification.
+- Interactive checks use isolated API stubs; no live rating/comment POST was made. No Production code, data, or deployment was changed.

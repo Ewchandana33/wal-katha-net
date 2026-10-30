@@ -1,0 +1,944 @@
+---
+const { storySlug } = Astro.props as { storySlug: string };
+const dialogId = `story-comments-${storySlug}`;
+---
+
+<div class="story-comments" data-story-comments data-story-slug={storySlug}>
+  <button
+    class="story-comments-open"
+    type="button"
+    data-comments-open
+    aria-haspopup="dialog"
+    aria-controls={dialogId}
+  >
+    අදහස් බලන්න
+    <span class="story-comments-count" data-comments-count aria-label="අදහස් සංඛ්‍යාව">0</span>
+  </button>
+
+  <dialog class="story-comments-dialog" id={dialogId} data-comments-dialog aria-labelledby={`${dialogId}-title`}>
+    <div class="story-comments-panel">
+      <header class="story-comments-header">
+        <div>
+          <p class="story-comments-eyebrow">පාඨක අදහස්</p>
+          <h2 id={`${dialogId}-title`}>මෙම කතාව ගැන අදහස්</h2>
+          <p class="story-comments-intro">
+            අදහස් බැලීමට හෝ පිළිතුරු දීමට හැකිය. අදහසක් එක් කිරීමට තරු ඇගයීමක් ලබා දෙන්න.
+          </p>
+        </div>
+        <button class="story-comments-close" type="button" data-comments-close aria-label="අදහස් කවුළුව වසන්න">
+          <span aria-hidden="true">×</span>
+        </button>
+      </header>
+
+      <p class="story-comments-status" data-comments-status role="status" aria-live="polite">
+        අදහස් ලබාගනිමින්…
+      </p>
+      <ol class="story-comments-list" data-comments-list aria-label="කතාවේ අදහස්"></ol>
+      <button class="story-comments-more" type="button" data-comments-more hidden>
+        තවත් අදහස් බලන්න
+      </button>
+    </div>
+  </dialog>
+</div>
+
+<style>
+  .story-comments,
+  .story-comments * {
+    box-sizing: border-box;
+  }
+
+  .story-comments-dialog :global(*) {
+    box-sizing: border-box;
+  }
+
+  .story-comments {
+    margin: -0.9rem 0 2rem;
+  }
+
+  .story-comments-open {
+    display: inline-flex;
+    min-height: 2.65rem;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid #74313f;
+    border-radius: 999px;
+    background: #111014;
+    color: #fff2f3;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease, transform 140ms ease;
+  }
+
+  .story-comments-open:hover {
+    border-color: #ff5368;
+    background: #241116;
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  .story-comments-open:focus-visible,
+  .story-comments-close:focus-visible,
+  .story-comments-more:focus-visible,
+  .story-comments-dialog :global(.story-comment-action:focus-visible),
+  .story-comments-dialog :global(.story-reply-submit:focus-visible),
+  .story-comments-dialog :global(.story-reply-cancel:focus-visible) {
+    outline: 2px solid #ff667a;
+    outline-offset: 3px;
+  }
+
+  .story-comments-count {
+    display: grid;
+    min-width: 1.55rem;
+    height: 1.55rem;
+    place-items: center;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: #3a1720;
+    color: #ffb6c0;
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .story-comments-dialog {
+    width: min(46rem, calc(100vw - 1rem));
+    max-width: none;
+    max-height: min(88vh, 48rem);
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #a33b50;
+    border-radius: 1.15rem;
+    background: #09090c;
+    color: #f7f3f4;
+    box-shadow: 0 0 0 1px rgb(231 61 87 / 14%), 0 28px 90px rgb(0 0 0 / 72%);
+  }
+
+  .story-comments-dialog::backdrop {
+    background: rgb(0 0 0 / 82%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  .story-comments-panel {
+    display: flex;
+    max-height: min(88vh, 48rem);
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: #71303d #100d10;
+  }
+
+  .story-comments-header {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.3rem 1.4rem 1.1rem;
+    border-bottom: 1px solid #54232e;
+    background: linear-gradient(135deg, #171015, #100e12 72%);
+  }
+
+  .story-comments-eyebrow {
+    margin: 0 0 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.45rem;
+    padding: 0.15rem 0.55rem;
+    border: 1px solid #6c2c3a;
+    border-radius: 999px;
+    background: #281117;
+    color: #ff9aa9;
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .story-comments-header h2 {
+    margin: 0;
+    color: #fff7f8;
+    font-size: clamp(1.1rem, 3vw, 1.45rem);
+    line-height: 1.4;
+  }
+
+  .story-comments-intro {
+    max-width: 33rem;
+    margin: 0.4rem 0 0;
+    color: #c0b4b8;
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+
+  .story-comments-close {
+    display: grid;
+    width: 2.4rem;
+    height: 2.4rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid #71303d;
+    border-radius: 50%;
+    background: #1b1014;
+    color: #fff1f3;
+    font: inherit;
+    font-size: 1.7rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .story-comments-status {
+    margin: 1rem 1.4rem 0;
+    padding: 0.75rem 1rem;
+    border: 1px solid #48232b;
+    border-left: 3px solid #e7445b;
+    border-radius: 0.65rem;
+    background: #120d10;
+    color: #d3c4c8;
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+
+  .story-comments-status:empty {
+    display: none;
+  }
+
+  .story-comments-list {
+    display: grid;
+    gap: 0.85rem;
+    margin: 0;
+    padding: 1rem 1.4rem 1.4rem;
+    list-style: none;
+  }
+
+  .story-comments-dialog :global(.story-comments-list > li) {
+    min-width: 0;
+  }
+
+  .story-comments-dialog :global(.story-comment) {
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid #542a34;
+    border-left: 3px solid #d94158;
+    border-radius: 0.9rem;
+    background: linear-gradient(145deg, #171216, #0e0d11 72%);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+    overflow-wrap: anywhere;
+  }
+
+  .story-comments-dialog :global(.story-comment-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .story-comments-dialog :global(.story-comment-author) {
+    color: #f6e9ec;
+    font-size: 0.79rem;
+    font-weight: 750;
+  }
+
+  .story-comments-dialog :global(.story-comment-date) {
+    color: #b5a5aa;
+    font-size: 0.7rem;
+  }
+
+  .story-comments-dialog :global(.story-comment-body) {
+    margin: 0;
+    color: #e2d9dc;
+    font-size: 0.88rem;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .story-comments-dialog :global(.story-comment-actions) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .story-comments-dialog :global(.story-comment-action) {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid #74313f;
+    border-radius: 999px;
+    background: #1b1014;
+    color: #eadde0;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease;
+  }
+
+  .story-comments-dialog :global(.story-comment-action:hover:not(:disabled)) {
+    border-color: #c7445b;
+    background: #2c151c;
+    color: #fff5f6;
+  }
+
+  .story-comments-dialog :global(.story-comment-action[aria-pressed="true"]) {
+    border-color: #f0526b;
+    background: #4a1823;
+    color: #ffb0bd;
+    box-shadow: inset 0 0 0 1px rgb(240 82 107 / 16%);
+  }
+
+  .story-comments-dialog :global(.story-comment-action:disabled) {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
+  .story-comments-dialog :global(.story-comment-replies) {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0.8rem 0 0 0.55rem;
+    padding-left: 0.8rem;
+    border-left: 2px solid #8c3445;
+    list-style: none;
+  }
+
+  .story-comments-dialog :global(.story-comment-replies .story-comment) {
+    padding: 0.8rem;
+    border-left-width: 2px;
+    background: #100c10;
+  }
+
+  .story-comments-dialog :global(.story-reply-form) {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.75rem;
+  }
+
+  .story-comments-dialog :global(.story-reply-form[hidden]) {
+    display: none;
+  }
+
+  .story-comments-dialog :global(.story-reply-form label) {
+    color: #e7d7dc;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .story-comments-dialog :global(.story-reply-form textarea) {
+    width: 100%;
+    min-height: 5.25rem;
+    resize: vertical;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid #71303d;
+    border-radius: 0.7rem;
+    background: #0b090c;
+    color: #fff7f8;
+    color-scheme: dark;
+    font: inherit;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+  }
+
+  .story-comments-dialog :global(.story-reply-form textarea::placeholder) {
+    color: #8c777d;
+  }
+
+  .story-comments-dialog :global(.story-reply-form textarea:focus-visible) {
+    border-color: #ff5b70;
+    outline: 2px solid rgb(255 91 112 / 35%);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 3px rgb(255 91 112 / 10%);
+  }
+
+  .story-comments-dialog :global(.story-reply-error) {
+    margin: 0;
+    color: #ff9dab;
+    font-size: 0.76rem;
+  }
+
+  .story-comments-dialog :global(.story-reply-error:empty) {
+    display: none;
+  }
+
+  .story-comments-dialog :global(.story-reply-controls) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .story-comments-dialog :global(.story-reply-submit),
+  .story-comments-dialog :global(.story-reply-cancel),
+  .story-comments-more {
+    min-height: 2.75rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid #8b394b;
+    border-radius: 0.6rem;
+    background: #32131a;
+    color: #fff0f2;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .story-comments-dialog :global(.story-reply-submit:disabled),
+  .story-comments-more:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+
+  .story-comments-dialog :global(.story-reply-submit:hover:not(:disabled)),
+  .story-comments-more:hover:not(:disabled) {
+    border-color: #ff5368;
+    background: #4a1823;
+  }
+
+  .story-comments-dialog :global(.story-reply-cancel) {
+    border-color: #514047;
+    background: #171216;
+    color: #ddcfd3;
+  }
+
+  .story-comments-more {
+    align-self: center;
+    margin: 0 1rem 1.2rem;
+  }
+
+  .story-comments-more[hidden] {
+    display: none;
+  }
+
+  :global(html.story-comments-open),
+  :global(body.story-comments-open) {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  @media (max-width: 480px) {
+    .story-comments {
+      margin-top: -0.6rem;
+    }
+
+    .story-comments-dialog {
+      width: calc(100vw - 1rem);
+      max-height: calc(100vh - 1rem);
+      border-radius: 0.9rem;
+    }
+
+    .story-comments-panel {
+      max-height: calc(100vh - 1rem);
+    }
+
+    .story-comments-header {
+      padding: 1rem;
+    }
+
+    .story-comments-status {
+      padding: 0.85rem 1rem 0;
+    }
+
+    .story-comments-list {
+      padding: 0.85rem 1rem 1rem;
+    }
+
+    .story-comments-status {
+      margin-right: 1rem;
+      margin-left: 1rem;
+    }
+
+    .story-comments-dialog :global(.story-comment) {
+      padding: 0.85rem;
+    }
+
+    .story-comments-dialog :global(.story-comment-header) {
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .story-comments-dialog :global(.story-comment-date) {
+      flex: 0 0 auto;
+      text-align: right;
+    }
+
+    .story-comments-dialog :global(.story-comment-replies) {
+      margin-left: 0.2rem;
+      padding-left: 0.55rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .story-comments-open,
+    .story-comments-dialog :global(.story-comment-action),
+    .story-comments-dialog :global(.story-reply-form textarea) {
+      transition: none;
+    }
+  }
+
+  @supports (height: 100dvh) {
+    .story-comments-dialog {
+      max-height: min(88dvh, 48rem);
+    }
+
+    .story-comments-panel {
+      max-height: min(88dvh, 48rem);
+    }
+
+    @media (max-width: 480px) {
+      .story-comments-dialog {
+        max-height: calc(100dvh - 1rem);
+      }
+
+      .story-comments-panel {
+        max-height: calc(100dvh - 1rem);
+      }
+    }
+  }
+  .story-comments-dialog :global(.story-comment-reply-disclosure) {
+    margin: 0.5rem 0 0.25rem;
+    border: 1px solid rgba(163, 59, 80, 0.28);
+    border-radius: 0.75rem;
+    background: rgba(18, 9, 12, 0.55);
+    overflow: hidden;
+  }
+  .story-comments-dialog :global(.story-comment-reply-disclosure > summary) {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 0.8rem;
+    color: #f0b8c2;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    list-style: none;
+  }
+  .story-comments-dialog :global(.story-comment-reply-disclosure > summary::-webkit-details-marker) { display: none; }
+  .story-comments-dialog :global(.story-comment-reply-disclosure > summary::before) {
+    content: "＋";
+    margin-right: 0.5rem;
+    color: #ef7185;
+  }
+  .story-comments-dialog :global(.story-comment-reply-disclosure[open] > summary::before) { content: "−"; }
+  .story-comments-dialog :global(.story-comment-new-reply .story-comment) {
+    animation: story-comment-reply-highlight 2.2s ease-out;
+  }
+  @keyframes story-comment-reply-highlight {
+    0%, 100% { background-color: rgba(127, 29, 29, 0.16); border-color: rgba(163, 59, 80, 0.42); }
+    28% { background-color: rgba(239, 68, 68, 0.24); border-color: rgba(248, 113, 113, 0.9); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .story-comments-dialog :global(.story-comment-new-reply .story-comment) { animation: none; outline: 2px solid rgba(248, 113, 113, 0.7); }
+  }
+</style>
+
+<script>
+  import {
+    containsDisallowedLink,
+    watchCommentLinks,
+  } from "../../../shared/comment-link-policy.js";
+
+  const COMMENTS_API = "/api/rating/comments";
+
+  type CommentRecord = {
+    id: number;
+    body: string;
+    created_at: number;
+    like_count: number;
+    liked: boolean;
+    is_mine: boolean;
+    replies?: CommentRecord[];
+    reply_count?: number;
+  };
+
+  function safeText(value: unknown) {
+    return typeof value === "string" ? value : "";
+  }
+
+  function formatDate(timestamp: number) {
+    if (!Number.isFinite(timestamp) || timestamp <= 0) return "";
+    try {
+      return new Intl.DateTimeFormat("si-LK", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date(timestamp * 1000));
+    } catch {
+      return "";
+    }
+  }
+
+  function initializeComments(widget: HTMLElement) {
+    if (widget.dataset.commentsInitialized === "true") return;
+    widget.dataset.commentsInitialized = "true";
+
+    const storySlugCandidate = widget.dataset.storySlug;
+    const openButtonCandidate = widget.querySelector<HTMLButtonElement>("[data-comments-open]");
+    const dialogCandidate = widget.querySelector<HTMLDialogElement>("[data-comments-dialog]");
+    const closeButtonCandidate = widget.querySelector<HTMLButtonElement>("[data-comments-close]");
+    const countCandidate = widget.querySelector<HTMLElement>("[data-comments-count]");
+    const statusCandidate = widget.querySelector<HTMLElement>("[data-comments-status]");
+    const listCandidate = widget.querySelector<HTMLOListElement>("[data-comments-list]");
+    const moreButtonCandidate = widget.querySelector<HTMLButtonElement>("[data-comments-more]");
+    if (
+      !storySlugCandidate ||
+      !openButtonCandidate ||
+      !dialogCandidate ||
+      !closeButtonCandidate ||
+      !countCandidate ||
+      !statusCandidate ||
+      !listCandidate ||
+      !moreButtonCandidate
+    ) {
+      return;
+    }
+
+    const storySlug: string = storySlugCandidate;
+    const openButton: HTMLButtonElement = openButtonCandidate;
+    const dialog: HTMLDialogElement = dialogCandidate;
+    const closeButton: HTMLButtonElement = closeButtonCandidate;
+    const countEl: HTMLElement = countCandidate;
+    const status: HTMLElement = statusCandidate;
+    const list: HTMLOListElement = listCandidate;
+    const moreButton: HTMLButtonElement = moreButtonCandidate;
+
+    let nextCursor: string | null = null;
+    let hasMore = false;
+    let loading = false;
+    let previousBodyOverflow = "";
+    let previousActiveElement: HTMLElement | null = null;
+
+    const updateCount = (count: unknown) => {
+      const value = Number(count);
+      countEl.textContent = Number.isFinite(value) && value > 0
+        ? value.toLocaleString("si-LK")
+        : "0";
+      openButton.setAttribute(
+        "aria-label",
+        `අදහස් ${countEl.textContent}ක් බලන්න`,
+      );
+    };
+
+    async function loadCount() {
+      try {
+        const response = await fetch(
+          `${COMMENTS_API}?story=${encodeURIComponent(storySlug)}&countOnly=1`,
+          { credentials: "same-origin", cache: "no-store" },
+        );
+        if (!response.ok) return;
+        const data = await response.json();
+        updateCount(data.total_comments);
+      } catch {
+        // The comments dialog can still be opened and will show its own error.
+      }
+    }
+
+    function buildComment(record: CommentRecord, isReply = false): HTMLElement {
+      const article = document.createElement("article");
+      article.className = "story-comment";
+      article.dataset.commentId = String(record.id);
+
+      const header = document.createElement("div");
+      header.className = "story-comment-header";
+      const author = document.createElement("span");
+      author.className = "story-comment-author";
+      author.textContent = record.is_mine ? "ඔබ" : "නිර්නාමික පාඨකයෙක්";
+      const date = document.createElement("time");
+      date.className = "story-comment-date";
+      date.textContent = formatDate(Number(record.created_at));
+      header.append(author, date);
+
+      const body = document.createElement("p");
+      body.className = "story-comment-body";
+      body.textContent = safeText(record.body);
+      article.append(header, body);
+
+      const actions = document.createElement("div");
+      actions.className = "story-comment-actions";
+      const likeButton = document.createElement("button");
+      likeButton.className = "story-comment-action";
+      likeButton.type = "button";
+      const syncLikeButton = () => {
+        const liked = record.liked === true;
+        likeButton.setAttribute("aria-pressed", String(liked));
+        likeButton.setAttribute(
+          "aria-label",
+          liked ? "මෙම අදහසට දැක්වූ කැමැත්ත ඉවත් කරන්න" : "මෙම අදහසට කැමැත්ත දක්වන්න",
+        );
+        likeButton.textContent = `♥ කැමතියි · ${Number(record.like_count) || 0}`;
+      };
+      syncLikeButton();
+      likeButton.addEventListener("click", async () => {
+        if (likeButton.disabled) return;
+        const desiredLiked = record.liked !== true;
+        likeButton.disabled = true;
+        likeButton.setAttribute("aria-busy", "true");
+        try {
+          const response = await fetch(`${COMMENTS_API}/${encodeURIComponent(String(record.id))}/like`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ storySlug, liked: desiredLiked }),
+          });
+          const data = await response.json();
+          if (!response.ok || data.liked !== desiredLiked) throw new Error("like_failed");
+          record.liked = desiredLiked;
+          record.like_count = Number(data.like_count) || 0;
+          syncLikeButton();
+          status.textContent = "";
+        } catch {
+          status.textContent = "කැමැත්ත සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
+        } finally {
+          likeButton.disabled = false;
+          likeButton.removeAttribute("aria-busy");
+        }
+      });
+      actions.append(likeButton);
+
+      if (!isReply) {
+        const replyButton = document.createElement("button");
+        replyButton.className = "story-comment-action";
+        replyButton.type = "button";
+        replyButton.textContent = "පිළිතුරු දෙන්න";
+        actions.append(replyButton);
+        article.append(actions);
+
+        const replyList = document.createElement("ol");
+        replyList.className = "story-comment-replies";
+        replyList.setAttribute("aria-label", "පිළිතුරු");
+        for (const reply of record.replies || []) {
+          const replyItem = document.createElement("li");
+          replyItem.append(buildComment(reply, true));
+          replyList.append(replyItem);
+        }
+        record.reply_count = Math.max(Number(record.reply_count) || 0, replyList.childElementCount);
+        const replyDisclosure = document.createElement("details");
+        replyDisclosure.className = "story-comment-reply-disclosure";
+        const replySummary = document.createElement("summary");
+        const syncReplyCount = () => {
+          replySummary.textContent = "පිළිතුරු " + (Number(record.reply_count) || 0);
+        };
+        syncReplyCount();
+        if (replyList.childElementCount === 0) {
+          const empty = document.createElement("li");
+          empty.dataset.emptyReplies = "true";
+          empty.textContent = "තවම පිළිතුරු නැහැ.";
+          replyList.append(empty);
+        }
+        replyDisclosure.append(replySummary, replyList);
+        article.append(replyDisclosure);
+
+        const form = document.createElement("form");
+        form.className = "story-reply-form";
+        form.hidden = true;
+        const label = document.createElement("label");
+        const inputId = `story-reply-${storySlug}-${record.id}`;
+        label.htmlFor = inputId;
+        label.textContent = "ඔබගේ පිළිතුර";
+        const textarea = document.createElement("textarea");
+        watchCommentLinks(textarea, () => {
+          document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+        });
+        textarea.id = inputId;
+        textarea.maxLength = 500;
+        textarea.rows = 2;
+        textarea.required = true;
+        textarea.placeholder = "කෙටි පිළිතුරක් ලියන්න…";
+        const error = document.createElement("p");
+        error.className = "story-reply-error";
+        error.setAttribute("role", "status");
+        const controls = document.createElement("div");
+        controls.className = "story-reply-controls";
+        const sendButton = document.createElement("button");
+        sendButton.className = "story-reply-submit";
+        sendButton.type = "submit";
+        sendButton.textContent = "පිළිතුර සටහන් කරන්න";
+        const cancelButton = document.createElement("button");
+        cancelButton.className = "story-reply-cancel";
+        cancelButton.type = "button";
+        cancelButton.textContent = "අවලංගු කරන්න";
+        controls.append(sendButton, cancelButton);
+        form.append(label, textarea, error, controls);
+        article.append(form);
+
+        replyButton.setAttribute("aria-expanded", "false");
+        replyButton.addEventListener("click", () => {
+          const isOpen = !form.hidden;
+          form.hidden = isOpen;
+          replyButton.setAttribute("aria-expanded", String(!isOpen));
+          if (!isOpen) textarea.focus();
+        });
+        cancelButton.addEventListener("click", () => {
+          form.hidden = true;
+          replyButton.setAttribute("aria-expanded", "false");
+          error.textContent = "";
+          textarea.value = "";
+          replyButton.focus();
+        });
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const replyText = textarea.value.trim();
+          if (!replyText || Array.from(replyText).length > 500 || sendButton.disabled) return;
+          if (containsDisallowedLink(replyText)) {
+            document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+            textarea.focus();
+            return;
+          }
+          sendButton.disabled = true;
+          error.textContent = "";
+          try {
+            const response = await fetch(COMMENTS_API, {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ storySlug, parentId: record.id, body: replyText }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+              if (data.error === "links_not_allowed") {
+                document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+                return;
+              }
+              throw new Error("reply_failed");
+            }
+            const replyItem = document.createElement("li");
+            replyItem.className = "story-comment-new-reply";
+            const savedReply: CommentRecord = {
+              ...data.comment,
+              like_count: 0,
+              liked: false,
+              is_mine: true,
+            };
+            replyItem.append(buildComment(savedReply, true));
+            replyList.querySelector("[data-empty-replies]")?.remove();
+            replyList.append(replyItem);
+            record.replies = [...(record.replies || []), savedReply];
+            record.reply_count = Math.max(
+              (Number(record.reply_count) || 0) + 1,
+              Number(data.reply_count) || 0,
+            );
+            syncReplyCount();
+            replyDisclosure.open = true;
+            updateCount(data.total_comments);
+            replyItem.scrollIntoView({
+              behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+              block: "nearest",
+            });
+            window.setTimeout(() => replyItem.classList.remove("story-comment-new-reply"), 2200);
+            textarea.value = "";
+            form.hidden = true;
+            replyButton.setAttribute("aria-expanded", "false");
+          } catch {
+            error.textContent = "පිළිතුර සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
+          } finally {
+            sendButton.disabled = false;
+          }
+        });
+      } else {
+        article.append(actions);
+      }
+      return article;
+    }
+
+    async function loadComments(append = false) {
+      if (loading) return;
+      loading = true;
+      moreButton.disabled = true;
+      status.textContent = append ? "තවත් අදහස් ලබාගනිමින්…" : "අදහස් ලබාගනිමින්…";
+      if (!append && list.childElementCount === 0) list.replaceChildren();
+      const query = new URLSearchParams({ story: storySlug });
+      if (append && nextCursor) query.set("before", nextCursor);
+      try {
+        const response = await fetch(`${COMMENTS_API}?${query}`, {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error("comments_unavailable");
+        updateCount(data.total_comments);
+        const comments = Array.isArray(data.comments) ? data.comments as CommentRecord[] : [];
+        if (!append) list.replaceChildren();
+        for (const comment of comments) {
+          const item = document.createElement("li");
+          item.append(buildComment(comment));
+          list.append(item);
+        }
+        nextCursor = typeof data.next_cursor === "string" ? data.next_cursor : null;
+        hasMore = data.has_more === true;
+        moreButton.hidden = !hasMore;
+        status.textContent = comments.length === 0 && !append
+          ? "තවම අදහස් නැහැ. මුලින්ම තරු ඇගයීමක් ලබා දී ඔබේ අදහස එක් කරන්න."
+          : "";
+      } catch {
+        status.textContent = list.childElementCount > 0
+          ? "නවතම අදහස් යාවත්කාලීන කිරීමට නොහැකි විය. දැනට ඇති අදහස් පෙන්වයි."
+          : "අදහස් ලබාගැනීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
+        moreButton.hidden = true;
+      } finally {
+        loading = false;
+        moreButton.disabled = false;
+      }
+    }
+
+    function openDialog() {
+      if (dialog.open) return;
+      previousActiveElement = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+      previousBodyOverflow = document.body.style.overflow;
+      dialog.showModal();
+      document.documentElement.classList.add("story-comments-open");
+      document.body.classList.add("story-comments-open");
+      document.body.style.overflow = "hidden";
+      void loadComments();
+      closeButton.focus();
+    }
+
+    function restorePage() {
+      document.documentElement.classList.remove("story-comments-open");
+      document.body.classList.remove("story-comments-open");
+      document.body.style.overflow = previousBodyOverflow;
+      previousActiveElement?.focus();
+      previousActiveElement = null;
+    }
+
+    openButton.addEventListener("click", openDialog);
+    openButton.addEventListener("story-comments-count-refresh", () => {
+      void loadCount();
+      if (dialog.open) void loadComments();
+    });
+    closeButton.addEventListener("click", () => dialog.close());
+    moreButton.addEventListener("click", () => {
+      if (hasMore && nextCursor) void loadComments(true);
+    });
+    dialog.addEventListener("close", restorePage);
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    void loadCount();
+  }
+
+  function initializeStoryComments() {
+    document.querySelectorAll<HTMLElement>("[data-story-comments]").forEach(initializeComments);
+  }
+
+  document.addEventListener("story-rating-comment-created", (event) => {
+    const storySlug = (event as CustomEvent<{ storySlug?: string }>).detail?.storySlug;
+    if (!storySlug) return;
+    document.querySelectorAll<HTMLElement>("[data-story-comments]").forEach((widget) => {
+      if (widget.dataset.storySlug !== storySlug) return;
+      const button = widget.querySelector<HTMLButtonElement>("[data-comments-open]");
+      button?.dispatchEvent(new Event("story-comments-count-refresh"));
+    });
+  });
+
+  document.addEventListener("astro:page-load", initializeStoryComments);
+  initializeStoryComments();
+</script>

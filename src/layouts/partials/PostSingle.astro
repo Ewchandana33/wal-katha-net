@@ -2,6 +2,7 @@
 import Share from "@/components/Share.astro";
 import AdsterraBanner from "@/components/AdsterraBanner.astro";
 import SimilarPosts from "@/layouts/components/SimilarPosts.astro";
+import StoryRating from "@/components/StoryRating.astro";
 import config from "@/config/config.json";
 import { getSinglePage } from "@/lib/contentParser.astro";
 import dateFormat from "@/lib/utils/dateFormat";
@@ -53,7 +54,7 @@ if (!smartSimilarPosts.length) {
 }
 const finalSimilarPosts = smartSimilarPosts.slice(0, 6);
 
-const WORKER_API = "https://comments.wala-katha.workers.dev/api/comments";
+const POST_COMMENTS_API = "/api/post-comments";
 
 // NEW: Like feature API endpoint. This targets the SAME Cloudflare
 // Worker origin that already powers the comment system above
@@ -546,6 +547,7 @@ const imageObjectSchema = schemaImageUrl
         <div class="content mb-6 text-left text-[#F8F8FF] custom-post-content">
           <Content />
         </div>
+        <StoryRating storySlug={post.id} />
         <AdsterraBanner />
 
         {/* 2026 TAGS + SHARE FOOTER REDESIGN:
@@ -632,7 +634,8 @@ const imageObjectSchema = schemaImageUrl
     aria-modal="true"
     aria-labelledby="comment-modal-title"
     data-post-id={post.id}
-    data-api-url={WORKER_API}
+    data-api-url={POST_COMMENTS_API}
+    data-interactions-api="/api/post-comments"
   >
     <div class="relative w-full max-w-2xl bg-[#0c0d10] border border-white/10 rounded-2xl shadow-[0_10px_50px_rgba(0,0,0,0.8)] flex flex-col max-h-[85vh]">
       <div class="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
@@ -725,6 +728,14 @@ const imageObjectSchema = schemaImageUrl
     </svg>
     <span>ස්තූතියි! ඔබේ අදහස සාර්ථකව දැමුණා 🙏</span>
   </div>
+  <div
+    id="comment-link-toast"
+    class="comment-link-toast"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+    hidden
+  ></div>
 </section>
 
 {finalSimilarPosts.length > 0 && (
@@ -741,6 +752,99 @@ const imageObjectSchema = schemaImageUrl
 )}
 
 <style is:global>
+  #comments-list-hook .post-comment-card,
+  #comments-list-hook .post-comment-reply {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding: 0.85rem;
+    border: 1px solid rgba(163, 59, 80, 0.3);
+    border-radius: 0.85rem;
+    background: linear-gradient(145deg, rgba(20, 12, 15, 0.92), rgba(10, 10, 12, 0.96));
+    color: #f3f3f5;
+  }
+  #comments-list-hook .post-comment-body,
+  #comments-list-hook .post-comment-reply-body {
+    margin: 0.35rem 0 0;
+    color: rgba(248, 248, 255, 0.88);
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  #comments-list-hook .post-comment-meta,
+  #comments-list-hook .post-comment-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+  #comments-list-hook .post-comment-meta { color: rgba(248, 248, 255, 0.58); font-size: 0.75rem; }
+  #comments-list-hook .post-comment-meta span { color: #e59baa; font-weight: 700; }
+  #comments-list-hook .post-comment-actions { justify-content: flex-start; flex-wrap: wrap; margin-top: 0.55rem; }
+  #comments-list-hook .post-comment-action {
+    min-height: 2.75rem;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid rgba(163, 59, 80, 0.5);
+    border-radius: 0.7rem;
+    background: rgba(55, 16, 24, 0.35);
+    color: #f1c4cb;
+    font-size: 0.8rem;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease;
+  }
+  #comments-list-hook .post-comment-action:hover,
+  #comments-list-hook .post-comment-action[aria-pressed="true"] {
+    background: rgba(127, 29, 29, 0.42);
+    border-color: rgba(239, 113, 133, 0.75);
+  }
+  #comments-list-hook .post-comment-action:focus-visible,
+  #comments-list-hook .post-comment-replies summary:focus-visible,
+  #comments-list-hook .post-comment-reply-form textarea:focus-visible {
+    outline: 2px solid #f87171;
+    outline-offset: 2px;
+  }
+  #comments-list-hook .post-comment-replies {
+    margin-top: 0.7rem;
+    border: 1px solid rgba(163, 59, 80, 0.28);
+    border-radius: 0.75rem;
+    background: rgba(18, 9, 12, 0.55);
+    overflow: hidden;
+  }
+  #comments-list-hook .post-comment-replies > summary {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 0.8rem;
+    color: #f0b8c2;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    list-style: none;
+  }
+  #comments-list-hook .post-comment-replies > summary::-webkit-details-marker { display: none; }
+  #comments-list-hook .post-comment-replies > summary::before { content: "＋"; margin-right: 0.5rem; color: #ef7185; }
+  #comments-list-hook .post-comment-replies[open] > summary::before { content: "−"; }
+  #comments-list-hook .post-comment-reply-list { display: grid; gap: 0.55rem; padding: 0 0.75rem 0.75rem; list-style: none; }
+  #comments-list-hook .post-comment-reply-list > li { min-width: 0; }
+  #comments-list-hook .post-comment-reply-form { margin-top: 0.65rem; }
+  #comments-list-hook .post-comment-reply-form label { display: grid; gap: 0.4rem; color: #f0b8c2; font-size: 0.8rem; }
+  #comments-list-hook .post-comment-reply-form textarea {
+    width: 100%; min-height: 5rem; resize: vertical; padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(163, 59, 80, 0.48); border-radius: 0.65rem;
+    background: #111014; color: #f8f8ff;
+  }
+  #comments-list-hook .post-comment-reply-error { min-height: 1.2rem; color: #fca5a5; font-size: 0.75rem; }
+  #comments-list-hook .post-comment-reply-new .post-comment-reply {
+    animation: post-comment-reply-highlight 2.2s ease-out;
+  }
+  @keyframes post-comment-reply-highlight {
+    0%, 100% { background-color: rgba(127, 29, 29, 0.16); border-color: rgba(163, 59, 80, 0.42); }
+    28% { background-color: rgba(239, 68, 68, 0.24); border-color: rgba(248, 113, 113, 0.9); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #comments-list-hook .post-comment-reply-new .post-comment-reply { animation: none; outline: 2px solid rgba(248, 113, 113, 0.7); }
+  }
+
   .custom-post-content p,
   .custom-post-content span,
   .custom-post-content li,
@@ -788,6 +892,35 @@ const imageObjectSchema = schemaImageUrl
     box-shadow: 0 0 0 1px rgba(239,68,68,0.08), inset 0 1px 0 rgba(239,68,68,0.1), 0 4px 20px rgba(0,0,0,0.5);
     position: relative;
     overflow: hidden;
+  }
+  .comment-link-toast {
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    width: min(36rem, calc(100vw - 2rem));
+    padding: 0.9rem 1.1rem;
+    transform: translate(-50%, 0.75rem);
+    border: 1px solid rgba(248, 113, 113, 0.8);
+    border-radius: 0.9rem;
+    background: rgba(18, 10, 13, 0.97);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(239, 68, 68, 0.12);
+    color: #ffe4e6;
+    font-size: 0.92rem;
+    font-weight: 750;
+    line-height: 1.55;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+  .comment-link-toast.is-visible {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+  .comment-link-toast[hidden] { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .comment-link-toast { transition: none; }
   }
   .comment-warning-notice::before {
     content: "";
@@ -1594,18 +1727,35 @@ const imageObjectSchema = schemaImageUrl
 </script>
 
 <script>
-  function getSessionToken(): string {
-    let token = sessionStorage.getItem("wk-session-token");
-    if (!token) {
-      token = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-      sessionStorage.setItem("wk-session-token", token);
-    }
-    return token;
-  }
-
-  const SESSION_TOKEN = getSessionToken();
+  import {
+    containsDisallowedLink,
+    watchCommentLinks,
+  } from "../../../shared/comment-link-policy.js";
 
   let warningTypewriterDone = false;
+  let linkToastHideTimer: ReturnType<typeof setTimeout> | null = null;
+  let linkToastRemoveTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function showLinkBlockedToast() {
+    const toast = document.getElementById("comment-link-toast");
+    if (!toast) return;
+    if (linkToastHideTimer) clearTimeout(linkToastHideTimer);
+    if (linkToastRemoveTimer) clearTimeout(linkToastRemoveTimer);
+
+    toast.textContent = "සබැඳි පළ කිරීම තහනම්. සබැඳිය ඉවත් කර ඔබේ අදහස පමණක් පළ කරන්න.";
+    toast.hidden = false;
+    toast.classList.add("is-visible");
+    linkToastHideTimer = setTimeout(() => {
+      toast.classList.remove("is-visible");
+      linkToastRemoveTimer = setTimeout(() => {
+        toast.hidden = true;
+        linkToastHideTimer = null;
+        linkToastRemoveTimer = null;
+      }, 200);
+    }, 4000);
+  }
+
+  document.addEventListener("comment-link-blocked", showLinkBlockedToast);
 
   function runWarningTypewriter() {
     if (warningTypewriterDone) return;
@@ -1647,19 +1797,20 @@ const imageObjectSchema = schemaImageUrl
 
     const postId = modal?.getAttribute("data-post-id") ?? "";
     const API_URL = modal?.getAttribute("data-api-url") ?? "";
+    const INTERACTIONS_API = modal?.getAttribute("data-interactions-api") ?? "/api/post-comments";
 
-    const linkRegex = new RegExp(
-      "https?:\\/\\/" + "|ftp:\\/\\/" + "|www\\." +
-      "|bit\\.ly|t\\.co|goo\\.gl|tinyurl\\.com|youtu\\.be|ow\\.ly|is\\.gd|buff\\.ly" +
-      "|t\\.me|wa\\.me|tg:" +
-      "|\\b[a-zA-Z0-9][a-zA-Z0-9\\-]{1,61}[a-zA-Z0-9]\\." +
-      "(?:com|lk|net|org|io|info|co|tv|me|biz|in|uk|edu|gov|app|dev|xyz|site|online|store|shop|news|blog|tech|ai)" +
-      "(?:\\/|\\b)" +
-      "|\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b",
-      "i"
-    );
-
-    let commentsList: Array<{ id: string; content: string; date: string; ownerToken: string; serverId?: string }> = [];
+    type PostCommentRecord = {
+      id: string;
+      content: string;
+      date?: string;
+      created_at?: string | number | null;
+      like_count?: number;
+      liked?: boolean;
+      reply_count?: number;
+      replies?: PostCommentRecord[];
+      is_mine?: boolean;
+    };
+    let interactionsAvailable = false;
 
     function freshEl<T extends HTMLElement>(id: string): T | null {
       const el = document.getElementById(id);
@@ -1672,10 +1823,9 @@ const imageObjectSchema = schemaImageUrl
     const submitBtn = freshEl<HTMLButtonElement>("cf-submit-comment");
     const textarea = freshEl<HTMLTextAreaElement>("cf-comment-text");
     const clearBtn = freshEl<HTMLButtonElement>("cf-clear-btn");
-
-    function generateId(): string {
-      return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    }
+    watchCommentLinks(textarea, () => {
+      document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+    });
 
     function showValidation(msg: string) {
       if (!validationMsg) return;
@@ -1710,71 +1860,243 @@ const imageObjectSchema = schemaImageUrl
       textarea?.focus();
     });
 
-    function renderCommentCard(id: string, content: string, dateStr: string, prepend = false) {
-      if (!commentsListHook) return;
-      const card = document.createElement("div");
-      card.className = "p-3.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-left shadow-sm";
-      card.setAttribute("data-comment-id", id);
+    function renderCommentCard(record: PostCommentRecord, isReply = false): HTMLElement {
+      const card = document.createElement("article");
+      card.className = isReply ? "post-comment-reply" : "post-comment-card";
+      card.setAttribute("data-comment-id", record.id);
+      if (record.is_mine) card.dataset.isMine = "true";
+
       const header = document.createElement("div");
-      header.className = "flex items-center justify-between mb-1.5";
+      header.className = "post-comment-meta";
       const name = document.createElement("span");
-      name.className = "text-xs font-bold text-[#01AD9F]";
-      name.textContent = "Anonymous Reader";
-      const dateEl = document.createElement("span");
-      dateEl.className = "text-[11px] text-white/30";
-      dateEl.textContent = dateStr;
-      header.appendChild(name);
-      header.appendChild(dateEl);
+      name.textContent = record.is_mine ? "ඔබ" : "Anonymous Reader";
+      const dateEl = document.createElement("time");
+      const rawCreatedAt = record.created_at;
+      const createdAtMilliseconds = typeof rawCreatedAt === "number"
+        ? rawCreatedAt * 1000
+        : typeof rawCreatedAt === "string"
+          ? Date.parse(rawCreatedAt)
+          : Number.NaN;
+      const dateValue = record.date || (Number.isFinite(createdAtMilliseconds)
+        ? new Date(createdAtMilliseconds).toLocaleString("si-LK")
+        : "");
+      dateEl.textContent = dateValue;
+      header.append(name, dateEl);
+
       const body = document.createElement("p");
-      body.className = "text-sm text-white/80 leading-relaxed";
-      body.setAttribute("data-comment-body", id);
-      body.textContent = content;
-      card.appendChild(header);
-      card.appendChild(body);
-      if (prepend && commentsListHook.firstChild) {
-        commentsListHook.insertBefore(card, commentsListHook.firstChild);
-      } else {
-        commentsListHook.appendChild(card);
+      body.className = isReply ? "post-comment-reply-body" : "post-comment-body";
+      body.setAttribute("data-comment-body", record.id);
+      body.textContent = record.content;
+      card.append(header, body);
+
+      const actions = document.createElement("div");
+      actions.className = "post-comment-actions";
+      if (interactionsAvailable) {
+        const likeButton = document.createElement("button");
+        likeButton.className = "post-comment-action";
+        likeButton.type = "button";
+        const syncLike = () => {
+          const liked = record.liked === true;
+          likeButton.setAttribute("aria-pressed", String(liked));
+          likeButton.setAttribute("aria-label", liked ? "කැමැත්ත ඉවත් කරන්න" : "කැමැත්ත දක්වන්න");
+          likeButton.textContent = "♥ කැමතියි · " + (Number(record.like_count) || 0);
+        };
+        syncLike();
+        likeButton.addEventListener("click", async () => {
+          if (likeButton.disabled) return;
+          const nextLiked = record.liked !== true;
+          likeButton.disabled = true;
+          likeButton.setAttribute("aria-busy", "true");
+          try {
+            const response = await fetch(INTERACTIONS_API + "/" + encodeURIComponent(record.id) + "/like", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ postId, liked: nextLiked }),
+            });
+            const data = await response.json();
+            if (!response.ok || data.liked !== nextLiked) throw new Error("like_failed");
+            record.liked = nextLiked;
+            record.like_count = Number(data.like_count) || 0;
+            syncLike();
+          } catch {
+            showValidation("කැමැත්ත සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.");
+          } finally {
+            likeButton.disabled = false;
+            likeButton.removeAttribute("aria-busy");
+          }
+        });
+        actions.append(likeButton);
       }
+
+      if (!isReply) {
+        const replyList = document.createElement("ol");
+        replyList.className = "post-comment-reply-list";
+        const replies = Array.isArray(record.replies) ? record.replies : [];
+        record.reply_count = Math.max(Number(record.reply_count) || 0, replies.length);
+        for (const reply of replies) {
+          const replyItem = document.createElement("li");
+          replyItem.append(renderCommentCard(reply, true));
+          replyList.append(replyItem);
+        }
+        if (replies.length === 0) {
+          const empty = document.createElement("li");
+          empty.dataset.emptyReplies = "true";
+          empty.textContent = "තවම පිළිතුරු නැහැ.";
+          replyList.append(empty);
+        }
+        const disclosure = document.createElement("details");
+        disclosure.className = "post-comment-replies";
+        const summary = document.createElement("summary");
+        const syncReplyCount = () => {
+          summary.textContent = "පිළිතුරු " + (Number(record.reply_count) || 0);
+        };
+        syncReplyCount();
+        disclosure.append(summary, replyList);
+        card.append(disclosure);
+
+        if (interactionsAvailable) {
+          const replyButton = document.createElement("button");
+          replyButton.className = "post-comment-action";
+          replyButton.type = "button";
+          replyButton.textContent = "පිළිතුරක් ලියන්න";
+          actions.append(replyButton);
+
+          const form = document.createElement("form");
+          form.className = "post-comment-reply-form";
+          form.hidden = true;
+          const label = document.createElement("label");
+          const input = document.createElement("textarea");
+          watchCommentLinks(input, () => {
+            document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+          });
+          input.maxLength = 1000;
+          input.rows = 2;
+          input.required = true;
+          input.placeholder = "ඔබගේ පිළිතුර ලියන්න…";
+          label.textContent = "පිළිතුර";
+          label.append(input);
+          const error = document.createElement("p");
+          error.className = "post-comment-reply-error";
+          error.setAttribute("role", "status");
+          const submit = document.createElement("button");
+          submit.className = "post-comment-action post-comment-reply-submit";
+          submit.type = "submit";
+          submit.textContent = "පිළිතුර සටහන් කරන්න";
+          form.append(label, error, submit);
+          card.append(actions, form);
+          replyButton.setAttribute("aria-expanded", "false");
+          replyButton.addEventListener("click", () => {
+            const isOpen = !form.hidden;
+            form.hidden = isOpen;
+            replyButton.setAttribute("aria-expanded", String(!isOpen));
+            if (!isOpen) input.focus();
+          });
+          form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const text = input.value.trim();
+            if (!text || Array.from(text).length > 1000 || submit.disabled) return;
+            if (containsDisallowedLink(text)) {
+              document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+              input.focus();
+              return;
+            }
+            submit.disabled = true;
+            error.textContent = "";
+            try {
+              const response = await fetch(INTERACTIONS_API + "/" + encodeURIComponent(record.id) + "/replies", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ postId, body: text }),
+              });
+              const data = await response.json();
+              if (!response.ok || !data.reply) {
+                if (data.error === "links_not_allowed") {
+                  document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+                  return;
+                }
+                throw new Error("reply_failed");
+              }
+              const savedReply = data.reply as PostCommentRecord;
+              const replyItem = document.createElement("li");
+              replyItem.className = "post-comment-reply-new";
+              replyItem.append(renderCommentCard(savedReply, true));
+              replyList.querySelector("[data-empty-replies]")?.remove();
+              replyList.append(replyItem);
+              record.replies = [...(record.replies || []), savedReply];
+              record.reply_count = Math.max((Number(record.reply_count) || 0) + 1, Number(data.reply_count) || 0);
+              syncReplyCount();
+              disclosure.open = true;
+              input.value = "";
+              form.hidden = true;
+              replyButton.setAttribute("aria-expanded", "false");
+              replyItem.scrollIntoView({
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+                block: "nearest",
+              });
+              window.setTimeout(() => replyItem.classList.remove("post-comment-reply-new"), 2200);
+            } catch {
+              error.textContent = "පිළිතුර සටහන් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න.";
+            } finally {
+              submit.disabled = false;
+            }
+          });
+        } else {
+          card.append(actions);
+        }
+      } else {
+        card.append(actions);
+      }
+      return card;
     }
 
     async function loadComments() {
-      if (!commentsListHook || !postId || !API_URL) return;
-      if (noCommentsMsg) {
+      if (!commentsListHook || !postId) return;
+      const hasServerRenderedComments = Boolean(
+        commentsListHook.querySelector('[data-server-rendered-comment="post"]')
+      );
+      if (noCommentsMsg && !hasServerRenderedComments) {
         noCommentsMsg.style.display = "";
         noCommentsMsg.innerHTML =
           '<p class="text-sm text-white/50 italic mb-3">කමෙන්ට්ස් ලෝඩ් වෙමින් පවතී...</p>' +
           '<div class="loading-bars-wrap" aria-hidden="true"><span class="lbar"></span><span class="lbar"></span><span class="lbar"></span><span class="lbar"></span><span class="lbar"></span></div>';
       }
-      Array.from(commentsListHook.children).forEach((child) => {
-        if ((child as HTMLElement).id !== "no-comments-msg") child.remove();
-      });
-      commentsList = [];
+      if (!hasServerRenderedComments) {
+        Array.from(commentsListHook.children).forEach((child) => {
+          if ((child as HTMLElement).id !== "no-comments-msg") child.remove();
+        });
+      } else if (noCommentsMsg) {
+        noCommentsMsg.style.display = "none";
+      }
 
       try {
-        const res = await fetch(`${API_URL}?postId=${encodeURIComponent(postId)}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const comments: Array<{ id?: string; content: string; date?: string; created_at?: string }> = await res.json();
-        if (comments.length > 0) {
+        const response = await fetch(INTERACTIONS_API + "?postId=" + encodeURIComponent(postId), {
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok) throw new Error("comments_unavailable");
+        const data = await response.json();
+        const records: PostCommentRecord[] = Array.isArray(data.comments) ? data.comments : [];
+        interactionsAvailable = data.interactions_available === true;
+        Array.from(commentsListHook.children).forEach((child) => {
+          if ((child as HTMLElement).id !== "no-comments-msg") child.remove();
+        });
+        if (records.length > 0) {
           if (noCommentsMsg) noCommentsMsg.style.display = "none";
-          comments.forEach((c) => {
-            const localId = generateId();
-            const dateStr = c.date ?? c.created_at ?? "";
-            commentsList.push({ id: localId, content: c.content, date: dateStr, ownerToken: "", serverId: c.id });
-            renderCommentCard(localId, c.content, dateStr);
-          });
-        } else {
-          if (noCommentsMsg) {
-            noCommentsMsg.innerHTML = "";
-            noCommentsMsg.style.display = "";
-            const p = document.createElement("p");
-            p.className = "text-sm text-white/50 italic py-2 text-center";
-            p.textContent = "තවම කමෙන්ට්ස් කිසිවක් නැත. පළමුවැන්නා වන්න!";
-            noCommentsMsg.appendChild(p);
-          }
+          records.forEach((record) => commentsListHook.appendChild(renderCommentCard(record)));
+        } else if (noCommentsMsg) {
+          noCommentsMsg.innerHTML = "";
+          noCommentsMsg.style.display = "";
+          const p = document.createElement("p");
+          p.className = "text-sm text-white/50 italic py-2 text-center";
+          p.textContent = "තවම කමෙන්ට්ස් කිසිවක් නැත. පළමුවැන්නා වන්න!";
+          noCommentsMsg.appendChild(p);
         }
       } catch (err) {
         console.error("Comments fetch error:", err);
+        if (hasServerRenderedComments) return;
         if (noCommentsMsg) {
           noCommentsMsg.innerHTML = "";
           noCommentsMsg.style.display = "";
@@ -1822,8 +2144,8 @@ const imageObjectSchema = schemaImageUrl
         textarea?.focus();
         return;
       }
-      if (linkRegex.test(content)) {
-        showValidation("🔗 ලින්ක් දැමීමට අවසර නැහැ. කරුණාකර ලින්ක් ඉවත් කර ඔබේ අදහස දක්වන්න.");
+      if (containsDisallowedLink(content)) {
+        document.dispatchEvent(new CustomEvent("comment-link-blocked"));
         textarea?.focus();
         return;
       }
@@ -1846,11 +2168,8 @@ const imageObjectSchema = schemaImageUrl
           body: JSON.stringify({ postId, content, date: dateStr }),
         });
         if (res.ok) {
-          const saved = await res.json().catch(() => ({})) as { id?: string };
           if (noCommentsMsg) noCommentsMsg.style.display = "none";
-          const newId = generateId();
-          commentsList.unshift({ id: newId, content, date: dateStr, ownerToken: SESSION_TOKEN, serverId: saved.id });
-          renderCommentCard(newId, content, dateStr, true);
+          await loadComments();
           if (textarea) textarea.value = "";
           if (charCount) charCount.textContent = "0 / 1000";
           if (clearBtn) clearBtn.classList.add("hidden");
@@ -1858,6 +2177,11 @@ const imageObjectSchema = schemaImageUrl
           showSuccessToast();
         } else {
           const err = await res.json().catch(() => ({})) as { error?: string };
+          if (err.error === "links_not_allowed") {
+            if (validationMsg) validationMsg.classList.add("hidden");
+            document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+            return;
+          }
           showValidation(err.error ?? "කමෙන්ට් එක ඉදිරිපත් කිරීමට නොහැකි වුණා. නැවත උත්සාහ කරන්න.");
         }
       } catch (err) {
