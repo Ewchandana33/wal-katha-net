@@ -729,13 +729,22 @@ const imageObjectSchema = schemaImageUrl
     <span>ස්තූතියි! ඔබේ අදහස සාර්ථකව දැමුණා 🙏</span>
   </div>
   <div
+    id="comment-link-toast-backdrop"
+    class="comment-link-toast-backdrop"
+    aria-hidden="true"
+    hidden
+  ></div>
+  <div
     id="comment-link-toast"
     class="comment-link-toast"
     role="alert"
     aria-live="assertive"
     aria-atomic="true"
     hidden
-  ></div>
+  >
+    <span class="comment-link-toast-icon" aria-hidden="true">!</span>
+    <span data-link-toast-message></span>
+  </div>
 </section>
 
 {finalSimilarPosts.length > 0 && (
@@ -761,6 +770,11 @@ const imageObjectSchema = schemaImageUrl
     border-radius: 0.85rem;
     background: linear-gradient(145deg, rgba(20, 12, 15, 0.92), rgba(10, 10, 12, 0.96));
     color: #f3f3f5;
+  }
+  #comments-list-hook .post-comment-reply {
+    border: 1px solid rgba(209, 90, 113, 0.52);
+    border-left: 3px solid #a84357;
+    background: linear-gradient(145deg, rgba(38, 16, 23, 0.96), rgba(16, 11, 14, 0.98));
   }
   #comments-list-hook .post-comment-body,
   #comments-list-hook .post-comment-reply-body {
@@ -796,6 +810,9 @@ const imageObjectSchema = schemaImageUrl
   #comments-list-hook .post-comment-action[aria-pressed="true"] {
     background: rgba(127, 29, 29, 0.42);
     border-color: rgba(239, 113, 133, 0.75);
+  }
+  #comments-list-hook .post-comment-action[aria-pressed="true"] {
+    color: #f87185;
   }
   #comments-list-hook .post-comment-action:focus-visible,
   #comments-list-hook .post-comment-replies summary:focus-visible,
@@ -893,19 +910,36 @@ const imageObjectSchema = schemaImageUrl
     position: relative;
     overflow: hidden;
   }
+  .comment-link-toast-backdrop {
+    position: fixed;
+    z-index: 100001;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+  .comment-link-toast-backdrop.is-visible { opacity: 1; }
+  .comment-link-toast-backdrop[hidden] { display: none; }
   .comment-link-toast {
     position: fixed;
-    z-index: 9999;
+    z-index: 100002;
+    top: 50%;
     left: 50%;
-    bottom: max(1.25rem, env(safe-area-inset-bottom));
-    width: min(36rem, calc(100vw - 2rem));
-    padding: 0.9rem 1.1rem;
-    transform: translate(-50%, 0.75rem);
-    border: 1px solid rgba(248, 113, 113, 0.8);
-    border-radius: 0.9rem;
-    background: rgba(18, 10, 13, 0.97);
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(239, 68, 68, 0.12);
-    color: #ffe4e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    width: min(30rem, calc(100vw - 2rem));
+    padding: 1rem 1.25rem;
+    transform: translate(-50%, calc(-50% + 0.5rem));
+    border: 1px solid rgba(248, 113, 133, 0.75);
+    border-radius: 1rem;
+    background: linear-gradient(145deg, rgba(49, 15, 23, 0.98), rgba(18, 10, 14, 0.99));
+    box-shadow: 0 18px 54px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(239, 68, 68, 0.16);
+    color: #ffe4e8;
     font-size: 0.92rem;
     font-weight: 750;
     line-height: 1.55;
@@ -914,13 +948,27 @@ const imageObjectSchema = schemaImageUrl
     pointer-events: none;
     transition: opacity 180ms ease, transform 180ms ease;
   }
+  .comment-link-toast-icon {
+    display: inline-grid;
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border: 1px solid rgba(248, 113, 133, 0.55);
+    border-radius: 9999px;
+    background: rgba(127, 29, 29, 0.42);
+    color: #fb7185;
+    font-size: 1.15rem;
+    font-weight: 900;
+  }
   .comment-link-toast.is-visible {
-    transform: translate(-50%, 0);
+    transform: translate(-50%, -50%);
     opacity: 1;
   }
   .comment-link-toast[hidden] { display: none; }
   @media (prefers-reduced-motion: reduce) {
-    .comment-link-toast { transition: none; }
+    .comment-link-toast,
+    .comment-link-toast-backdrop { transition: none; }
   }
   .comment-warning-notice::before {
     content: "";
@@ -1738,17 +1786,26 @@ const imageObjectSchema = schemaImageUrl
 
   function showLinkBlockedToast() {
     const toast = document.getElementById("comment-link-toast");
+    const backdrop = document.getElementById("comment-link-toast-backdrop");
     if (!toast) return;
-    if (linkToastHideTimer) clearTimeout(linkToastHideTimer);
-    if (linkToastRemoveTimer) clearTimeout(linkToastRemoveTimer);
+    if (linkToastHideTimer !== null) clearTimeout(linkToastHideTimer);
+    if (linkToastRemoveTimer !== null) clearTimeout(linkToastRemoveTimer);
 
-    toast.textContent = "සබැඳි පළ කිරීම තහනම්. සබැඳිය ඉවත් කර ඔබේ අදහස පමණක් පළ කරන්න.";
+    const message = "සබැඳි පළ කිරීම තහනම්. සබැඳිය ඉවත් කර ඔබේ අදහස පමණක් පළ කරන්න.";
+    const messageElement = toast.querySelector<HTMLElement>("[data-link-toast-message]");
+    if (messageElement) messageElement.textContent = message;
+    else toast.textContent = message;
     toast.hidden = false;
+    if (backdrop) backdrop.hidden = false;
+    void toast.offsetWidth;
     toast.classList.add("is-visible");
+    backdrop?.classList.add("is-visible");
     linkToastHideTimer = setTimeout(() => {
       toast.classList.remove("is-visible");
+      backdrop?.classList.remove("is-visible");
       linkToastRemoveTimer = setTimeout(() => {
         toast.hidden = true;
+        if (backdrop) backdrop.hidden = true;
         linkToastHideTimer = null;
         linkToastRemoveTimer = null;
       }, 200);
@@ -1798,6 +1855,77 @@ const imageObjectSchema = schemaImageUrl
     const postId = modal?.getAttribute("data-post-id") ?? "";
     const API_URL = modal?.getAttribute("data-api-url") ?? "";
     const INTERACTIONS_API = modal?.getAttribute("data-interactions-api") ?? "/api/post-comments";
+
+    type PageScrollState = {
+      scrollY: number;
+      htmlOverflow: string;
+      htmlOverscrollBehavior: string;
+      bodyPosition: string;
+      bodyTop: string;
+      bodyLeft: string;
+      bodyWidth: string;
+      bodyBoxSizing: string;
+      bodyOverflow: string;
+      bodyOverscrollBehavior: string;
+      bodyPaddingRight: string;
+    };
+    let pageScrollState: PageScrollState | null = null;
+    let modalCloseTimer: ReturnType<typeof setTimeout> | null = null;
+    let previousFocus: HTMLElement | null = null;
+
+    function lockPageScroll() {
+      if (pageScrollState) return;
+      const html = document.documentElement;
+      const body = document.body;
+      const scrollY = window.scrollY;
+      pageScrollState = {
+        scrollY,
+        htmlOverflow: html.style.overflow,
+        htmlOverscrollBehavior: html.style.overscrollBehavior,
+        bodyPosition: body.style.position,
+        bodyTop: body.style.top,
+        bodyLeft: body.style.left,
+        bodyWidth: body.style.width,
+        bodyBoxSizing: body.style.boxSizing,
+        bodyOverflow: body.style.overflow,
+        bodyOverscrollBehavior: body.style.overscrollBehavior,
+        bodyPaddingRight: body.style.paddingRight,
+      };
+
+      const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
+      const currentPaddingRight = Number.parseFloat(getComputedStyle(body).paddingRight) || 0;
+      if (scrollbarWidth > 0) {
+        body.style.paddingRight = `${currentPaddingRight + scrollbarWidth}px`;
+      }
+      body.style.position = "fixed";
+      body.style.top = `-${scrollY}px`;
+      body.style.left = "0";
+      body.style.width = "100%";
+      body.style.boxSizing = "border-box";
+      body.style.overflow = "hidden";
+      body.style.overscrollBehavior = "none";
+      html.style.overflow = "hidden";
+      html.style.overscrollBehavior = "none";
+    }
+
+    function restorePageScroll() {
+      if (!pageScrollState) return;
+      const state = pageScrollState;
+      pageScrollState = null;
+      const html = document.documentElement;
+      const body = document.body;
+      html.style.overflow = state.htmlOverflow;
+      html.style.overscrollBehavior = state.htmlOverscrollBehavior;
+      body.style.position = state.bodyPosition;
+      body.style.top = state.bodyTop;
+      body.style.left = state.bodyLeft;
+      body.style.width = state.bodyWidth;
+      body.style.boxSizing = state.bodyBoxSizing;
+      body.style.overflow = state.bodyOverflow;
+      body.style.overscrollBehavior = state.bodyOverscrollBehavior;
+      body.style.paddingRight = state.bodyPaddingRight;
+      window.scrollTo(0, state.scrollY);
+    }
 
     type PostCommentRecord = {
       id: string;
@@ -2110,8 +2238,21 @@ const imageObjectSchema = schemaImageUrl
 
     function openModal() {
       if (!modal || !floatingBtn) return;
+      if (modalCloseTimer !== null) {
+        clearTimeout(modalCloseTimer);
+        modalCloseTimer = null;
+      }
+      if (!pageScrollState) {
+        previousFocus = document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+        lockPageScroll();
+      }
       modal.classList.remove("hidden");
-      requestAnimationFrame(() => modal.classList.remove("opacity-0", "pointer-events-none"));
+      requestAnimationFrame(() => {
+        modal.classList.remove("opacity-0", "pointer-events-none");
+        closeBtn?.focus({ preventScroll: true });
+      });
       floatingBtn.setAttribute("aria-expanded", "true");
       loadComments();
       warningTypewriterDone = false;
@@ -2120,9 +2261,18 @@ const imageObjectSchema = schemaImageUrl
 
     function closeModal() {
       if (!modal || !floatingBtn) return;
+      if (modal.classList.contains("hidden")) return;
+      if (modalCloseTimer !== null) clearTimeout(modalCloseTimer);
       modal.classList.add("opacity-0", "pointer-events-none");
       floatingBtn.setAttribute("aria-expanded", "false");
-      setTimeout(() => modal.classList.add("hidden"), 300);
+      modalCloseTimer = setTimeout(() => {
+        modal.classList.add("hidden");
+        restorePageScroll();
+        modalCloseTimer = null;
+        const focusTarget = previousFocus?.isConnected ? previousFocus : floatingBtn;
+        focusTarget.focus({ preventScroll: true });
+        previousFocus = null;
+      }, 300);
     }
 
     floatingBtn?.addEventListener("click", (e) => { e.stopPropagation(); openModal(); });
@@ -2132,6 +2282,16 @@ const imageObjectSchema = schemaImageUrl
       if (e.key === "Escape") {
         if (modal && !modal.classList.contains("hidden")) closeModal();
       }
+    });
+    document.addEventListener("astro:before-swap", () => {
+      if (modalCloseTimer !== null) {
+        clearTimeout(modalCloseTimer);
+        modalCloseTimer = null;
+      }
+      modal?.classList.add("hidden", "opacity-0", "pointer-events-none");
+      floatingBtn?.setAttribute("aria-expanded", "false");
+      restorePageScroll();
+      previousFocus = null;
     });
 
     let isSubmitting = false;

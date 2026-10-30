@@ -60,6 +60,9 @@ let fixtureLiked = false;
 let fixturePostCommentLikeCount = 0;
 let fixturePostCommentLiked = false;
 let fixturePostReplyCount = 1;
+let fixturePostCommentSubmission = null;
+let fixtureReviewCommentSubmission = null;
+let fixtureReviewReplySubmission = null;
 
 function ratingApiFixture(request) {
   const url = new URL(request.url);
@@ -81,6 +84,10 @@ function ratingApiFixture(request) {
         }],
       },
     };
+  }
+  if (url.pathname === "/api/post-comments" && method === "POST") {
+    fixturePostCommentSubmission = JSON.parse(request.postData || "{}");
+    return { status: 201, body: { success: true } };
   }
   if (/^\/api\/post-comments\/(?:p-[a-f0-9]{64}|r-[1-9][0-9]*)\/like$/.test(url.pathname) && method === "POST") {
     const body = JSON.parse(request.postData || "{}");
@@ -126,6 +133,7 @@ function ratingApiFixture(request) {
       };
     }
     if (method === "POST") {
+      fixtureReviewReplySubmission = JSON.parse(request.postData || "{}").body ?? null;
       return {
         status: 201,
         body: {
@@ -158,6 +166,7 @@ function ratingApiFixture(request) {
       };
     }
     if (method === "POST") {
+      fixtureReviewCommentSubmission = JSON.parse(request.postData || "{}").comment ?? null;
       return {
         status: 201,
         body: {
@@ -815,6 +824,10 @@ async function main() {
     assert.ok(interaction.commentInitiallyHidden, 'The optional comment field should stay hidden before a rating is chosen');
     assert.ok(interaction.commentVisibleAfterRating, 'Choosing a rating should reveal the optional comment field');
     assert.match(interaction.commentCounter, /[1-9]/, 'The optional comment should update its character counter');
+    assert.equal(fixtureReviewCommentSubmission, 'පරීක්ෂණ අදහස',
+      'Submitting a review should send the optional review comment with the rating');
+    assert.equal(fixtureReviewReplySubmission, 'පරීක්ෂණ පිළිතුර',
+      'Submitting a review reply should send its text to the reply endpoint');
     assert.ok(interaction.toastAppeared, 'A successful vote should display the thank-you toast');
     assert.match(interaction.toastText, /ස්තුතියි/);
     assert.equal(interaction.toastPosition, 'fixed', 'The thank-you toast should float above page content');
@@ -854,6 +867,7 @@ async function main() {
     assert.equal(interaction.replyCountAfterPost, 'පිළිතුරු 1', 'Posting a reply should update the visible count');
     assert.ok(interaction.replyListExpandedAfterPost, 'Posting a reply should reveal the new reply');
     assert.ok(interaction.newReplyHighlighted, 'A newly posted reply should be visually highlighted');
+    await browser.evaluate("window.__postModalOriginalScrollY = window.scrollY");
     const postModalReady = await browser.evaluate("(async () => {\n  const openButton = document.querySelector('#comment-floating-btn');\n  const modal = document.querySelector('#comment-popup-modal');\n  openButton?.click();\n  for (let attempt = 0; attempt < 40; attempt += 1) {\n    if (modal?.querySelector('#comments-list-hook .post-comment-card')) break;\n    await new Promise(resolve => setTimeout(resolve, 25));\n  }\n  const card = modal?.querySelector('#comments-list-hook .post-comment-card');\n  const disclosure = card?.querySelector('.post-comment-replies');\n  return {\n    opened: Boolean(modal && !modal.classList.contains('hidden')),\n    apiUrl: modal?.getAttribute('data-interactions-api') || '',\n    loaded: Boolean(card),\n    collapsed: Boolean(disclosure && !disclosure.open),\n    replyCount: disclosure?.querySelector('summary')?.textContent?.trim() || '',\n  };\n})()");
     assert.equal(postModalReady.apiUrl, '/api/post-comments', 'The legacy comments dialog should use the same-origin API');
     assert.ok(
@@ -863,8 +877,37 @@ async function main() {
         interceptedRequests: browser.fetchTrace.filter(({ url }) => url.includes('/api/post-comments')),
       })}`
     );
+    const postModalScrollLock = await browser.evaluate("(() => ({ bodyPosition: document.body.style.position, htmlOverflow: document.documentElement.style.overflow }))()");
+    assert.equal(postModalScrollLock.bodyPosition, 'fixed', 'The legacy post-comments modal should lock the page body');
+    assert.equal(postModalScrollLock.htmlOverflow, 'hidden', 'The legacy post-comments modal should prevent document scrolling');
+    const postCommentPalette = await browser.evaluate("(() => {\n  const parent = document.querySelector('#comments-list-hook .post-comment-card');\n  const reply = parent?.querySelector('.post-comment-reply');\n  return {\n    parentBackground: parent ? getComputedStyle(parent).backgroundImage : '',\n    replyBackground: reply ? getComputedStyle(reply).backgroundImage : '',\n    replyBorderLeftWidth: reply ? getComputedStyle(reply).borderLeftWidth : '',\n  };\n})()");
+    assert.notEqual(postCommentPalette.replyBackground, postCommentPalette.parentBackground,
+      'Post replies should have a distinct surface from their parent comment');
+    assert.equal(postCommentPalette.replyBorderLeftWidth, '3px',
+      'Post replies should use a visible accent edge');
     assert.ok(postModalReady.collapsed, 'Legacy replies should be collapsed by default');
     assert.equal(postModalReady.replyCount, 'පිළිතුරු 1', 'The legacy reply count should be visible before opening');
+    const postCommentSubmission = await browser.evaluate(`(async () => {
+      const input = document.querySelector('#cf-comment-text');
+      const submit = document.querySelector('#cf-submit-comment');
+      const toast = document.querySelector('#comment-success-toast');
+      if (input) {
+        input.value = 'පරීක්ෂණ post comment';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      submit?.click();
+      for (let attempt = 0; attempt < 40 && !toast?.classList.contains('opacity-100'); attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      return {
+        toastShown: Boolean(toast?.classList.contains('opacity-100')),
+        inputCleared: input?.value === '',
+      };
+    })()`);
+    assert.ok(postCommentSubmission.toastShown && postCommentSubmission.inputCleared,
+      'A successful post comment submission should clear the field and confirm success');
+    assert.equal(fixturePostCommentSubmission?.content, 'පරීක්ෂණ post comment',
+      'Submitting a post comment should send its body to the comments API');
 
     const postModalResponsiveResults = [];
     for (const width of widths) {
@@ -879,9 +922,22 @@ async function main() {
     const postCommentInteractions = await browser.evaluate("(async () => {\n  const modal = document.querySelector('#comment-popup-modal');\n  const card = modal?.querySelector('#comments-list-hook .post-comment-card');\n  const disclosure = card?.querySelector('.post-comment-replies');\n  const summary = disclosure?.querySelector('summary');\n  summary?.click();\n  const existingReplyRevealed = Boolean(disclosure?.open && disclosure.textContent?.includes('පැරණි පිළිතුර'));\n  const likeButton = card?.querySelector('.post-comment-actions .post-comment-action[aria-pressed]');\n  likeButton?.click();\n  for (let attempt = 0; attempt < 40 && likeButton?.getAttribute('aria-pressed') !== 'true'; attempt += 1) {\n    await new Promise(resolve => setTimeout(resolve, 25));\n  }\n  const likeWorked = likeButton?.getAttribute('aria-pressed') === 'true' && /1/.test(likeButton.textContent || '');\n  const replyButton = [...(card?.querySelectorAll('.post-comment-action') || [])]\n    .find(button => button.textContent?.includes('පිළිතුරක්'));\n  replyButton?.click();\n  const form = card?.querySelector('.post-comment-reply-form');\n  const textarea = form?.querySelector('textarea');\n  if (textarea) textarea.value = 'අලුත් post පිළිතුර';\n  form?.requestSubmit();\n  for (let attempt = 0; attempt < 40 && !card?.querySelector('.post-comment-reply-new .post-comment-reply'); attempt += 1) {\n    await new Promise(resolve => setTimeout(resolve, 25));\n  }\n  const newReplyHighlighted = Boolean(card?.querySelector('.post-comment-reply-new .post-comment-reply'));\n  const replyCount = disclosure?.querySelector('summary')?.textContent?.trim() || '';\n  const repliesExpandedAfterPost = Boolean(disclosure?.open);\n  document.querySelector('#comment-close-btn')?.click();\n  return { existingReplyRevealed, likeWorked, newReplyHighlighted, replyCount, repliesExpandedAfterPost };\n})()");
     assert.ok(postCommentInteractions.existingReplyRevealed, 'Clicking a legacy reply count should reveal its replies');
     assert.ok(postCommentInteractions.likeWorked, 'Legacy post comments should support working likes');
+    const postLikeColor = await browser.evaluate("(() => {\n  const button = document.querySelector('#comments-list-hook .post-comment-action[aria-pressed=\"true\"]');\n  return button ? getComputedStyle(button).color : '';\n})()");
+    assert.equal(postLikeColor, 'rgb(248, 113, 133)', 'A liked post comment should visibly turn red');
     assert.ok(postCommentInteractions.newReplyHighlighted, 'A newly added legacy reply should be highlighted');
     assert.equal(postCommentInteractions.replyCount, 'පිළිතුරු 2', 'Adding a legacy reply should update its count');
     assert.ok(postCommentInteractions.repliesExpandedAfterPost, 'A new legacy reply should open its reply list');
+    const postModalScrollRestore = await browser.evaluate("(async () => {\n  for (let attempt = 0; attempt < 40 && document.body.style.position === 'fixed'; attempt += 1) {\n    await new Promise(resolve => setTimeout(resolve, 25));\n  }\n  const expectedScrollY = Number(window.__postModalOriginalScrollY) || 0;\n  return {\n    unlocked: document.body.style.position !== 'fixed' && document.documentElement.style.overflow !== 'hidden',\n    restored: Math.abs(window.scrollY - expectedScrollY) < 2,\n  };\n})()");
+    assert.ok(postModalScrollRestore.unlocked, 'Closing the post-comments modal should unlock page scrolling');
+    assert.ok(postModalScrollRestore.restored, 'Closing the post-comments modal should restore the prior scroll position');
+    await browser.evaluate("document.dispatchEvent(new CustomEvent('comment-link-blocked'))");
+    await browser.evaluate("new Promise(resolve => setTimeout(resolve, 220))");
+    const linkWarningPresentation = await browser.evaluate("(() => {\n  const toast = document.querySelector('#comment-link-toast');\n  const backdrop = document.querySelector('#comment-link-toast-backdrop');\n  const rect = toast?.getBoundingClientRect();\n  return {\n    shown: Boolean(toast && !toast.hidden && toast.classList.contains('is-visible')),\n    backdropShown: Boolean(backdrop && !backdrop.hidden && backdrop.classList.contains('is-visible')),\n    backdropFilter: backdrop ? getComputedStyle(backdrop).backdropFilter : '',\n    centered: Boolean(rect && Math.abs((rect.top + rect.bottom) / 2 - innerHeight / 2) < 2\n      && Math.abs((rect.left + rect.right) / 2 - innerWidth / 2) < 2),\n  };\n})()");
+    assert.ok(linkWarningPresentation.shown && linkWarningPresentation.backdropShown,
+      'The link warning and its backdrop should appear together');
+    assert.equal(linkWarningPresentation.backdropFilter, 'blur(6px)',
+      'The link warning should blur the background');
+    assert.ok(linkWarningPresentation.centered, 'The link warning should be centered on the page');
     const blockedReplyTest = await browser.evaluate(`(async () => {
       document.querySelector('#comment-floating-btn')?.click();
       const modal = document.querySelector('#comment-popup-modal');

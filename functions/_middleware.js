@@ -229,12 +229,14 @@ export async function onRequest(context) {
     target.hostname = CANONICAL_HOST;
     needsRedirect = true;
   }
-  // Force trailing slash on directory-style paths only (never on
-  // file-like paths such as .xml, .txt, .png, .css, .js, and never
-  // on exact-match third-party verification file paths, which must
-  // be served at their literal issued path with no redirect) - same
-  // rule already used by src/lib/utils/urlHelper.ts and Base.astro.
+  // Keep API paths literal: clients send JSON POSTs to the route without a
+  // trailing slash, and a 301 can turn those requests into GETs. For page
+  // routes, force trailing slashes on directory-style paths only (never on
+  // file-like paths such as .xml, .txt, .png, .css, .js, and never on
+  // exact-match third-party verification file paths).
+  const isApiPath = target.pathname === "/api" || target.pathname.startsWith("/api/");
   if (
+    !isApiPath &&
     !isFileLikePath(target.pathname) &&
     !target.pathname.endsWith("/") &&
     !VERIFICATION_FILE_EXEMPTIONS.has(target.pathname)
@@ -243,7 +245,8 @@ export async function onRequest(context) {
     needsRedirect = true;
   }
   if (needsRedirect) {
-    return Response.redirect(target.toString(), 301);
+    const status = request.method === "GET" || request.method === "HEAD" ? 301 : 308;
+    return Response.redirect(target.toString(), status);
   }
   return servePage();
 }

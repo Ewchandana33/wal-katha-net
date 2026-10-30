@@ -16,9 +16,35 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 71 earlier dated entries from 2026-10-14 through 2026-10-28; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 73 earlier dated entries from 2026-10-14 through 2026-10-29; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-30 — Index every published story and comment
+
+### Changes
+
+- Remove the final post-specific `noindex` exception and use the shared noindex list consistently for article pages, the XML sitemap, image sitemap, and RSS feed. The existing 18+ age gate remains unchanged.
+- Extend the Cloudflare Preview audit to require every published story in the sitemap and to compare every current public post comment, post reply, review comment, and review reply against the article’s initial server-rendered HTML.
+- Correct the isolated Chromium fixture so rating comments and review replies use separate capture variables and both requests are asserted independently.
+
+### Verification
+
+- Read-only Production audit returned HTTP 200 for all seven published story routes. Before this branch change, six were in the XML sitemap and one had an explicit `noindex` exclusion. All current public post comments (3–7 per story) were present in initial HTML; the Production review-comments API reported zero records. The previous Preview contained review comments and replies in initial HTML.
+- Local Node regression suite passed 47/47; changelog test passed 1/1; JavaScript syntax checks and `git diff --check` passed. A full local dependency install did not finish within 15 minutes, so local type-check/build/Chromium were not claimed; GitHub CI and the updated Preview are pending.
+- Preview/API checks are read-only; no comment, review, like, or reply was posted. No merge or Production deployment was performed.
+
+## 2026-10-30 — Restore comment submissions and improve comment dialogs
+
+### Changes
+
+- Exempt /api routes from trailing-slash redirects so post/review comments, replies, and likes reach their handlers with the original method and body; preserve non-GET/HEAD methods with 308 for other canonical redirects.
+- Lock page scrolling while the post-comment modal is open and restore the previous position when it closes or the page navigates. Make liked post comments explicitly red, give post replies a distinct dark-red surface, and show link warnings centered over a paired transparent blur backdrop.
+- Extend middleware and isolated Chromium regression coverage to exercise post/review submissions, comment likes/replies, modal scroll lock, reply styling, and paired warning dismissal. API writes in browser tests are stubbed.
+
+### Verification
+
+- Production read-only GET checks confirmed slashless comment/rating API paths were redirected with 301 while their trailing-slash paths returned 200. Local yarn test passed 47/47; node --check scripts/verify-responsive-layout.mjs and git diff --check passed. The isolated Chromium run, type-check, build, GitHub CI, and Cloudflare Preview are pending. No live comment, review, like, or reply POST was sent; Production was not changed.
 
 ## 2026-10-30 — Warn on links while comments are being written
 
@@ -60,30 +86,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - GitHub Actions run `40834818253` for commit `c8a7ee75d715d400ad5d553c426ca66559e37aee` passed type-check, tests, and the 51-page production build; homepage/article checks passed at all 11 widths. Its isolated dialog interaction then failed because the test read an active-like style from a comment node being replaced by the still-loading mock GET. The follow-up test correction is pending hosted verification.
 - Cloudflare Preview deployment `b0763df7-ac55-470d-b1b0-42f2f35f120d` completed successfully for that exact commit at https://b0763df7.wala-katha.pages.dev. All 176 deployment log records were checked with no warning/error/failure/fatal/exception markers. Read-only smoke checks returned HTTP 200 for homepage, article, sitemap, and rating API; Preview `noindex` was present, 3 public comments and 0 review comments were rendered, and the age gate was left untouched.
 - The follow-up local checks passed; the local full build timed out after 300 seconds in this 1.6 GiB sandbox. No live vote or comment POST was sent. Production data/configuration, merge state, and Production deployment were not changed.
-
-## 2026-10-29 — Fix story-rating blur and audit search eligibility
-
-### Changes
-
-- Preserve the unprefixed backdrop-filter: blur(6px) in minified CSS by placing the WebKit fallback first. Keep the Chromium assertion strict; remove --disable-gpu from the headless harness and read the first non-none computed filter value.
-- Validate the existing server-rendered comment paths: article comments and rating-review comments are included in initial HTML (escaped and bounded), while the separate modal continues to provide paginated interaction. The current bounds are 100 public comments and 20 top-level review comments per story; content beyond those bounds is not guaranteed in the first response.
-- Audit the star-snippet request against Google's current review-snippet rules. Keep the story schema as BlogPosting; do not add misleading AggregateRating markup or relabel a story as another content type. Search engines decide whether to index content or display rich results.
-
-### Verification
-
-- GitHub Actions run 40827541807 passed for code commit c77b766bfd95a8a9bbf669d82f4cd39297725153: type-check, test suites, the 51-page build and SEO checks, and responsive Chromium/UI checks at all 11 configured widths. The toast test read backdropFilter: blur(6px), confirmed a transparent backdrop, paired dismissal, and comments modal/like/reply/scroll-lock interactions.
-- Cloudflare Preview deployment 27d2adde-71d6-4215-9443-d925fb28ccf4 completed successfully for that commit: https://27d2adde.wala-katha.pages.dev. The home and article routes returned HTTP 200 with Preview noindex (expected); the built CSS included standard backdrop-filter. The article's initial HTML contained all 3 public comments currently returned by the post-comment API; the Preview review-comment API currently reports 0 records. No live vote or comment POST was sent.
-- Production remains on deployment 6e110384-5552-454c-bc87-8970f98a2305, main commit 05d5ded3cce4a1084c6cba334cac19b7e696c31b. PR #105 remains an open draft; no merge, Production configuration/data change, or Production deployment occurred.
-
-
-## 2026-10-28 — Make rating interaction fixture deterministic
-
-### Changes
-
-- Load the API mock in the isolated fixture before the rating module, and wait for the radio input to become enabled rather than treating an idle `aria-busy` flag as successful initialization. Record mock calls and widget state in failure diagnostics.
-- Archive the oldest complete dated entry to maintain the five-section active-log limit.
-
-### Verification
-
-- GitHub Actions run `40686963030` passed Astro type-check, all 25 tests, the 51-page static build, and homepage/article layout checks at all 11 viewport widths. Its isolated interaction failed with the rating radio still disabled (`checked=false`), so the click never reached the selection assertion. The deterministic fixture update is pending verification.
-- Preview deployment `105f8104-125e-4d23-a89b-c221ab3fa2df` succeeded for commit `300a06a624d4a060fdaa3ab4c13895e96bd7f25a`. Production remains on deployment `6e110384-5552-454c-bc87-8970f98a2305`, commit `05d5ded3cce4a1084c6cba334cac19b7e696c31b`; no live POST or Production deployment occurred.
