@@ -1,5 +1,18 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { PUBLISHED_STORY_SLUGS } from '../functions/_shared/published-story-slugs.generated.js';
+import { sanitizeCommentText } from '../shared/comment-link-policy.js';
+
+const noindexPostIds = new Set(JSON.parse(readFileSync(
+  new URL('../src/config/noindex-post-ids.json', import.meta.url),
+  'utf8',
+)));
+const siteConfig = JSON.parse(readFileSync(
+  new URL('../src/config/config.json', import.meta.url),
+  'utf8',
+));
+const canonicalOrigin = new URL(siteConfig.site.base_url).origin;
 
 const raw = process.env.PREVIEW_URL;
 assert.ok(raw, 'PREVIEW_URL must be set from the Cloudflare Pages check summary.');
@@ -33,6 +46,37 @@ function assertNoindexMeta(html, label) {
   }
 }
 
+function sitemapLocations(xml) {
+  return [...xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)].map(match => match[1].trim());
+}
+
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+})[character]);
+const boundedEscapedText = (value, maximumLength) => {
+  const text = sanitizeCommentText(String(value ?? '').trim());
+  return escapeHtml(Array.from(text).slice(0, maximumLength).join(''));
+};
+const renderedCommentCount = (html, kind) =>
+  [...html.matchAll(new RegExp(`data-server-rendered-comment=["']${kind}["']`, 'g'))].length;
+
+function assertCommentContainers(html, label) {
+  const publicCommentsContainer = html.match(/<div\b(?=[^>]*\bid=["']comments-list-hook["'])[^>]*>/i)?.[0];
+  assert.ok(publicCommentsContainer, `${label} should keep the public-comments list.`);
+  assert.match(
+    publicCommentsContainer,
+    /\bdata-server-rendered-comments=["']ready["']/i,
+    `${label} should include public comments in its initial HTML.`,
+  );
+  const reviewCommentsContainer = html.match(/<ol\b(?=[^>]*\bdata-comments-list\b)[^>]*>/i)?.[0];
+  assert.ok(reviewCommentsContainer, `${label} should keep the story-review comments list.`);
+  assert.match(
+    reviewCommentsContainer,
+    /\bdata-server-rendered-comments=["']ready["']/i,
+    `${label} should server-render review comments when the Preview D1 binding is available.`,
+  );
+}
+
 const home = await get(base, 'Preview homepage');
 const homeRobots = assertNoindex(home, 'Preview homepage');
 const html = await home.text();
@@ -48,52 +92,128 @@ const article = await get(articleUrl, 'Preview article');
 const articleRobots = assertNoindex(article, 'Preview article');
 const articleHtml = await article.text();
 assertNoindexMeta(articleHtml, 'Preview article');
-const publicCommentsContainer = articleHtml.match(/<div\b(?=[^>]*\bid=["']comments-list-hook["'])[^>]*>/i)?.[0];
-assert.ok(publicCommentsContainer, 'The article should keep the existing public-comments list.');
-assert.match(
-  publicCommentsContainer,
-  /\bdata-server-rendered-comments=["']ready["']/i,
-  'Public comments should be included in the initial article HTML for crawlers.',
-);
-const reviewCommentsContainer = articleHtml.match(/<ol\b(?=[^>]*\bdata-comments-list\b)[^>]*>/i)?.[0];
-assert.ok(reviewCommentsContainer, 'The article should keep the story-review comments list.');
-assert.match(
-  reviewCommentsContainer,
-  /\bdata-server-rendered-comments=["']ready["']/i,
-  'Story-review comments should be server-rendered when the Preview D1 binding is available.',
-);
+assertCommentContainers(articleHtml, 'Homepage-linked article');
 const sitemap = await get(new URL('/sitemap-index.xml', base), 'Preview sitemap index');
 const storySlug = decodeURIComponent(articleUrl.pathname.slice('/blog/'.length).replace(/\/+$/, ''));
 assert.match(storySlug, /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/, 'Article URL should provide a valid story ID.');
-const publicCommentsResponse = await fetch(
-  `https://comments.wala-katha.workers.dev/api/comments?postId=${encodeURIComponent(storySlug)}`,
-  { signal: AbortSignal.timeout(20000) }
-);
-assert.equal(publicCommentsResponse.status, 200, `Public-comments API should return HTTP 200, got ${publicCommentsResponse.status}.`);
-const publicComments = await publicCommentsResponse.json();
-assert.ok(Array.isArray(publicComments), 'Public-comments API should return a comment array.');
-const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({
-  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-})[character]);
-const boundedEscapedText = (value, maximumLength) =>
-  escapeHtml(Array.from(String(value ?? '').trim()).slice(0, maximumLength).join(''));
-if (publicComments[0]?.content) {
-  assert.ok(
-    articleHtml.includes(boundedEscapedText(publicComments[0].content, 1000)),
-    'A public post comment should be present in the initial article HTML.',
-  );
+assert.ok(PUBLISHED_STORY_SLUGS.has(storySlug), 'Homepage article should be one of the published story routes.');
+
+const sitemapQueue = sitemapLocations(await sitemap.text());
+const sitemapPageUrls = new Set();
+while (sitemapQueue.length > 0) {
+  const sitemapUrl = new URL(sitemapQueue.shift(), canonicalOrigin);
+  assert.equal(sitemapUrl.origin, canonicalOrigin, 'Sitemap entries should stay on the canonical host.');
+  const previewSitemapUrl = new URL(sitemapUrl.pathname + sitemapUrl.search, base);
+  const childSitemap = await get(previewSitemapUrl, 'Preview child sitemap');
+  const childXml = await childSitemap.text();
+  const locations = sitemapLocations(childXml);
+  if (/<sitemapindex\b/i.test(childXml)) {
+    sitemapQueue.push(...locations);
+  } else {
+    for (const location of locations) sitemapPageUrls.add(new URL(location, canonicalOrigin).href);
+  }
 }
-const reviewCommentsResponse = await get(
-  new URL(`/api/rating/comments?story=${encodeURIComponent(storySlug)}`, base),
-  'Preview review comments API',
-);
-const reviewData = await reviewCommentsResponse.json();
-assert.ok(Array.isArray(reviewData.comments), 'Preview review-comments API should return a comment array.');
-if (reviewData.comments[0]?.body) {
-  assert.ok(
-    articleHtml.includes(boundedEscapedText(reviewData.comments[0].body, 500)),
-    'A story-review comment should be present in the initial article HTML.',
+
+const storyAudit = [];
+for (const publishedSlug of PUBLISHED_STORY_SLUGS) {
+  const expectedUrl = new URL(`/blog/${publishedSlug}/`, canonicalOrigin).href;
+  if (noindexPostIds.has(publishedSlug)) {
+    assert.ok(!sitemapPageUrls.has(expectedUrl), `Configured noindex article should stay out of the Preview sitemap: ${expectedUrl}`);
+  } else {
+    assert.ok(sitemapPageUrls.has(expectedUrl), `Published indexable article should appear in the Preview sitemap: ${expectedUrl}`);
+  }
+
+  let storyHtml = articleHtml;
+  if (publishedSlug !== storySlug) {
+    const storyUrl = new URL(`/blog/${publishedSlug}/`, base);
+    const storyResponse = await get(storyUrl, `Preview article ${publishedSlug}`);
+    assertNoindex(storyResponse, `Preview article ${publishedSlug}`);
+    storyHtml = await storyResponse.text();
+    assertNoindexMeta(storyHtml, `Preview article ${publishedSlug}`);
+    assertCommentContainers(storyHtml, `Preview article ${publishedSlug}`);
+  }
+
+  const publicCommentsResponse = await fetch(
+    `https://comments.wala-katha.workers.dev/api/comments?postId=${encodeURIComponent(publishedSlug)}`,
+    { signal: AbortSignal.timeout(20000) }
   );
+  assert.equal(publicCommentsResponse.status, 200, `Public-comments API should return HTTP 200 for ${publishedSlug}.`);
+  const publicComments = await publicCommentsResponse.json();
+  assert.ok(Array.isArray(publicComments), `Public-comments API should return a comment array for ${publishedSlug}.`);
+  const expectedPostBodies = publicComments
+    .map(comment => boundedEscapedText(comment?.content, 1000))
+    .filter(Boolean);
+  assert.equal(
+    renderedCommentCount(storyHtml, 'post'),
+    expectedPostBodies.length,
+    `Every current public post comment should be in the initial HTML for ${publishedSlug}.`,
+  );
+  for (const body of expectedPostBodies) {
+    assert.ok(storyHtml.includes(body), `A public post comment body should be in the initial HTML for ${publishedSlug}.`);
+  }
+
+  const postApiResponse = await get(
+    new URL(`/api/post-comments?postId=${encodeURIComponent(publishedSlug)}`, base),
+    `Preview post-comment replies API for ${publishedSlug}`,
+  );
+  const postApiData = await postApiResponse.json();
+  assert.ok(Array.isArray(postApiData.comments), `Post-comment API should return a comment array for ${publishedSlug}.`);
+  const expectedPostReplyBodies = postApiData.comments.flatMap(comment =>
+    Array.isArray(comment.replies)
+      ? comment.replies.map(reply => boundedEscapedText(reply?.content ?? reply?.body, 1000)).filter(Boolean)
+      : []
+  );
+  assert.equal(
+    renderedCommentCount(storyHtml, 'post-reply'),
+    expectedPostReplyBodies.length,
+    `Every current public post reply should be in the initial HTML for ${publishedSlug}.`,
+  );
+  for (const body of expectedPostReplyBodies) {
+    assert.ok(storyHtml.includes(body), `A public post reply body should be in the initial HTML for ${publishedSlug}.`);
+  }
+
+  let reviewCursor = '';
+  let reviewTotal = null;
+  let reviewBodies = [];
+  let reviewPage = 0;
+  while (true) {
+    const reviewUrl = new URL(`/api/rating/comments?story=${encodeURIComponent(publishedSlug)}`, base);
+    if (reviewCursor) reviewUrl.searchParams.set('before', reviewCursor);
+    const reviewResponse = await get(reviewUrl, `Preview review comments API for ${publishedSlug}`);
+    const reviewData = await reviewResponse.json();
+    assert.ok(Array.isArray(reviewData.comments), `Review-comments API should return a comment array for ${publishedSlug}.`);
+    assert.ok(Number.isSafeInteger(reviewData.total_comments) && reviewData.total_comments >= 0, `Review-comments API should return a total for ${publishedSlug}.`);
+    if (reviewTotal === null) reviewTotal = reviewData.total_comments;
+    else assert.equal(reviewData.total_comments, reviewTotal, `Review-comment total should stay stable during the ${publishedSlug} audit.`);
+    for (const comment of reviewData.comments) {
+      const body = boundedEscapedText(comment?.body, 500);
+      if (body) reviewBodies.push(body);
+      if (Array.isArray(comment?.replies)) {
+        reviewBodies.push(...comment.replies.map(reply => boundedEscapedText(reply?.body, 500)).filter(Boolean));
+      }
+    }
+    if (!reviewData.has_more) break;
+    assert.ok(reviewData.next_cursor, `Review-comment pagination should provide a cursor for ${publishedSlug}.`);
+    reviewCursor = String(reviewData.next_cursor);
+    reviewPage += 1;
+    assert.ok(reviewPage < 20, `Review-comment audit exceeded its 400-parent safety bound for ${publishedSlug}.`);
+  }
+  assert.equal(
+    renderedCommentCount(storyHtml, 'review'),
+    reviewBodies.length,
+    `Every current review comment and reply should be in the initial HTML for ${publishedSlug}.`,
+  );
+  for (const body of reviewBodies) {
+    assert.ok(storyHtml.includes(body), `A review comment body should be in the initial HTML for ${publishedSlug}.`);
+  }
+
+  storyAudit.push({
+    slug: publishedSlug,
+    postComments: expectedPostBodies.length,
+    postReplies: expectedPostReplyBodies.length,
+    reviewComments: reviewBodies.length,
+    reviewTotal,
+  });
 }
 const ratingResponse = await fetch(
   new URL(`/api/rating?story=${encodeURIComponent(storySlug)}`, base),
@@ -127,7 +247,7 @@ console.log(JSON.stringify({
   ratingStorySlug: storySlug,
   ratingVotes: ratingData.total_votes,
   ratingAverage: ratingData.average_rating,
-  serverRenderedPostComments: publicComments.length,
-  serverRenderedReviewComments: reviewData.comments.length,
+  publishedStoriesAudited: storyAudit.length,
+  serverRenderedCommentsByStory: storyAudit,
   ageGatePresentAndUntouched: true
 }, null, 2));

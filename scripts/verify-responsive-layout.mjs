@@ -62,6 +62,7 @@ let fixturePostCommentLiked = false;
 let fixturePostReplyCount = 1;
 let fixturePostCommentSubmission = null;
 let fixtureReviewCommentSubmission = null;
+let fixtureReviewReplySubmission = null;
 
 function ratingApiFixture(request) {
   const url = new URL(request.url);
@@ -132,7 +133,7 @@ function ratingApiFixture(request) {
       };
     }
     if (method === "POST") {
-      fixtureReviewCommentSubmission = JSON.parse(request.postData || "{}").comment ?? null;
+      fixtureReviewReplySubmission = JSON.parse(request.postData || "{}").comment ?? null;
       return {
         status: 201,
         body: {
@@ -165,6 +166,7 @@ function ratingApiFixture(request) {
       };
     }
     if (method === "POST") {
+      fixtureReviewCommentSubmission = JSON.parse(request.postData || "{}").comment ?? null;
       return {
         status: 201,
         body: {
@@ -824,6 +826,8 @@ async function main() {
     assert.match(interaction.commentCounter, /[1-9]/, 'The optional comment should update its character counter');
     assert.equal(fixtureReviewCommentSubmission, 'පරීක්ෂණ අදහස',
       'Submitting a review should send the optional review comment with the rating');
+    assert.equal(fixtureReviewReplySubmission, 'පරීක්ෂණ පිළිතුර',
+      'Submitting a review reply should send its text to the reply endpoint');
     assert.ok(interaction.toastAppeared, 'A successful vote should display the thank-you toast');
     assert.match(interaction.toastText, /ස්තුතියි/);
     assert.equal(interaction.toastPosition, 'fixed', 'The thank-you toast should float above page content');

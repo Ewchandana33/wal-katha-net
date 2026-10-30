@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { PUBLISHED_STORY_SLUGS } from "../functions/_shared/published-story-slugs.generated.js";
 
 const origin = "https://www.walakatha.net";
 const noindexPostIds = JSON.parse(readFileSync(resolve(process.cwd(), "src/config/noindex-post-ids.json"), "utf8"));
@@ -122,6 +123,14 @@ const rssUrls = new Set(
   [...rss.text.matchAll(/<link>\s*([^<]+?)\s*<\/link>/gi)].map((match) => decodeXml(match[1].trim()))
 );
 expect(rssUrls.has(correctedPostUrl), "Corrected article is missing from the RSS feed");
+
+for (const postId of PUBLISHED_STORY_SLUGS) {
+  if (noindexPostIds.includes(postId)) continue;
+  const postUrl = new URL("/blog/" + postId + "/", origin).href;
+  expect(pageUrls.has(postUrl), "Published article is missing from the XML sitemap: " + postUrl);
+  expect(imageUrls.has(postUrl), "Published article is missing from the image sitemap: " + postUrl);
+  expect(rssUrls.has(postUrl), "Published article is missing from the RSS feed: " + postUrl);
+}
 
 for (const postId of noindexPostIds) {
   const noindexUrl = new URL("/blog/" + postId + "/", origin).href;

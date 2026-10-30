@@ -2,7 +2,7 @@
 
 Historical entries moved from AI_CHANGELOG.md on 2026-10-15, 2026-10-16, 2026-10-18, 2026-10-23, 2026-10-25, 2026-10-28, 2026-10-29, and 2026-10-30 during active-log retention rotations. All dated sections below retain their original wording and chronological order. Read AI_CHANGELOG.md first for active instructions and the latest status; archived statuses may have been superseded by later evidence.
 
-Coverage: 2026-10-14 through 2026-10-28; 72 dated entries.
+Coverage: 2026-10-14 through 2026-10-29; 73 dated entries.
 
 ## 2026-10-14 — Complete PR #15 image-variant CI verification
 
@@ -1366,3 +1366,17 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 
 - GitHub Actions run `40681777229` attempt 1 failed before responsive assertions because Chrome DevTools did not become reachable. Attempt 2 passed Astro type-check, all 25 unit tests, the 51-page static build, and homepage/article layout checks at 11 viewport widths, then failed the selected-tile assertion. The assertion previously read the class after the later interaction sequence; this branch update is pending CI verification.
 - Interactive checks use isolated API stubs; no live rating/comment POST was made. No Production code, data, or deployment was changed.
+
+## 2026-10-29 — Fix story-rating blur and audit search eligibility
+
+### Changes
+
+- Preserve the unprefixed backdrop-filter: blur(6px) in minified CSS by placing the WebKit fallback first. Keep the Chromium assertion strict; remove --disable-gpu from the headless harness and read the first non-none computed filter value.
+- Validate the existing server-rendered comment paths: article comments and rating-review comments are included in initial HTML (escaped and bounded), while the separate modal continues to provide paginated interaction. The current bounds are 100 public comments and 20 top-level review comments per story; content beyond those bounds is not guaranteed in the first response.
+- Audit the star-snippet request against Google's current review-snippet rules. Keep the story schema as BlogPosting; do not add misleading AggregateRating markup or relabel a story as another content type. Search engines decide whether to index content or display rich results.
+
+### Verification
+
+- GitHub Actions run 40827541807 passed for code commit c77b766bfd95a8a9bbf669d82f4cd39297725153: type-check, test suites, the 51-page build and SEO checks, and responsive Chromium/UI checks at all 11 configured widths. The toast test read backdropFilter: blur(6px), confirmed a transparent backdrop, paired dismissal, and comments modal/like/reply/scroll-lock interactions.
+- Cloudflare Preview deployment 27d2adde-71d6-4215-9443-d925fb28ccf4 completed successfully for that commit: https://27d2adde.wala-katha.pages.dev. The home and article routes returned HTTP 200 with Preview noindex (expected); the built CSS included standard backdrop-filter. The article's initial HTML contained all 3 public comments currently returned by the post-comment API; the Preview review-comment API currently reports 0 records. No live vote or comment POST was sent.
+- Production remains on deployment 6e110384-5552-454c-bc87-8970f98a2305, main commit 05d5ded3cce4a1084c6cba334cac19b7e696c31b. PR #105 remains an open draft; no merge, Production configuration/data change, or Production deployment occurred.

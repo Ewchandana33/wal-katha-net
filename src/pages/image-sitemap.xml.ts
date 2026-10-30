@@ -3,6 +3,7 @@ import { getSinglePage } from "@/lib/contentParser.astro";
 import { sortByDate } from "@/lib/utils/sortFunctions";
 import { withTrailingSlash } from "@/lib/utils/urlHelper";
 import config from "@/config/config.json";
+import noindexPostIds from "@/config/noindex-post-ids.json";
 
 // GOOGLE IMAGES SITEMAP - image-specific XML sitemap (Google Sitemap
 // Image extension, <image:image> namespace). Google's Indexing API
@@ -66,9 +67,9 @@ export async function GET(context: APIContext) {
   const base_url = (config?.site?.base_url || "").replace(/\/$/, "");
   const siteUrl = context.site?.toString().replace(/\/$/, "") ?? base_url;
 
-  const noindexPostIds = new Set(["bus-jack-wal-katha"]);
+  const noindexPosts = new Set<string>(noindexPostIds);
   const postsWithImages = sortedPosts.filter(
-    (post) => !!post.data.image && !noindexPostIds.has(post.id)
+    (post) => !!post.data.image && !noindexPosts.has(post.id)
   );
 
   const urlEntries = postsWithImages
