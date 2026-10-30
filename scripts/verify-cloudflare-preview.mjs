@@ -21,9 +21,22 @@ function assertNoindex(response, label) {
   return value;
 }
 
+function assertNoindexMeta(html, label) {
+  const robotsTags = [...html.matchAll(/<meta\b[^>]*>/gi)]
+    .map(match => match[0])
+    .filter(tag => /\bname=["']robots["']/i.test(tag));
+  assert.ok(robotsTags.length > 0, label + ' must include a robots meta tag.');
+  for (const tag of robotsTags) {
+    const content = tag.match(/\bcontent=["']([^"']*)["']/i)?.[1] || '';
+    assert.match(content, /(?:^|,)\s*noindex(?:\s*,|$)/i, label + ' must include a noindex meta directive.');
+    assert.doesNotMatch(content, /(?:^|,)\s*index(?:\s*,|$)/i, label + ' must not contradict noindex with index.');
+  }
+}
+
 const home = await get(base, 'Preview homepage');
 const homeRobots = assertNoindex(home, 'Preview homepage');
 const html = await home.text();
+assertNoindexMeta(html, 'Preview homepage');
 assert.ok(html.includes('id="age-gate-overlay"'), 'The 18+ confirmation gate must remain present. The test does not click it or modify cookies/storage.');
 const articleLink = [...html.matchAll(/href=["'](\/blog\/[^"'?#]+\/?)["']/gi)]
   .map(match => match[1])
@@ -34,6 +47,7 @@ assert.equal(articleUrl.origin, base.origin, 'Article route must remain on the P
 const article = await get(articleUrl, 'Preview article');
 const articleRobots = assertNoindex(article, 'Preview article');
 const articleHtml = await article.text();
+assertNoindexMeta(articleHtml, 'Preview article');
 const publicCommentsContainer = articleHtml.match(/<div\b(?=[^>]*\bid=["']comments-list-hook["'])[^>]*>/i)?.[0];
 assert.ok(publicCommentsContainer, 'The article should keep the existing public-comments list.');
 assert.match(

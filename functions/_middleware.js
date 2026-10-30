@@ -41,6 +41,41 @@ function isOwnDomain(hostname) {
   return hostname === APEX_HOST || hostname === CANONICAL_HOST || hostname.endsWith("." + APEX_HOST);
 }
 
+function isCloudflarePreviewHost(hostname) {
+  return hostname.endsWith(".wala-katha.pages.dev");
+}
+
+function rewritePreviewRobotsMeta(context, response) {
+  let hostname;
+  try {
+    hostname = new URL(context.request.url).hostname;
+  } catch {
+    return response;
+  }
+
+  if (
+    !isCloudflarePreviewHost(hostname) ||
+    context.request.method !== "GET" ||
+    !response.ok ||
+    !response.headers.get("content-type")?.toLowerCase().includes("text/html") ||
+    typeof HTMLRewriter === "undefined"
+  ) {
+    return response;
+  }
+
+  try {
+    return new HTMLRewriter()
+      .on('meta[name="robots"]', {
+        element(element) {
+          element.setAttribute("content", "noindex,follow");
+        },
+      })
+      .transform(response);
+  } catch {
+    return response;
+  }
+}
+
 function storySlugFromPath(pathname) {
   const match = pathname.match(/^\/blog\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/i);
   if (!match) return null;
@@ -163,8 +198,14 @@ export async function onRequest(context) {
     return next();
   }
   const storySlug = storySlugFromPath(url.pathname);
-  const servePage = async () =>
-    renderIndexableComments(context, await next(), storySlug);
+  const servePage = async () => {
+    const response = await renderIndexableComments(
+      context,
+      await next(),
+      storySlug,
+    );
+    return rewritePreviewRobotsMeta(context, response);
+  };
   // Canonicalize only our own domain variants. Keep *.pages.dev previews,
   // localhost, and unrelated hosts on their original host; eligible story
   // HTML still receives the comment rendering above on those environments.
