@@ -763,7 +763,10 @@ const ratings = [
 </style>
 
 <script>
-  import { containsDisallowedLink } from "../../../shared/comment-link-policy.js";
+  import {
+    containsDisallowedLink,
+    watchCommentLinks,
+  } from "../../../shared/comment-link-policy.js";
 
   const RATING_API = "/api/rating";
 
@@ -844,6 +847,10 @@ const ratings = [
     const commentField = root.querySelector<HTMLElement>("[data-rating-comment-field]");
     const commentInput = root.querySelector<HTMLTextAreaElement>("[data-rating-comment]");
     const commentLength = root.querySelector<HTMLElement>("[data-rating-comment-length]");
+
+    watchCommentLinks(commentInput, () => {
+      document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+    });
 
     function updateCommentField() {
       if (commentField) {

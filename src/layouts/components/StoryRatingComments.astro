@@ -541,7 +541,10 @@ const dialogId = `story-comments-${storySlug}`;
 </style>
 
 <script>
-  import { containsDisallowedLink } from "../../../shared/comment-link-policy.js";
+  import {
+    containsDisallowedLink,
+    watchCommentLinks,
+  } from "../../../shared/comment-link-policy.js";
 
   const COMMENTS_API = "/api/rating/comments";
 
@@ -740,6 +743,9 @@ const dialogId = `story-comments-${storySlug}`;
         label.htmlFor = inputId;
         label.textContent = "ඔබගේ පිළිතුර";
         const textarea = document.createElement("textarea");
+        watchCommentLinks(textarea, () => {
+          document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+        });
         textarea.id = inputId;
         textarea.maxLength = 500;
         textarea.rows = 2;

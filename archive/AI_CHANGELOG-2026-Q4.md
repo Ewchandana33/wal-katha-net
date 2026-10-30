@@ -1,8 +1,8 @@
 # Archived AI Change Log — 2026 Q4
 
-Historical entries moved from AI_CHANGELOG.md on 2026-10-15, 2026-10-16, 2026-10-18, 2026-10-23, 2026-10-25, 2026-10-28, and 2026-10-29 during active-log retention rotations. All dated sections below retain their original wording and chronological order. Read AI_CHANGELOG.md first for active instructions and the latest status; archived statuses may have been superseded by later evidence.
+Historical entries moved from AI_CHANGELOG.md on 2026-10-15, 2026-10-16, 2026-10-18, 2026-10-23, 2026-10-25, 2026-10-28, 2026-10-29, and 2026-10-30 during active-log retention rotations. All dated sections below retain their original wording and chronological order. Read AI_CHANGELOG.md first for active instructions and the latest status; archived statuses may have been superseded by later evidence.
 
-Coverage: 2026-10-14 through 2026-10-29; 70 dated entries.
+Coverage: 2026-10-14 through 2026-10-28; 71 dated entries.
 
 ## 2026-10-14 — Complete PR #15 image-variant CI verification
 
@@ -1342,3 +1342,15 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 
 - Focused Node tests passed 17/17; JavaScript syntax checks and SQLite migration/query smoke tests passed. CI run `40681302698` caught strict-null errors in the new comments widget, which were corrected in the follow-up commit. Cloudflare Preview deployment `2e1c3d65-dd5b-42d7-beca-d7e62d0977aa` deployed initial commit `bd18b2ddaaa12e5a70734d0edded8587768eb1c0`, but is not accepted as verification because CI failed. CI and a corrected Preview are pending. Local build dependencies and generated `dist/` assets are not present in this workspace.
 - PR #105 remains an open draft. No merge, `main` update, or Production deployment was performed.
+
+## 2026-10-28 — Correct responsive rating selection test timing
+
+### Changes
+
+- Snapshot the selected tile class and radio checked/disabled state immediately after the rating click in `scripts/verify-responsive-layout.mjs`, before subsequent vote, toast, and comments interactions. Include radio state in failure diagnostics.
+- Archive the oldest complete dated changelog section to keep the five-entry active history and update its coverage/count.
+
+### Verification
+
+- GitHub Actions run `40681777229` attempt 1 failed before responsive assertions because Chrome DevTools did not become reachable. Attempt 2 passed Astro type-check, all 25 unit tests, the 51-page static build, and homepage/article layout checks at 11 viewport widths, then failed the selected-tile assertion. The assertion previously read the class after the later interaction sequence; this branch update is pending CI verification.
+- Interactive checks use isolated API stubs; no live rating/comment POST was made. No Production code, data, or deployment was changed.

@@ -899,8 +899,14 @@ async function main() {
       const form = card?.querySelector('.post-comment-reply-form');
       const input = form?.querySelector('textarea');
       if (input) input.value = 'https://example.com';
-      form?.requestSubmit();
+      input?.dispatchEvent(new Event('input', { bubbles: true }));
       const toast = document.querySelector('#comment-link-toast');
+      for (let attempt = 0; attempt < 40 && !toast?.classList.contains('is-visible'); attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      const shownOnInput = Boolean(toast?.classList.contains('is-visible')
+        && toast.textContent?.includes('සබැඳි පළ කිරීම තහනම්'));
+      form?.requestSubmit();
       for (let attempt = 0; attempt < 40 && !toast?.classList.contains('is-visible'); attempt += 1) {
         await new Promise(resolve => setTimeout(resolve, 25));
       }
@@ -910,8 +916,9 @@ async function main() {
       await new Promise(resolve => setTimeout(resolve, 4300));
       const dismissed = Boolean(toast?.hidden);
       document.querySelector('#comment-close-btn')?.click();
-      return { shown, unchanged, dismissed };
+      return { shownOnInput, shown, unchanged, dismissed };
     })()`);
+    assert.ok(blockedReplyTest.shownOnInput, 'Typing or pasting a link should show the warning before submission');
     assert.ok(blockedReplyTest.shown, 'A link in a reply should show the Sinhala moderation popup');
     assert.ok(blockedReplyTest.unchanged, 'A blocked link reply should not be submitted');
     assert.ok(blockedReplyTest.dismissed, 'The link moderation popup should disappear automatically');

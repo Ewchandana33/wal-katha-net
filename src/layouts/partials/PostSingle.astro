@@ -1727,7 +1727,10 @@ const imageObjectSchema = schemaImageUrl
 </script>
 
 <script>
-  import { containsDisallowedLink } from "../../../shared/comment-link-policy.js";
+  import {
+    containsDisallowedLink,
+    watchCommentLinks,
+  } from "../../../shared/comment-link-policy.js";
 
   let warningTypewriterDone = false;
   let linkToastHideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1820,6 +1823,9 @@ const imageObjectSchema = schemaImageUrl
     const submitBtn = freshEl<HTMLButtonElement>("cf-submit-comment");
     const textarea = freshEl<HTMLTextAreaElement>("cf-comment-text");
     const clearBtn = freshEl<HTMLButtonElement>("cf-clear-btn");
+    watchCommentLinks(textarea, () => {
+      document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+    });
 
     function showValidation(msg: string) {
       if (!validationMsg) return;
@@ -1961,6 +1967,9 @@ const imageObjectSchema = schemaImageUrl
           form.hidden = true;
           const label = document.createElement("label");
           const input = document.createElement("textarea");
+          watchCommentLinks(input, () => {
+            document.dispatchEvent(new CustomEvent("comment-link-blocked"));
+          });
           input.maxLength = 1000;
           input.rows = 2;
           input.required = true;

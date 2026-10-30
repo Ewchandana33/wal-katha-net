@@ -16,9 +16,20 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 70 earlier dated entries from 2026-10-14 through 2026-10-29; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 71 earlier dated entries from 2026-10-14 through 2026-10-28; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-30 — Warn on links while comments are being written
+
+### Changes
+
+- Show the existing auto-dismissing Sinhala link warning as soon as a prohibited link is typed or pasted in post comments, post replies, rating reviews, or review replies. Warn once for each link insertion, and allow a new warning after the link is removed; retain submit-time and API enforcement.
+- Add unit and isolated Chromium regression coverage for immediate detection and confirm all four text fields use the shared detector.
+
+### Verification
+
+- `yarn test` passed 45/45. `node --check` passed for the changed JavaScript modules and browser test; `git diff --check` passed. Hosted CI, production build, responsive Chromium, and the updated Cloudflare Preview are pending. No live comment, review, like, or reply POST was sent; Production was not changed.
 
 ## 2026-10-29 — Block links in comments and remove legacy links from display
 
@@ -75,15 +86,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 - GitHub Actions run `40686963030` passed Astro type-check, all 25 tests, the 51-page static build, and homepage/article layout checks at all 11 viewport widths. Its isolated interaction failed with the rating radio still disabled (`checked=false`), so the click never reached the selection assertion. The deterministic fixture update is pending verification.
 - Preview deployment `105f8104-125e-4d23-a89b-c221ab3fa2df` succeeded for commit `300a06a624d4a060fdaa3ab4c13895e96bd7f25a`. Production remains on deployment `6e110384-5552-454c-bc87-8970f98a2305`, commit `05d5ded3cce4a1084c6cba334cac19b7e696c31b`; no live POST or Production deployment occurred.
-
-## 2026-10-28 — Correct responsive rating selection test timing
-
-### Changes
-
-- Snapshot the selected tile class and radio checked/disabled state immediately after the rating click in `scripts/verify-responsive-layout.mjs`, before subsequent vote, toast, and comments interactions. Include radio state in failure diagnostics.
-- Archive the oldest complete dated changelog section to keep the five-entry active history and update its coverage/count.
-
-### Verification
-
-- GitHub Actions run `40681777229` attempt 1 failed before responsive assertions because Chrome DevTools did not become reachable. Attempt 2 passed Astro type-check, all 25 unit tests, the 51-page static build, and homepage/article layout checks at 11 viewport widths, then failed the selected-tile assertion. The assertion previously read the class after the later interaction sequence; this branch update is pending CI verification.
-- Interactive checks use isolated API stubs; no live rating/comment POST was made. No Production code, data, or deployment was changed.

@@ -37,6 +37,28 @@ export function containsDisallowedLink(value) {
   );
 }
 
+export function watchCommentLinks(input, onLinkDetected) {
+  if (
+    !input ||
+    typeof input.addEventListener !== "function" ||
+    typeof input.removeEventListener !== "function" ||
+    typeof onLinkDetected !== "function"
+  ) {
+    return () => {};
+  }
+
+  let hadDisallowedLink = false;
+  const checkForLink = () => {
+    const hasDisallowedLink = containsDisallowedLink(input.value);
+    if (hasDisallowedLink && !hadDisallowedLink) onLinkDetected();
+    hadDisallowedLink = hasDisallowedLink;
+  };
+
+  input.addEventListener("input", checkForLink);
+  checkForLink();
+  return () => input.removeEventListener("input", checkForLink);
+}
+
 export function sanitizeCommentText(value) {
   const original = typeof value === "string" ? value.trim() : "";
   if (!original || !containsDisallowedLink(original)) return original;
