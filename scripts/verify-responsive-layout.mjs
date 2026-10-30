@@ -536,7 +536,10 @@ async function main() {
   if (!remoteUrl) {
     await createRatingHarness(articleSlug);
     await browser.call('Fetch.enable', {
-      patterns: [{ urlPattern: '*://*/api/rating*', requestStage: 'Request' }]
+      patterns: [
+      { urlPattern: '*://*/api/rating*', requestStage: 'Request' },
+      { urlPattern: '*://*/api/post-comments*', requestStage: 'Request' },
+    ]
     });
     await setViewport(browser, 390);
     await navigate(browser, `${baseUrl}/__rating-test__/`);
