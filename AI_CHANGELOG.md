@@ -16,9 +16,21 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 
 ### Archive index
 
-- archive/AI_CHANGELOG-2026-Q4.md — 71 earlier dated entries from 2026-10-14 through 2026-10-28; dated sections are retained verbatim.
+- archive/AI_CHANGELOG-2026-Q4.md — 72 earlier dated entries from 2026-10-14 through 2026-10-28; dated sections are retained verbatim.
 
 ## Recent entries
+
+## 2026-10-30 — Restore comment submissions and improve comment dialogs
+
+### Changes
+
+- Exempt /api routes from trailing-slash redirects so post/review comments, replies, and likes reach their handlers with the original method and body; preserve non-GET/HEAD methods with 308 for other canonical redirects.
+- Lock page scrolling while the post-comment modal is open and restore the previous position when it closes or the page navigates. Make liked post comments explicitly red, give post replies a distinct dark-red surface, and show link warnings centered over a paired transparent blur backdrop.
+- Extend middleware and isolated Chromium regression coverage to exercise post/review submissions, comment likes/replies, modal scroll lock, reply styling, and paired warning dismissal. API writes in browser tests are stubbed.
+
+### Verification
+
+- Production read-only GET checks confirmed slashless comment/rating API paths were redirected with 301 while their trailing-slash paths returned 200. Local yarn test passed 47/47; node --check scripts/verify-responsive-layout.mjs and git diff --check passed. The isolated Chromium run, type-check, build, GitHub CI, and Cloudflare Preview are pending. No live comment, review, like, or reply POST was sent; Production was not changed.
 
 ## 2026-10-30 — Warn on links while comments are being written
 
@@ -74,16 +86,3 @@ For every AI-assisted code, SEO, automation, or deployment change, append a date
 - GitHub Actions run 40827541807 passed for code commit c77b766bfd95a8a9bbf669d82f4cd39297725153: type-check, test suites, the 51-page build and SEO checks, and responsive Chromium/UI checks at all 11 configured widths. The toast test read backdropFilter: blur(6px), confirmed a transparent backdrop, paired dismissal, and comments modal/like/reply/scroll-lock interactions.
 - Cloudflare Preview deployment 27d2adde-71d6-4215-9443-d925fb28ccf4 completed successfully for that commit: https://27d2adde.wala-katha.pages.dev. The home and article routes returned HTTP 200 with Preview noindex (expected); the built CSS included standard backdrop-filter. The article's initial HTML contained all 3 public comments currently returned by the post-comment API; the Preview review-comment API currently reports 0 records. No live vote or comment POST was sent.
 - Production remains on deployment 6e110384-5552-454c-bc87-8970f98a2305, main commit 05d5ded3cce4a1084c6cba334cac19b7e696c31b. PR #105 remains an open draft; no merge, Production configuration/data change, or Production deployment occurred.
-
-
-## 2026-10-28 — Make rating interaction fixture deterministic
-
-### Changes
-
-- Load the API mock in the isolated fixture before the rating module, and wait for the radio input to become enabled rather than treating an idle `aria-busy` flag as successful initialization. Record mock calls and widget state in failure diagnostics.
-- Archive the oldest complete dated entry to maintain the five-section active-log limit.
-
-### Verification
-
-- GitHub Actions run `40686963030` passed Astro type-check, all 25 tests, the 51-page static build, and homepage/article layout checks at all 11 viewport widths. Its isolated interaction failed with the rating radio still disabled (`checked=false`), so the click never reached the selection assertion. The deterministic fixture update is pending verification.
-- Preview deployment `105f8104-125e-4d23-a89b-c221ab3fa2df` succeeded for commit `300a06a624d4a060fdaa3ab4c13895e96bd7f25a`. Production remains on deployment `6e110384-5552-454c-bc87-8970f98a2305`, commit `05d5ded3cce4a1084c6cba334cac19b7e696c31b`; no live POST or Production deployment occurred.

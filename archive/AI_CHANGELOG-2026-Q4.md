@@ -2,7 +2,7 @@
 
 Historical entries moved from AI_CHANGELOG.md on 2026-10-15, 2026-10-16, 2026-10-18, 2026-10-23, 2026-10-25, 2026-10-28, 2026-10-29, and 2026-10-30 during active-log retention rotations. All dated sections below retain their original wording and chronological order. Read AI_CHANGELOG.md first for active instructions and the latest status; archived statuses may have been superseded by later evidence.
 
-Coverage: 2026-10-14 through 2026-10-28; 71 dated entries.
+Coverage: 2026-10-14 through 2026-10-28; 72 dated entries.
 
 ## 2026-10-14 — Complete PR #15 image-variant CI verification
 
@@ -1342,6 +1342,18 @@ AI_CHANGELOG.md had grown to nearly 50 KiB, with 22 dated records. A shorter act
 
 - Focused Node tests passed 17/17; JavaScript syntax checks and SQLite migration/query smoke tests passed. CI run `40681302698` caught strict-null errors in the new comments widget, which were corrected in the follow-up commit. Cloudflare Preview deployment `2e1c3d65-dd5b-42d7-beca-d7e62d0977aa` deployed initial commit `bd18b2ddaaa12e5a70734d0edded8587768eb1c0`, but is not accepted as verification because CI failed. CI and a corrected Preview are pending. Local build dependencies and generated `dist/` assets are not present in this workspace.
 - PR #105 remains an open draft. No merge, `main` update, or Production deployment was performed.
+
+## 2026-10-28 — Make rating interaction fixture deterministic
+
+### Changes
+
+- Load the API mock in the isolated fixture before the rating module, and wait for the radio input to become enabled rather than treating an idle `aria-busy` flag as successful initialization. Record mock calls and widget state in failure diagnostics.
+- Archive the oldest complete dated entry to maintain the five-section active-log limit.
+
+### Verification
+
+- GitHub Actions run `40686963030` passed Astro type-check, all 25 tests, the 51-page static build, and homepage/article layout checks at all 11 viewport widths. Its isolated interaction failed with the rating radio still disabled (`checked=false`), so the click never reached the selection assertion. The deterministic fixture update is pending hosted verification.
+- Preview deployment `105f8104-125e-4d23-a89b-c221ab3fa2df` succeeded for commit `300a06a624d4a060fdaa3ab4c13895e96bd7f25a`. Production remains on deployment `6e110384-5552-454c-bc87-8970f98a2305`, commit `05d5ded3cce4a1084c6cba334cac19b7e696c31b`; no live POST or Production deployment occurred.
 
 ## 2026-10-28 — Correct responsive rating selection test timing
 
