@@ -1677,10 +1677,10 @@
   dependencies:
     undici-types "~7.16.0"
 
-"@types/pdfkit@0.17.6":
-  version "0.17.6"
-  resolved "https://registry.npmjs.org/@types/pdfkit/-/pdfkit-0.17.6.tgz#b0a4b728b1d0bfb7ec6e574efebba7dc6bf4cca1"
-  integrity sha512-tIwzxk2uWKp0Cq9JIluQXJid77lYhF52EsIOwhsMF4iWLA6YneoBR1xVKYYdAysHuepUB0OX4tdwMiUDdGKmig==
+"@types/pdfkit@0.17.7":
+  version "0.17.7"
+  resolved "https://registry.yarnpkg.com/@types/pdfkit/-/pdfkit-0.17.7.tgz#e2f3c032268d2af946bfe172c9bba405ed94ba53"
+  integrity sha512-VMOZDWw7HtNtLbjIuHIhVArm9PlV0gxpz32jAl1IuXWlIgbr1lKFoTsrtvEzY8a9BIpQJEE5DwNPKD50otTs6g==
   dependencies:
     "@types/node" "*"
 
